@@ -37,3 +37,6 @@ npx web-push generate-vapid-keys
 
 ## Sviluppo
 Solo file statici: `npx serve public`. Modifiche a schema → nuova migration in `supabase/migrations/`.
+
+
+Deploy attivo su GitHub Pages.
