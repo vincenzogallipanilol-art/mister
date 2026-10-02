@@ -377,7 +377,7 @@ function formOf(p){
  return clamp(Math.round(sc),-5,5);
 }
 /* ===== voto partita: finestra 48h, media dei compagni (senza autovoto, senza estremi) + bonus ===== */
-const H48=48*3600e3,MINV=5,EVO_HI=7,EVO_MIN=6.5;
+const H48=48*3600e3,MINV=6,EVO_HI=7,EVO_MIN=6.5;
 const mOpen=m=>!!(m.vote&&Date.now()<m.vote.until);
 const rawBonus=(m,id,T)=>suggestRating(m,id,T,true)-6;
 function mr(m,id){
@@ -400,13 +400,12 @@ function evoCount(p){
  return n;
 }
 const evoKeys=p=>Object.entries(W[PROF[p.roles[0]]]).sort((a,b)=>b[1]-a[1]).slice(0,4).map(x=>x[0]);
-/* statistiche effettive: base admin conta come 3 voti, compagni (min 5 votanti, no autovoto, scartati max e min) */
+/* statistiche effettive: con almeno MINV votanti (no autovoto) la base diventa la media dei loro voti; chi non ha toccato un attributo conferma la base admin */
 function computeEff(){
  const by={};S.ratings.forEach(r=>{if(r.r!==r.t)(by[r.t]=by[r.t]||[]).push(r)});
  S.players.forEach(p=>{const R=by[p.id]||[],e={},n=evoCount(p),tk=n?evoKeys(p):[],ok=R.length>=MINV;
   KEYS.forEach(k=>{const b=clamp((p.s[k]??DEF[k])+(tk.includes(k)?n:0),1,99);let v=b;
-   if(ok){let a=R.filter(r=>r.s&&r.s[k]!=null).map(r=>r.s[k]).sort((x,y)=>x-y);
-    if(a.length>=5)a=a.slice(1,-1);if(a.length)v=(3*b+a.reduce((x,y)=>x+y,0))/(3+a.length)}
+   if(ok)v=R.reduce((t,r)=>t+(r.s&&r.s[k]!=null?r.s[k]:b),0)/R.length
    e[k]=Math.round(softCap(v,capOf(p,k)))});
   setHid(p,'_e',e);setHid(p,'_n',R.length);setHid(p,'_prov',!ok);setHid(p,'_ev',n);setHid(p,'_f',formOf(p))});
 }
@@ -805,7 +804,9 @@ function rateModal(pid){
 }
 function ratingAdminHTML(p){
  if(!VA())return'';const rs=S.ratings.filter(r=>r.t===p.id&&r.r!==r.t).sort((a,b)=>(b.at||0)-(a.at||0));if(!rs.length)return'';
- return`<h3>Admin · riattiva valutazioni</h3><div class="panel">${rs.map(r=>`<div class="row sp" style="padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><span><b>${esc(nm(r.r))}</b> <span class="mut small">${r.at?fdate(r.at,{day:'numeric',month:'short'}):''}</span></span>${r.open?'<span class="tag">Riattivata</span>':`<button class="btn sec sm" data-act="rateReopen" data-id="${r.id}">Riattiva</button>`}</div>`).join('')}</div>`;
+ const gs=GROUPS.filter(g=>g.id!=='por'||isGK(p));
+ const full=r=>gs.map(g=>`<div class="small mut" style="margin:8px 0 2px;font-weight:700">${g.name}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 14px">${g.stats.map(([k,l])=>{const t=r.s&&r.s[k]!=null,v=t?r.s[k]:clamp(p.s[k]??DEF[k],1,99);return`<div class="row sp" style="font-size:12.5px;${t?'':'opacity:.45'}"><span>${l}</span><b>${v}</b></div>`}).join('')}</div>`).join('');
+ return`<h3>Admin · votazioni e riattivazione</h3><div class="panel">${rs.map(r=>`<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13px"><div class="row sp"><span><b>${esc(nm(r.r))}</b> <span class="mut small">${r.at?fdate(r.at,{day:'numeric',month:'short'}):''}</span></span>${r.open?'<span class="tag">Riattivata</span>':`<button class="btn sec sm" data-act="rateReopen" data-id="${r.id}">Riattiva</button>`}</div><details style="margin-top:4px"><summary class="small mut" style="cursor:pointer">Vedi votazione completa</summary>${full(r)}<div class="small mut" style="margin-top:6px">Grigio = non modificato (base ${'admin'}).</div></details></div>`).join('')}</div>`;
 }
 function ratingLogHTML(p){
  const rows=[];S.ratings.filter(r=>r.t===p.id).forEach(r=>(r.log||[]).forEach(e=>rows.push({at:e.at,by:r.r,s:e.s})));
