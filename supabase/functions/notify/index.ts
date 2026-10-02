@@ -1,37 +1,46 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-// @deno-types="npm:@types/web-push"
-import webpush from 'npm:web-push'
+import webpush from 'npm:web-push@3.6.7'
 
-const VAPID_PUBLIC = Deno.env.get('VAPID_PUBLIC_KEY')!
-const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY')!
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const cors = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
 
-webpush.setVapidDetails('mailto:admin@mister.app', VAPID_PUBLIC, VAPID_PRIVATE)
+webpush.setVapidDetails(
+  'mailto:vincenzogallipanilol@gmail.com',
+  Deno.env.get('VAPID_PUBLIC_KEY')!,
+  Deno.env.get('VAPID_PRIVATE_KEY')!,
+)
 
-serve(async (req) => {
-  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 })
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
+  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: cors })
 
-  let body: { title?: string; body?: string; url?: string } = {}
-  try { body = await req.json() } catch (_) { return new Response('Bad JSON', { status: 400 }) }
+  let body: { title?: string; body?: string; url?: string; type?: string | null } = {}
+  try { body = await req.json() } catch (_) { /* body vuoto */ }
 
-  const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-  const { data: subs, error } = await sb.from('push_subs').select('sub')
-  if (error) return new Response(error.message, { status: 500 })
+  const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+  const { data: subs, error } = await sb.from('push_subs').select('endpoint, sub, prefs')
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } })
+
+  // Filtra per tipo: invia se la preferenza non è esplicitamente false
+  const type = body.type || null
+  const targets = (subs || []).filter((r) => !type || (r.prefs || {})[type] !== false)
 
   const payload = JSON.stringify({ title: body.title || 'MISTER', body: body.body || '', url: body.url || './' })
-  const results = await Promise.allSettled(
-    (subs || []).map(row => webpush.sendNotification(row.sub, payload).catch(async (e: { statusCode?: number }) => {
-      // Remove expired/invalid subscriptions
-      if (e.statusCode === 404 || e.statusCode === 410) {
-        await sb.from('push_subs').delete().eq('endpoint', row.sub.endpoint)
-      }
-      throw e
-    }))
-  )
-  const sent = results.filter(r => r.status === 'fulfilled').length
-  return new Response(JSON.stringify({ sent, total: subs?.length ?? 0 }), {
-    headers: { 'Content-Type': 'application/json' }
+  let sent = 0
+  await Promise.all(targets.map(async (r) => {
+    try {
+      await webpush.sendNotification(r.sub, payload)
+      sent++
+    } catch (e) {
+      const code = (e as { statusCode?: number }).statusCode
+      if (code === 404 || code === 410) await sb.from('push_subs').delete().eq('endpoint', r.endpoint)
+    }
+  }))
+
+  return new Response(JSON.stringify({ sent, total: targets.length }), {
+    headers: { ...cors, 'Content-Type': 'application/json' },
   })
 })
