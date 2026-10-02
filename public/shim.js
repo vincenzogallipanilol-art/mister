@@ -52,7 +52,7 @@ function ensureAuth(){return authP||(authP=(async()=>{
  let sess=getSession();
  if(sess){
   // Rivalida il token al boot (in background, non blocca)
-  sb.rpc('validate_token',{p_token:sess.token}).then(({data})=>{if(!data||!data.valid){localStorage.removeItem(AUTH_KEY);location.reload()}});
+  sb.rpc('validate_token',{p_token:sess.token}).then(({data,error})=>{if(!error&&data&&data.valid===false){localStorage.removeItem(AUTH_KEY);location.reload()}}).catch(()=>{});
  } else {
   sess=await tokenUI();
   setSession(sess);
