@@ -122,7 +122,10 @@ window.MisterPush={
   const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(C.vapid)});
   const {error}=await sb.from('push_subs').upsert({endpoint:sub.endpoint,user_id:ME.id,sub:sub.toJSON()});
   if(error)throw error;return true},
- async notify(title,body,url){const {data,error}=await sb.functions.invoke('notify',{body:{title,body,url}});if(error)throw error;return data}
+ async endpoint(){if(!this.supported())return null;const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();return sub?sub.endpoint:null},
+ async getPrefs(){const ep=await this.endpoint();if(!ep)return{};const {data,error}=await sb.from('push_subs').select('prefs').eq('endpoint',ep).maybeSingle();if(error)throw error;return(data&&data.prefs)||{}},
+ async setPrefs(prefs){const ep=await this.endpoint();if(!ep)throw new Error('Attiva prima le notifiche');const {error}=await sb.from('push_subs').update({prefs}).eq('endpoint',ep);if(error)throw error;return true},
+ async notify(title,body,url,type){const {data,error}=await sb.functions.invoke('notify',{body:{title,body,url,type:type||null}});if(error)throw error;return data}
 };
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
