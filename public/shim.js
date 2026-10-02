@@ -1,58 +1,74 @@
-/* Adattatore: espone a MISTER la stessa interfaccia "window.claude" (db, user) sopra Supabase */
+/* Adattatore Supabase per MISTER – auth tramite token nominativo */
 (()=>{
 const C=window.MISTER_CFG||{};
-const sb=window.supabase.createClient(C.url,C.anon,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let ME=null; // {id,role,name}
+const sb=window.supabase.createClient(C.url,C.anon,{auth:{persistSession:false}});
+const AUTH_KEY='mister_session';
+let ME=null;
+
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---- UI overlay ---- */
 const CSS=`#auth{position:fixed;inset:0;z-index:99999;background:#0e0e10;color:#f2f4f7;display:flex;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif}
-#auth .box{width:100%;max-width:360px}#auth h1{letter-spacing:.2em;margin:0 0 4px;font-size:28px}#auth h1 b{color:#d1ff42}
-#auth p{color:#9096a0;font-size:14px;margin:0 0 18px}#auth input{width:100%;box-sizing:border-box;background:#18181b;border:1px solid #2b2b30;color:#f2f4f7;border-radius:12px;padding:13px;font-size:16px;margin-bottom:10px}
-#auth button{width:100%;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:700;background:#d1ff42;color:#12160a;margin-bottom:10px;cursor:pointer}
-#auth button.sec{background:#232327;color:#f2f4f7;font-weight:600}#auth .err{color:#ff7b7b;font-size:13px;min-height:18px;margin-bottom:8px}`;
+#auth .box{width:100%;max-width:340px;text-align:center}
+#auth h1{letter-spacing:.25em;margin:0 0 4px;font-size:32px;font-weight:900}#auth h1 b{color:#d1ff42}
+#auth p{color:#9096a0;font-size:14px;margin:0 0 24px;line-height:1.5}
+#auth input{width:100%;box-sizing:border-box;background:#18181b;border:1px solid #2b2b30;color:#f2f4f7;border-radius:14px;padding:14px 16px;font-size:17px;margin-bottom:10px;text-align:center;letter-spacing:.08em;outline:none;-webkit-appearance:none}
+#auth input:focus{border-color:#d1ff42}
+#auth button{width:100%;border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:800;background:#d1ff42;color:#12160a;cursor:pointer;letter-spacing:.04em}
+#auth .err{color:#ff7b7b;font-size:13px;min-height:18px;margin-bottom:10px}`;
 const st=document.createElement('style');st.textContent=CSS;document.head.appendChild(st);
-function overlay(html){let a=$('#auth');if(!a){a=document.createElement('div');a.id='auth';document.body.appendChild(a)}a.innerHTML=`<div class="box"><h1>MIS<b>TER</b></h1>${html}</div>`;return a}
+
+function overlay(html){let a=$('#auth');if(!a){a=document.createElement('div');a.id='auth';document.body.appendChild(a)}a.innerHTML=`<div class="box">${html}</div>`;return a}
 const closeOv=()=>{const a=$('#auth');if(a)a.remove()};
 
-function loginUI(){return new Promise(res=>{
- let mode='in';
- const draw=(err='')=>{overlay(`<p>${mode==='in'?'Accedi per continuare':'Crea il tuo account'}</p><div class="err">${esc(err)}</div>
-  <input id="au_e" type="email" placeholder="Email" autocomplete="email"><input id="au_p" type="password" placeholder="Password (min. 6)" autocomplete="${mode==='in'?'current-password':'new-password'}">
-  <button id="au_go">${mode==='in'?'Accedi':'Registrati'}</button>
-  ${C.google?'<button class="sec" id="au_g">Continua con Google</button>':''}
-  <button class="sec" id="au_m">${mode==='in'?'Non hai un account? Registrati':'Hai già un account? Accedi'}</button>`);
-  $('#au_m').onclick=()=>{mode=mode==='in'?'up':'in';draw()};
-  if($('#au_g'))$('#au_g').onclick=()=>sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
-  $('#au_go').onclick=async()=>{const email=$('#au_e').value.trim(),password=$('#au_p').value;
-   if(!email||password.length<6)return draw('Email e password (min. 6 caratteri)');
-   const r=mode==='in'?await sb.auth.signInWithPassword({email,password}):await sb.auth.signUp({email,password});
-   if(r.error)return draw(r.error.message);
-   if(!r.data.session)return draw('Conferma l\'email dal messaggio ricevuto, poi accedi.');
-   res(r.data.session)}};
+/* ---- Token UI ---- */
+function tokenUI(){return new Promise(res=>{
+ const draw=(err='')=>{overlay(`
+  <h1>MIS<b>TER</b></h1>
+  <p>Inserisci il token ricevuto<br>dall'amministratore</p>
+  <div class="err">${esc(err)}</div>
+  <input id="tk_in" type="text" placeholder="il tuo token" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+  <button id="tk_go">Entra →</button>`);
+  const inp=$('#tk_in');
+  if(inp)setTimeout(()=>inp.focus(),80);
+  $('#tk_go').onclick=async()=>{
+   const token=$('#tk_in').value.trim().toLowerCase();
+   if(!token)return draw('Inserisci il token');
+   $('#tk_go').textContent='...';$('#tk_go').disabled=true;
+   const {data,error}=await sb.rpc('validate_token',{p_token:token});
+   if(error||!data||!data.valid)return draw('Token non riconosciuto');
+   res({token,...data})
+  };
+  inp&&inp.addEventListener('keydown',e=>e.key==='Enter'&&$('#tk_go').click())};
  draw()})}
 
-function inviteUI(){return new Promise(res=>{
- const pre=new URLSearchParams(location.search).get('invite')||'';
- const draw=(err='')=>{overlay(`<p>Serve un codice d'invito dell'amministratore.</p><div class="err">${esc(err)}</div>
-  <input id="iv_n" placeholder="Il tuo nome" autocomplete="name"><input id="iv_c" placeholder="Codice invito" value="${esc(pre)}" autocapitalize="off">
-  <button id="iv_go">Entra</button><button class="sec" id="iv_out">Esci</button>`);
-  $('#iv_out').onclick=async()=>{await sb.auth.signOut();location.reload()};
-  $('#iv_go').onclick=async()=>{const code=$('#iv_c').value.trim();if(!code)return draw('Inserisci il codice');
-   const {data,error}=await sb.rpc('redeem_invite',{p_code:code,p_name:$('#iv_n').value.trim()||null});
-   if(error)return draw(error.message.includes('invito')?'Invito non valido o scaduto':error.message);
-   res(data)}};
- draw()})}
+/* ---- Sessione ---- */
+function getSession(){try{return JSON.parse(localStorage.getItem(AUTH_KEY))}catch(e){return null}}
+function setSession(s){try{localStorage.setItem(AUTH_KEY,JSON.stringify(s))}catch(e){}}
 
 let authP=null;
 function ensureAuth(){return authP||(authP=(async()=>{
- let {data:{session}}=await sb.auth.getSession();
- if(!session)session=await loginUI();
- let {data:prof}=await sb.from('profiles').select('id,role,name').eq('id',session.user.id).maybeSingle();
- if(!prof){await inviteUI();({data:prof}=await sb.from('profiles').select('id,role,name').eq('id',session.user.id).maybeSingle())}
- ME={id:session.user.id,role:prof?prof.role:'player',name:prof&&prof.name};
- closeOv();window.MISTER_ME=ME;return ME})())}
+ let sess=getSession();
+ if(sess){
+  // Rivalida il token al boot (in background, non blocca)
+  sb.rpc('validate_token',{p_token:sess.token}).then(({data})=>{if(!data||!data.valid){localStorage.removeItem(AUTH_KEY);location.reload()}});
+ } else {
+  sess=await tokenUI();
+  setSession(sess);
+  closeOv();
+ }
+ ME={id:sess.token,role:sess.role||'player',pid:sess.pid||null,name:sess.name||null};
+ window.MISTER_ME=ME;
+ // Auto-crea link giocatore se non esiste
+ if(ME.pid){
+  sb.from('docs').select('id').eq('path','links/'+ME.id).maybeSingle().then(({data})=>{
+   if(!data)sb.from('docs').upsert({path:'links/'+ME.id,col:'links',id:ME.id,data:{id:ME.id,p:ME.pid}});
+  });
+ }
+ return ME})())}
 
-/* ---- db ---- */
+/* ---- DB ---- */
 const listeners=new Set();let chan=null,tm=null;
 function startRT(){if(chan)return;chan=sb.channel('docs').on('postgres_changes',{event:'*',schema:'public',table:'docs'},()=>{clearTimeout(tm);tm=setTimeout(()=>listeners.forEach(f=>f()),120)}).subscribe();
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)listeners.forEach(f=>f())})}
@@ -70,13 +86,31 @@ const db={
   onSnapshot(cb,err){const f=()=>this.get().then(cb).catch(err||(()=>{}));listeners.add(f);startRT();f();return()=>listeners.delete(f)}})
 };
 
+/* ---- Admin: token per giocatori ---- */
+window.MisterTokenAdmin={
+ async listTokens(){
+  const {data}=await sb.from('invites').select('code,role,pid').eq('role','player');
+  return data||[];
+ },
+ async createToken(adminToken,pid){
+  const {data,error}=await sb.rpc('create_player_token',{p_admin_token:adminToken,p_pid:pid});
+  if(error)throw new Error(error.message);
+  return data;
+ },
+ async revokeToken(adminToken,pid){
+  const {data,error}=await sb.rpc('revoke_player_token',{p_admin_token:adminToken,p_pid:pid});
+  if(error)throw new Error(error.message);
+  return data;
+ }
+};
+
 window.claude={use:async n=>{
  if(n==='db'){await ensureAuth();return db}
  if(n==='user'){const m=await ensureAuth();return{id:async()=>m.id,canEdit:()=>m.role==='admin',isOwner:()=>false}}
  return null}};
 window.MisterSB=sb;
 
-/* ---- push ---- */
+/* ---- Push ---- */
 const b64=s=>{const p='='.repeat((4-s.length%4)%4),r=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...r].map(c=>c.charCodeAt(0)))};
 window.MisterPush={
  supported:()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window,
