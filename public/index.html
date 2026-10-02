@@ -74,6 +74,7 @@ label{font-size:12px;color:var(--mut);display:block;margin:10px 0 4px}
 .c-st div{display:flex;align-items:baseline;justify-content:space-between;font-size:6.2cqw;font-weight:600;letter-spacing:.3cqw;opacity:.95}
 .c-st b{font-size:8.4cqw;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;order:2}
 .c-st span{opacity:.75;order:1}
+.c-ok{position:absolute;left:0;right:0;top:128cqw;text-align:center;font-size:11cqw;font-weight:800;line-height:1;color:rgba(34,197,94,.6);z-index:3;pointer-events:none}
 .c-form{font-size:5.4cqw;font-weight:800;margin-top:2.5cqw}
 .c-prov{font-size:3.4cqw;font-weight:800;opacity:.7;margin-top:2cqw;letter-spacing:.2cqw}
 .c-form.up{color:#0b7a3f}.c-form.dn{color:#b3261e}
@@ -547,9 +548,10 @@ function pstats(id,from){
 function av(p,sz){return`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${sz*.36}px">${p.photo?`<img src="${p.photo}">`:ini(p.name)}</div>`}
 const tierOf=o=>o>=90?'t5':o>=85?'t4':o>=75?'t3':o>=65?'t2':'t1';
 const metaOf=p=>[p.age?p.age+' anni':'',p.h?p.h+' cm':'',p.w?p.w+' kg':''].filter(Boolean).join(' · ');
+function ratedByMe(pid){const me=myPid();return !!me&&me!==pid&&S.ratings.some(r=>r.id===pid+'_'+me&&r.r!==r.t&&!r.open)}
 function card(p){
  const f=face(p),o=ovr(p),m=metaOf(p);
- return`<div class="cardw" data-act="openP" data-id="${p.id}"><div class="card ${tierOf(o)}"><div class="c-left"><div class="c-ovr">${o}</div><div class="c-role">${p.roles[0]}</div><div class="c-sep"></div>${p.num!==''&&p.num!=null?`<div class="c-num">${esc(p.num)}</div>`:''}${p._f?`<div class="c-form ${p._f>0?'up':'dn'}">${p._f>0?'▲':'▼'}${Math.abs(p._f)}</div>`:''}${p._prov?'<div class="c-prov">PROV.</div>':''}</div><div class="c-ph">${p.photo?`<img src="${p.photo}">`:`<span>${ini(p.name)}</span>`}</div><div class="c-name">${esc(p.name)}</div><div class="c-meta">${m||'&nbsp;'}</div><div class="c-st">${f.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div></div></div>`;
+ return`<div class="cardw" data-act="openP" data-id="${p.id}"><div class="card ${tierOf(o)}"><div class="c-left"><div class="c-ovr">${o}</div><div class="c-role">${p.roles[0]}</div><div class="c-sep"></div>${p.num!==''&&p.num!=null?`<div class="c-num">${esc(p.num)}</div>`:''}${p._f?`<div class="c-form ${p._f>0?'up':'dn'}">${p._f>0?'▲':'▼'}${Math.abs(p._f)}</div>`:''}${p._prov?'<div class="c-prov">PROV.</div>':''}</div><div class="c-ph">${p.photo?`<img src="${p.photo}">`:`<span>${ini(p.name)}</span>`}</div><div class="c-name">${esc(p.name)}</div><div class="c-meta">${m||'&nbsp;'}</div><div class="c-st">${f.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>${ratedByMe(p.id)?'<div class="c-ok">✓</div>':''}</div></div>`;
 }
 function radar(f){
  const c=100,R=68,n=6,pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[c+r*Math.cos(a),c+r*Math.sin(a)]};
@@ -784,6 +786,7 @@ function voteBox(m){
 }
 function checkClose(){
  if(!ADM||!ready)return;
+ if(S.ratings.some(r=>r.r===r.t)){S.ratings=S.ratings.filter(r=>r.r!==r.t);save()}
  {const lim=Date.now()-30*864e5;if(S.notifs.some(n=>n.at<lim)){S.notifs=S.notifs.filter(n=>n.at>=lim);save()}}
  S.matches.forEach(m=>{if(m.vote&&!mOpen(m)&&!m.vote.done){m.vote.done=true;save();
   const pl=[...(m.A.played||m.A.pids),...(m.B.played||m.B.pids)].filter(id=>getP(id)),t=`${m.A.name} ${m.sa}-${m.sb} ${m.B.name}`;
@@ -799,6 +802,10 @@ function rateModal(pid){
  openModal(`<h2>Valuta ${esc(p.name)}</h2><p class="small mut">Muovi solo gli attributi che vuoi proporre: la media con le altre valutazioni aggiornerà il giocatore.</p>
  ${GROUPS.filter(g=>g.id!=='por'||gk).map(g=>`<h3>${g.name}</h3>${g.stats.map(([k,l])=>{const v=RT.s[k]??sv(p,k);return`<div class="sl"><span>${l}</span><input type="range" min="1" max="99" value="${v}" data-rs="${k}"><b id="rv_${k}">${v}</b></div>`}).join('')}`).join('')}
  <div class="row" style="margin-top:18px"><button class="btn grow" data-act="rateSave">Invia valutazione</button><button class="btn sec" data-act="closeM">Annulla</button></div>`);
+}
+function ratingAdminHTML(p){
+ if(!VA())return'';const rs=S.ratings.filter(r=>r.t===p.id&&r.r!==r.t).sort((a,b)=>(b.at||0)-(a.at||0));if(!rs.length)return'';
+ return`<h3>Admin · riattiva valutazioni</h3><div class="panel">${rs.map(r=>`<div class="row sp" style="padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><span><b>${esc(nm(r.r))}</b> <span class="mut small">${r.at?fdate(r.at,{day:'numeric',month:'short'}):''}</span></span>${r.open?'<span class="tag">Riattivata</span>':`<button class="btn sec sm" data-act="rateReopen" data-id="${r.id}">Riattiva</button>`}</div>`).join('')}</div>`;
 }
 function ratingLogHTML(p){
  const rows=[];S.ratings.filter(r=>r.t===p.id).forEach(r=>(r.log||[]).forEach(e=>rows.push({at:e.at,by:r.r,s:e.s})));
@@ -1191,14 +1198,14 @@ function playerPage(p,own){
  <div style="margin:6px 0"><div style="font-size:20px;font-weight:800">${esc(p.name)} ${p.num!==''&&p.num!=null?`<span class="mut">#${esc(p.num)}</span>`:''}${own&&VA()?` <button class="btn sec sm" data-act="editP" data-id="${p.id}" style="vertical-align:middle">✎</button>`:''}</div>
  ${metaOf(p)?`<div class="mut small">${metaOf(p)}</div>`:''}
  <div class="row wrap" style="margin-top:6px"><span class="formb ${p._f>0?'up':p._f<0?'dn':'z'}">Forma ${p._f>0?'▲ +'+p._f:p._f<0?'▼ '+p._f:'stabile'}</span>${p._prov?`<span class="tag">⏳ Provvisoria · ${p._n}/${MINV} votanti</span>`:`<span class="tag">${p._n} votanti</span>`}${p._ev?`<span class="tag" style="color:#34d399">▲ +${p._ev} crescita</span>`:''}${isMe&&!own?'<span class="tag">Sei tu</span>':''}${p.roles.map((r,i)=>`<span class="chip ${i?'':'on'}" style="padding:2px 9px;font-size:12px">${r} · ${roleOvr(p,r)}</span>`).join('')}</div></div>
- <div class="row" style="margin:8px 0">${me&&!isMe?`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ Proponi valutazione</button>`:''}${isMe?`<button class="btn sec" data-act="myPhoto">📷 Foto</button>`:''}${VA()&&lk&&!own?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
+ <div class="row" style="margin:8px 0">${me&&!isMe?(ratedByMe(p.id)?`<button class="btn sec grow" disabled style="opacity:.7">✓ Valutazione inviata</button>`:`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ ${S.ratings.some(r=>r.id===p.id+'_'+me)?'Rifai la valutazione':'Proponi valutazione'}</button>`):''}${isMe?`<button class="btn sec" data-act="myPhoto">📷 Foto</button>`:''}${VA()&&lk&&!own?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
  <h3>Stagione</h3><div class="tiles5">${tiles.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
  <details class="panel" style="margin-top:8px;padding:8px 12px"><summary class="small mut" style="cursor:pointer">Altre statistiche</summary><div class="tiles" style="margin-top:8px">${more.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div></details>
  <h3>Andamento overall</h3><div class="panel">${ovrChart(p)}</div>
  ${ms.length?`<h3>Ultime partite</h3><div class="panel lms">${ms.map(m=>resChip(m,p)).join('')}</div>`:''}
  ${bachecaHTML(p)}
  <h3>Chimica</h3>${chemHTML(p)}
- <h3>Valutazioni ricevute</h3>${ratingLogHTML(p)}
+ <h3>Valutazioni ricevute</h3>${ratingLogHTML(p)}${ratingAdminHTML(p)}
  <h3>Attributi</h3>${GROUPS.filter(g=>g.id!=='por'||gk||p.roles.includes('GK')).map(g=>`<div class="panel"><div class="small mut row sp" style="margin-bottom:4px;font-weight:700"><span>${g.name.toUpperCase()}</span><span class="v ${vcls(gval(p,g.id))}" style="font-size:16px">${gval(p,g.id)}</span></div><div class="attr">${g.stats.map(([k,l])=>`<div><span>${l}</span><span class="v ${vcls(sv(p,k))}">${sv(p,k)}</span></div>`).join('')}</div></div>`).join('')}`;
 }
 function viewProfile(){
@@ -1347,15 +1354,16 @@ const A={
  claimSkip:()=>{try{localStorage.setItem('mister_noclaim','1')}catch(e){}closeModal()},
  unlink:d=>{S.links=S.links.filter(l=>l.id!==d.id);save();render()},
  /* valutazioni */
- rateP:d=>{if(!myPid()){claimModal();return}rateModal(d.id)},
+ rateP:d=>{if(!myPid()){claimModal();return}if(ratedByMe(d.id)){toast('Hai già valutato: chiedi all\'admin di riattivarla');return}rateModal(d.id)},
+ rateReopen:d=>{const r=S.ratings.find(x=>x.id===d.id);if(!r||!VA())return;ASK('Riattivare a <b>'+esc(nm(r.r))+'</b> la valutazione di <b>'+esc(nm(r.t))+'</b>? Il voto attuale resta valido finché ne invia uno nuovo.',()=>{r.open=true;save();NT('rate_request','✍️ Puoi rifare la valutazione','Hai di nuovo accesso alla valutazione di '+nm(r.t),'./?tab=players',[r.r]);closeModal();render();toast('Valutazione riattivata')})},
  voteOpen:d=>voteModal(d.id),
  voteClose:d=>ASK('Chiudere ora la votazione e pubblicare i voti finali?',()=>{const m=S.matches.find(x=>x.id===d.id);if(!m||!m.vote)return;m.vote.until=Date.now()-1;save();render()}),
  voteSave:()=>{const me=myPid();if(!MV||!me)return;const m=S.matches.find(x=>x.id===MV.m);if(!m||!mOpen(m)){toast('Votazione chiusa');closeModal();return}
   const ids=[...(m.A.played||m.A.pids),...(m.B.played||m.B.pids)].filter(id=>id!==me&&getP(id));const v={};ids.forEach(id=>v[id]=clamp(MV.v[id]??6,1,10));
   const id=m.id+'_'+me;let r=S.mvotes.find(x=>x.id===id);if(!r){r={id,m:m.id,r:me,v:{}};S.mvotes.push(r)}r.v=v;r.at=Date.now();MV=null;save();closeModal();render();toast('Voti inviati ✓')},
- rateSave:()=>{const me=myPid();if(!RT||!me)return;const ks=Object.keys(RT.touched);if(!ks.length){toast('Nessuna modifica');return}
+ rateSave:()=>{const me=myPid();if(!RT||!me)return;if(RT.t===me||ratedByMe(RT.t)){toast('Valutazione non consentita');closeModal();return}const ks=Object.keys(RT.touched);if(!ks.length){toast('Nessuna modifica');return}
   const id=RT.t+'_'+me;let r=S.ratings.find(x=>x.id===id);if(!r){r={id,t:RT.t,r:me,s:{},log:[]};S.ratings.push(r)}
-  const ch={};ks.forEach(k=>{r.s[k]=RT.touched[k];ch[k]=RT.touched[k]});r.log=(r.log||[]).concat([{at:Date.now(),s:ch}]).slice(-15);r.at=Date.now();
+  const ch={};ks.forEach(k=>{r.s[k]=RT.touched[k];ch[k]=RT.touched[k]});r.log=(r.log||[]).concat([{at:Date.now(),s:ch}]).slice(-15);r.at=Date.now();r.open=false;
   const tg=RT.t;RT=null;save();closeModal();render();toast('Valutazione inviata');
   if(!S.notifs.some(n=>n.to&&n.to[0]===tg&&n.title.startsWith('✍️')&&Date.now()-n.at<36e5))NT('rate_request','✍️ Un compagno ha valutato la tua card','Guarda come cambiano le tue statistiche','./?tab=prof',[tg])},
  /* chimica */
