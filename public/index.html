@@ -4,11 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MISTER – Gestionale squadre</title>
-<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0e0e10">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="MISTER">
-<link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" type="image/svg+xml" href="icon.svg">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="shim.js"></script>
 <style>
 :root{--bg:#0e0e10;--bg2:#151517;--card:#1c1c1f;--line:#2b2b30;--tx:#f2f4f7;--mut:#9096a0;--ac:#d1ff42;--ac2:#c7d1dd;--gold:#f5c542;--red:#ef4444;--yel:#facc15}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -163,6 +158,7 @@ nav button:nth-child(3).on{color:var(--ac)}
 body{padding-bottom:96px}
 .rsvp button.on{background:rgba(209,255,66,.14);border-color:var(--ac);color:var(--ac)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="shim.js"></script>
 </head>
 <body>
 <header><h1>MIS<span>TER</span></h1><button class="btn sec sm" data-act="menu">⋮</button></header>
@@ -230,7 +226,7 @@ async function initDB(){
  const legacy=ADM&&S.players.length?JSON.parse(JSON.stringify(S)):null;
  let n=0;const first=()=>{if(++n<ALLCOLS.length+2)return;ready=true;
   if(legacy&&!S.players.length&&!S.rosters.length&&!S.matches.length){S.players=legacy.players;S.rosters=legacy.rosters;S.matches=legacy.matches;save();toast('Dati locali caricati online')}
-  render();deepLink()};
+  render()};
  let got={};
  const err=e=>toast('Sync non disponibile'+(e&&e.code?' ('+e.code+')':''));
  const applyCol=(name,snap)=>{for(const k of [...shadow.keys()])if(k.startsWith(name+'/'))shadow.delete(k);
@@ -496,7 +492,7 @@ function viewPlayer(p){
  ${metaOf(p)?`<div class="mut small" style="margin-top:2px">${metaOf(p)}</div>`:''}
  <div class="row wrap" style="margin-top:6px"><span class="formb ${p._f>0?'up':p._f<0?'dn':'z'}">Forma ${p._f>0?'▲ +'+p._f:p._f<0?'▼ '+p._f:'stabile'}</span>${p._n?`<span class="tag">${p._n} valutazion${p._n===1?'e':'i'} dei compagni</span>`:''}${isMe?'<span class="tag">Sei tu</span>':''}</div>
  <div class="row wrap" style="margin-top:6px">${p.roles.map((r,i)=>`<span class="chip ${i?'':'on'}">${r} · ${roleOvr(p,r)}</span>`).join('')}</div></div>
- <div class="row" style="margin-top:10px">${me?`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ Proponi valutazione</button>`:UID?`<button class="btn sec grow" data-act="claim">Collega il tuo profilo per valutare</button>`:''}${ADM&&lk?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
+ <div class="row" style="margin-top:10px">${me?`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ Proponi valutazione</button>`:''}${ADM&&lk?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
  <h3>Storico overall</h3><div class="panel">${ovrChart(p)}</div>
  <h3>Stagione</h3><div class="tiles">${tiles.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
  <h3>Chimica</h3>${chemHTML(p)}
@@ -654,14 +650,11 @@ function viewMatchDet(m){
 
 
 /* ===== identità, valutazioni, storico, chimica, condivisione, eventi ===== */
-const APP_URL=location.origin+location.pathname.replace(/[^/]*$/,'');
+const APP_URL='https://claude.ai/artifact/RUcTCRT2ueje958QD1AM5t';
 const myPid=()=>{if(!UID)return null;const l=S.links.find(x=>x.id===UID);return l&&getP(l.p)?l.p:null};
 const fdate=(iso,o)=>{try{return new Date(iso).toLocaleString('it-IT',o||{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return iso}};
 const nm=id=>{const p=getP(id);return p?p.name:'?'};
 
-function deepLink(){try{const q=new URLSearchParams(location.search);if(q.get('e')){S.ui.tab='match';render();history.replaceState(null,'',location.pathname)}else if(q.get('invite'))history.replaceState(null,'',location.pathname)}catch(e){}}
-async function pushNotify(e){try{if(!window.MisterPush)return;const who=nm(myPid())||'Un admin';
- await MisterPush.notify('⚽ Nuova partita: calcetto a '+e.format,`${who} propone ${fdate(e.when,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${e.place?' a '+e.place:''}. Ci sei?`,'./?e='+e.id)}catch(x){toast('Notifica non inviata')}}
 function claimModal(){
  const taken=new Set(S.links.map(l=>l.p));
  const free=S.players.filter(p=>!taken.has(p.id)).sort((a,b)=>a.name.localeCompare(b.name));
@@ -775,7 +768,7 @@ function viewHome(){
  const evs=S.events.filter(e=>e.status!=='closed'&&new Date(e.when).getTime()>=now).sort((a,b)=>a.when.localeCompare(b.when));
  const pend=me?evs.filter(e=>!rsvpOf(e.id,me)):[];
  if(!p){
-  return`<h2>Home</h2>${UID?`<div class="panel"><b>Benvenuto!</b><div class="small mut" style="margin:6px 0 10px">Collega il tuo profilo giocatore per vedere card, statistiche e inviti personali.</div><button class="btn" data-act="claim">Collega il mio profilo</button></div>`:''}${evs.length?viewEvents():`<div class="panel mut small">Nessuna partita in programma.</div>`}`}
+  return`<h2>Home</h2>${evs.length?viewEvents():`<div class="panel mut small">Nessuna partita in programma.</div>`}`}
  const st=pstats(p.id),nx=evs[0],mine=nx?rsvpOf(nx.id,me):null;
  const ms=S.matches.filter(m=>playedIn(m,p.id)).sort((a,b)=>b.date-a.date),last=ms[0];
  const res=ms.slice(0,6).reverse().map(m=>{const T=playedIn(m,p.id),o=T==='A'?m.sa:m.sb,q=T==='A'?m.sb:m.sa;return o>q?['V','#d1ff42']:o===q?['N','#f5b942']:['P','#ff6b6b']});
@@ -800,7 +793,7 @@ function viewEvents(){
  const now=Date.now()-6*3600e3,me=myPid();
  const evs=S.events.filter(e=>e.status!=='closed'&&new Date(e.when).getTime()>=now).sort((a,b)=>a.when.localeCompare(b.when));
  const head=`<div class="row sp"><h2>Prossime partite</h2>${ADM?`<button class="btn sm" data-act="evNew">+ Proponi</button>`:''}</div>`;
- const noLink=UID&&!me?`<div class="panel row sp"><span class="small">Collega il tuo profilo per confermare la presenza.</span><button class="btn sm" data-act="claim">Collega</button></div>`:'';
+ const noLink='';
  if(!evs.length)return head+noLink+`<div class="panel mut small">Nessuna partita in programma.</div>`;
  return head+noLink+evs.map(e=>{
   const c=confirmed(e.id),mine=me?rsvpOf(e.id,me):null,maybe=S.rsvps.filter(r=>r.e===e.id&&r.v==='m').length,no=S.rsvps.filter(r=>r.e===e.id&&r.v==='n').length,tot=e.format*2;
@@ -920,11 +913,6 @@ const A={
  backM:()=>{S.ui.mid=null;render()},
  delM:d=>ASK('Eliminare la partita? Le statistiche derivate verranno ricalcolate.',()=>{S.matches=S.matches.filter(m=>m.id!==d.id);S.ui.mid=null;save();render()}),
  /* menu */
- /* notifiche e inviti */
- notif:async()=>{try{await MisterPush.enable();toast('Notifiche attivate');closeModal()}catch(e){toast(e.message||'Errore notifiche')}},
- invNew:async()=>{const {data,error}=await MisterSB.from('invites').insert({role:'player'}).select().single();if(error){toast('Errore invito');return}const link=APP_URL+'?invite='+data.code;SHARE=`⚽ Entra in MISTER, l'app della squadra!\n${link}`;shareModal('Invita un giocatore',SHARE)},
- invAdm:()=>ASK('Generare un invito da AMMINISTRATORE?',async()=>{const {data,error}=await MisterSB.from('invites').insert({role:'admin',max_uses:1}).select().single();if(error){toast('Errore invito');return}SHARE=`Invito amministratore MISTER (1 uso):\n${APP_URL}?invite=${data.code}`;shareModal('Invito admin',SHARE)}),
- logout:async()=>{await MisterSB.auth.signOut();location.reload()},
  openMe:()=>{S.ui.tab='players';S.ui.pid=myPid();save();render();window.scrollTo(0,0)},
  /* identità */
  claim:()=>claimModal(),
@@ -957,7 +945,7 @@ const A={
  evFmt:d=>{$('#evF').value=d.n;document.querySelectorAll('[data-act=evFmt]').forEach(c=>c.classList.toggle('on',c.dataset.n===d.n))},
  evSave:()=>{const dd=$('#evD').value,tt=$('#evT').value;if(!dd||!tt){toast('Inserisci data e ora');return}
   const e={id:uid(),when:dd+'T'+tt,format:+$('#evF').value,place:$('#evP').value.trim(),note:$('#evN').value.trim(),status:'open',at:Date.now()};
-  S.events.push(e);const mp=myPid();if(mp)setRsvp(e.id,mp,'y');else save();closeModal();render();pushNotify(e);shareModal('Invita il gruppo',inviteText(e))},
+  S.events.push(e);const mp=myPid();if(mp)setRsvp(e.id,mp,'y');else save();closeModal();render();shareModal('Invita il gruppo',inviteText(e))},
  evShare:d=>{const e=S.events.find(x=>x.id===d.e);if(e)shareModal('Invito partita',inviteText(e))},
  rsvp:d=>{const pid=d.p||myPid();if(!pid)return;setRsvp(d.e,pid,d.v);render()},
  evManage:d=>{const e=S.events.find(x=>x.id===d.e);if(!e)return;EM=e.id;
@@ -966,10 +954,21 @@ const A={
  evUse:d=>{const e=S.events.find(x=>x.id===d.e);if(!e)return;const c=confirmed(e.id);S.setup={format:e.format,A:null,B:null,pool:c};save();render();toast(c.length+' convocati caricati')},
  eventDel:d=>ASK('Eliminare la partita proposta?',()=>{S.events=S.events.filter(x=>x.id!==d.e);S.rsvps=S.rsvps.filter(r=>r.e!==d.e);save();render()}),
  /* menu */
- menu:()=>openModal(`<h2>Menu</h2>${UID?`<div class="row" style="margin-bottom:12px"><button class="btn sec grow" data-act="claim">👤 Il mio profilo${myPid()?': '+esc(nm(myPid())):''}</button></div>`:''}
-  <div class="row wrap" style="margin-bottom:12px"><button class="btn sec grow" data-act="notif">🔔 Attiva notifiche</button></div>
-  ${ADM?`<h3>Inviti</h3><div class="row wrap" style="margin-bottom:12px"><button class="btn grow" data-act="invNew">➕ Invita giocatore</button><button class="btn sec" data-act="invAdm">Invito admin</button></div><h3>Dati</h3><div class="row wrap"><button class="btn sec" data-act="exp">⬇ Esporta backup</button><button class="btn sec" data-act="imp">⬆ Importa backup</button></div><input type="file" id="impF" accept=".json" style="display:none"><div class="row" style="margin-top:14px"><button class="btn dan" data-act="reset">Cancella tutto</button></div>`:''}
-  <div class="row" style="margin-top:14px"><button class="btn sec" data-act="logout">Esci</button><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`),
+ menu:()=>{const me=myPid();openModal(`<h2>Menu</h2>
+  ${me?`<div class="panel" style="margin-bottom:12px"><div class="small mut">Sei collegato come</div><b>${esc(nm(me))}</b></div>`:''}
+  ${ADM?`<h3>Admin</h3><div class="row wrap" style="gap:8px"><button class="btn sec" data-act="tokensPanel">🔑 Token giocatori</button><button class="btn sec" data-act="exp">⬇ Backup</button><button class="btn sec" data-act="imp">⬆ Importa</button></div><input type="file" id="impF" accept=".json" style="display:none"><div class="row" style="margin-top:10px"><button class="btn dan" data-act="reset">Cancella tutto</button></div>`:''}
+  <div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)},
+ tokensPanel:async()=>{
+  if(!window.MisterTokenAdmin){const rows=S.players.map(p=>`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="grow small"><b>${esc(p.name)}</b><br><span class="mut">—</span></span><span class="mut small">Solo su GitHub</span></div>`).join('');return openModal(`<h2>Token giocatori</h2><div class="mut small" style="margin-bottom:10px">I token si generano dall'app su GitHub (con Supabase).<br>Qui sotto i giocatori:</div><div style="max-height:55vh;overflow-y:auto">${rows}</div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)}
+  const myTok=window.MISTER_ME?.id||'';
+  openModal(`<h2>Token giocatori</h2><div class="mut small" style="margin-bottom:12px">Genera un token per ogni giocatore. Inviaglielo direttamente.</div><div id="tkList"><div class="mut small">Caricamento...</div></div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`);
+  const existing=await window.MisterTokenAdmin.listTokens().catch(()=>[]);
+  const byPid=Object.fromEntries(existing.map(t=>[t.pid,t.code]));
+  const rows=S.players.map(p=>{const tok=byPid[p.id]||null;return`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="grow small"><b>${esc(p.name)}</b>${tok?`<br><code style="font-size:12px;color:var(--ac)">${esc(tok)}</code>`:'<br><span class="mut">nessun token</span>'}</span>${tok?`<button class="btn sec sm" data-act="tkCopy" data-tok="${esc(tok)}" title="Copia">📋</button><button class="btn dan sm" data-act="tkRevoke" data-pid="${p.id}" style="margin-left:4px">✕</button>`:`<button class="btn sm" data-act="tkGen" data-pid="${p.id}">Genera</button>`}</div>`}).join('');
+  const el=document.getElementById('tkList');if(el)el.innerHTML=rows||'<div class="mut small">Nessun giocatore.</div>'},
+ tkGen:async d=>{if(!window.MisterTokenAdmin)return;const myTok=window.MISTER_ME?.id||'';try{const r=await window.MisterTokenAdmin.createToken(myTok,d.pid);toast('Token: '+r.token);A.tokensPanel()}catch(e){toast('Errore: '+e.message)}},
+ tkRevoke:d=>ASK('Revocare il token di questo giocatore? Non potrà più accedere.',async()=>{if(!window.MisterTokenAdmin)return;const myTok=window.MISTER_ME?.id||'';try{await window.MisterTokenAdmin.revokeToken(myTok,d.pid);A.tokensPanel()}catch(e){toast('Errore: '+e.message)}}),
+ tkCopy:d=>{navigator.clipboard?.writeText(d.tok).then(()=>toast('Token copiato')).catch(()=>toast(d.tok))},
  exp:async()=>{const data=JSON.stringify(S);let d=null;try{d=window.claude?await window.claude.use('downloads'):null}catch(e){}
   if(d){try{await d.save({filename:'mister-backup.json',data})}catch(e){toast('Download annullato')}return}
   const b=new Blob([data],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='mister-backup.json';a.click()},
@@ -1008,3 +1007,5 @@ initDB();
 </script>
 </body>
 </html>
+
+</body></html>
