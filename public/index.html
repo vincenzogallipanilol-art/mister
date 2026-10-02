@@ -207,7 +207,7 @@ const NORM={
 };
 const ALLCOLS=['players','rosters','matches','events','rsvps','ratings','links','pairs'];
 let ADM=!window.claude,UID=null,USER=null;
-const canWrite=path=>ADM||/^(ratings|rsvps|links|rosters)\//.test(path);
+const canWrite=path=>ADM||/^(ratings|rsvps|links|rosters)\//.test(path)||(!!myPid()&&path==='players/'+myPid());
 const VA=()=>ADM&&!S.ui.previewPlayer;
 const RE=()=>ADM||!!UID;
 S.setup=normSetup(S.setup);S.live=normLive(S.live);
@@ -476,7 +476,7 @@ const back=(act,t)=>`<button class="btn sec sm" data-act="${act}" style="margin-
 function openModal(h){const m=$('#modal');m.innerHTML=`<div class="sheet">${h}</div>`;m.classList.add('on')}
 let CFN=null;
 function ASK(msg,fn){CFN=fn;openModal(`<h2>Confermi?</h2><p>${msg}</p><div class="row" style="margin-top:16px"><button class="btn dan grow" data-act="cfYes">Sì, procedi</button><button class="btn sec grow" data-act="closeM">Annulla</button></div>`)}
-function closeModal(){const m=$('#modal');m.classList.remove('on');m.innerHTML='';if(stale)render()}
+function closeModal(){MLOCK=false;const m=$('#modal');m.classList.remove('on');m.innerHTML='';if(stale)render()}
 
 /* ===== VISTA: GIOCATORI ===== */
 const FILT=[['all','Tutti'],['gk','Por'],['def','Dif'],['mid','Cen'],['att','Att']];
@@ -502,7 +502,7 @@ function viewPlayer(p){
  ${metaOf(p)?`<div class="mut small" style="margin-top:2px">${metaOf(p)}</div>`:''}
  <div class="row wrap" style="margin-top:6px"><span class="formb ${p._f>0?'up':p._f<0?'dn':'z'}">Forma ${p._f>0?'▲ +'+p._f:p._f<0?'▼ '+p._f:'stabile'}</span>${p._n?`<span class="tag">${p._n} valutazion${p._n===1?'e':'i'} dei compagni</span>`:''}${isMe?'<span class="tag">Sei tu</span>':''}</div>
  <div class="row wrap" style="margin-top:6px">${p.roles.map((r,i)=>`<span class="chip ${i?'':'on'}">${r} · ${roleOvr(p,r)}</span>`).join('')}</div></div>
- <div class="row" style="margin-top:10px">${me?`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ Proponi valutazione</button>`:''}${VA()&&lk?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
+ <div class="row" style="margin-top:10px">${me?`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ Proponi valutazione</button>`:''}${isMe?`<button class="btn sec" data-act="myPhoto" style="margin-left:6px">📷 Foto</button>`:''}${VA()&&lk?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
  <h3>Storico overall</h3><div class="panel">${ovrChart(p)}</div>
  <h3>Stagione</h3><div class="tiles">${tiles.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
  <h3>Chimica</h3>${chemHTML(p)}
@@ -524,7 +524,17 @@ function editorHTML(){
  <div class="row" style="margin-top:18px"><button class="btn grow" data-act="edSave">Salva</button><button class="btn sec" data-act="closeM">Annulla</button>${p.id?`<button class="btn dan" data-act="edDel">Elimina</button>`:''}</div>`;
 }
 function edSync(){if(!ED)return;const pri=$('#edPri');const sec=ED.roles.slice(1).filter(r=>r!==pri.value);ED.roles=[pri.value,...sec];ED.name=$('#edName').value;ED.num=$('#edNum').value;ED.age=$('#edAge').value;ED.h=$('#edH').value;ED.w=$('#edW').value;const pv={s:cappedStats(ED),roles:ED.roles};$('#edOvr').textContent=ovr(pv);const cp=KEYS.filter(k=>(ED.s[k]??DEF[k])>capOf(ED,k)+1).map(k=>LBL[k]+' (max ~'+capOf(ED,k)+')');$('#edCap').textContent=cp.length?'Limiti fisici attivi: '+cp.join(', '):''}
-function resizeImg(file,cb){const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const s=400,c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d'),m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,s,s);cb(c.toDataURL('image/jpeg',.8))};im.src=fr.result};fr.readAsDataURL(file)}
+function resizeImg(file,cb,sz){const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const s=sz||400,c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d'),m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,s,s);cb(c.toDataURL('image/jpeg',sz?.78:.8))};im.onerror=()=>toast('Foto non valida, prova un\'altra');im.src=fr.result};fr.readAsDataURL(file)}
+/* foto profilo obbligatoria al primo accesso */
+let MLOCK=false,PH_LATER=false,PH_TMP=null;
+function needPhoto(){if(!ready||PH_LATER)return false;const me=myPid(),p=me&&getP(me);return !!p&&!p.photo}
+function photoModal(lock){const me=myPid(),p=me&&getP(me);if(!p)return;PH_TMP=null;MLOCK=!!lock;
+ openModal(`<h2>📸 La tua foto</h2><p class="small mut" style="margin-top:0">${lock?`Ciao <b>${esc(p.name)}</b>! `:''}Aggiungi una tua foto: comparirà sulla tua card giocatore. Scegli una foto con il volto ben visibile.</p>
+ <div style="display:flex;justify-content:center;margin:14px 0"><div id="phPrev" class="av" style="width:130px;height:130px;font-size:44px">${p.photo?`<img src="${p.photo}">`:ini(p.name)}</div></div>
+ <input type="file" id="phFile" accept="image/*" style="display:none">
+ <button class="btn sec blk" data-act="phPick">📷 Scatta o scegli una foto</button>
+ <button class="btn blk" id="phOk" data-act="phSave" style="margin-top:8px;display:none">✓ Usa questa foto</button>
+ <div class="row" style="margin-top:12px">${lock&&!ADM?'':`<button class="btn sec grow" data-act="phLater">${lock?'Più tardi':'Annulla'}</button>`}</div>`)}
 
 /* ===== VISTA: ROSA ===== */
 let SEL=null;
@@ -864,6 +874,7 @@ function render(){
  $('#nav').innerHTML=TABS.map(([k,i,l])=>`<button class="${S.ui.tab===k?'on':''}" data-act="tab" data-k="${k}"><i>${i}</i>${l}</button>`).join('');
  const v={home:viewHome,players:viewPlayers,rosa:viewRosa,match:viewMatchTab,res:viewResults}[S.ui.tab]();
  const scr=window.scrollY;$('#view').innerHTML=v;window.scrollTo(0,scr);
+ if(needPhoto()&&!$('#modal').classList.contains('on'))photoModal(true);
 }
 setInterval(()=>{const c=$('#clock');if(c&&S.live&&S.live.stage==='live')c.textContent=fmtClock(elapsed())},500);
 
@@ -969,6 +980,10 @@ const A={
  /* identità */
  claim:()=>claimModal(),
  claimDo:d=>{if(!UID)return;S.links=S.links.filter(l=>l.id!==UID);S.links.push({id:UID,p:d.id});save();closeModal();render();toast('Profilo collegato')},
+ phPick:()=>{const f=$('#phFile');if(f)f.click()},
+ phSave:()=>{const me=myPid(),p=me&&getP(me);if(!p||!PH_TMP)return;p.photo=PH_TMP;PH_TMP=null;MLOCK=false;save();closeModal();render();toast('Foto salvata ✓')},
+ phLater:()=>{PH_LATER=true;PH_TMP=null;MLOCK=false;closeModal()},
+ myPhoto:()=>photoModal(false),
  claimSkip:()=>{try{localStorage.setItem('mister_noclaim','1')}catch(e){}closeModal()},
  unlink:d=>{S.links=S.links.filter(l=>l.id!==d.id);save();render()},
  /* valutazioni */
@@ -1048,6 +1063,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{
  if(e.target.dataset&&e.target.dataset.nf){const pr={};document.querySelectorAll('[data-nf]').forEach(c=>pr[c.dataset.nf]=c.checked);window.MisterPush?.setPrefs(pr).then(()=>toast('Preferenze salvate')).catch(x=>toast('Errore: '+x.message));return}
  const t=e.target;
+ if(t.id==='phFile'&&t.files[0]){resizeImg(t.files[0],u=>{PH_TMP=u;const pv=$('#phPrev');if(pv)pv.innerHTML=`<img src="${u}">`;const ok=$('#phOk');if(ok)ok.style.display='block'},260);return}
  if(t.id==='edFile'&&t.files[0]){resizeImg(t.files[0],u=>{ED.photo=u;$('#edPh').innerHTML=`<img src="${u}">`});return}
  if(t.id==='edPri'){edSync();return}
  if(t.dataset.rt&&S.live){S.live.ratings[t.dataset.rt]=+t.value;save();return}
@@ -1066,7 +1082,7 @@ document.addEventListener('input',e=>{
  if(t.dataset.rt&&S.live){S.live.ratings[t.dataset.rt]=+t.value;$('#rt_'+t.dataset.rt).textContent=t.value}
  if(t.dataset.rs&&RT){RT.touched[t.dataset.rs]=+t.value;$('#rv_'+t.dataset.rs).textContent=t.value}
 });
-$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal'&&!MLOCK)closeModal()});
 document.addEventListener('focusout',()=>setTimeout(()=>{if(stale)afterRemote()},50));
 try{const q=new URL(location.href).searchParams,tb=q.get('tab');if(q.get('ev'))S.ui.tab='match';else if(tb&&['home','players','rosa','match','res'].includes(tb))S.ui.tab=tb;if(q.get('ev')||tb){S.ui.mid=null;S.ui.pid=null;history.replaceState({},'',location.pathname)}}catch(e){}
 render();
