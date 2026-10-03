@@ -1179,7 +1179,62 @@ function viewHome(){
 }
 
 /* ----- Giocatori ----- */
+/* ===== comparatore giocatori ===== */
+const MAC_OUT=[['RIT','Ritmo',{acc:.45,spr:.55}],['TIR','Tiro',{fin:.45,pow:.20,pos:.20,lsh:.05,vol:.05,pen:.05}],['PAS','Passaggio',{sp:.35,vis:.20,lp:.20,cro:.15,cur:.05,fk:.05}],['DRI','Dribbling',{dri:.50,bc:.30,agi:.10,bal:.05,com:.05}],['DIF','Difesa',{int:.30,dfa:.30,stk:.20,slk:.10,hea:.10}],['FIS','Fisico',{str:.30,sta:.30,agg:.20,jum:.20}]];
+const MAC_GK=[['TUF','Tuffo',{div:1}],['PAR','Presa',{han:1}],['CAL','Rinvio',{kic:1}],['RIF','Riflessi',{ref:1}],['VEL','Velocità',{acc:.5,spr:.5}],['POS','Piazzamento',{gpo:1}]];
+const macVal=(p,w)=>Math.round(Object.entries(w).reduce((t,[k,x])=>t+x*sv(p,k),0));
+const CMPC=['#d1ff42','#60a5fa'];
+function radar2(l,v1,v2){
+ const c=100,R=68,n=l.length,pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[c+r*Math.cos(a),c+r*Math.sin(a)]};
+ const poly=k=>Array.from({length:n},(_,i)=>pt(i,R*k).join(',')).join(' ');
+ const dp=(v,col)=>`<polygon points="${v.map((x,i)=>pt(i,R*x/99).join(',')).join(' ')}" fill="${col}" fill-opacity=".22" stroke="${col}" stroke-width="2"/>`;
+ return`<svg viewBox="0 0 200 200" width="100%" style="max-width:300px;display:block;margin:0 auto">${[1,.66,.33].map(k=>`<polygon points="${poly(k)}" fill="none" stroke="#35353b" stroke-width="1"/>`).join('')}${l.map((_,i)=>`<line x1="${c}" y1="${c}" x2="${pt(i,R)[0]}" y2="${pt(i,R)[1]}" stroke="#35353b"/>`).join('')}${dp(v1,CMPC[0])}${dp(v2,CMPC[1])}${l.map((x,i)=>{const[a,b]=pt(i,R+14);return`<text x="${a}" y="${b}" fill="#f2f4f7" font-size="10" font-weight="700" text-anchor="middle" dominant-baseline="middle">${x}</text>`}).join('')}</svg>`;
+}
+function cmpRow(label,va,vb,o){
+ o=o||{};const na=typeof va==='number',nb=typeof vb==='number';
+ const win=(x,y,c)=>{if(!(na&&nb)||x===y)return'';const better=o.low?x<y:x>y;return better?`color:${c};font-weight:800`:'opacity:.55'};
+ const dl=(x,y,r)=>na&&nb&&x!==y&&(o.low?x<y:x>y)?`<span class="small mut" style="margin-${r?'right':'left'}:5px">${o.low?'−':'+'}${Math.abs(x-y)}</span>`:'';
+ return`<div style="display:grid;grid-template-columns:1fr 1.7fr 1fr;gap:6px;padding:4px 0;border-bottom:1px solid var(--line);font-size:13.5px;align-items:baseline"><span style="${win(va,vb,CMPC[0])}">${va}${dl(va,vb)}</span><span class="mut small" style="text-align:center">${label}</span><span style="text-align:right;${win(vb,va,CMPC[1])}">${dl(vb,va,1)}${vb}</span></div>`;
+}
+function cmpPicker(a){
+ const L=S.players.filter(p=>p.id!==a.id).sort((x,y)=>x.name.localeCompare(y.name));
+ return`<div class="row sp" style="margin-bottom:10px">${back('cmpBack',esc(a.name))}</div><h2 style="margin:0 0 4px">Confronta ${esc(a.name)} con…</h2><div class="small mut" style="margin-bottom:10px">Scegli il secondo giocatore</div>
+ <div>${L.map(p=>`<div class="panel row sp" data-act="cmpPick" data-id="${p.id}" style="margin:0 0 6px;padding:8px 12px;cursor:pointer"><span class="row" style="gap:10px">${av(p,34)}<b>${esc(p.name)}</b><span class="mut small">${p.roles[0]}</span></span><b>${ovr(p)}</b></div>`).join('')}</div>`;
+}
+function cmpText(a,b){
+ const gk=isGK(a)&&isGK(b),mac=gk?MAC_GK:MAC_OUT;
+ return`⚔ ${a.name} vs ${b.name}\nOVR ${ovr(a)} - ${ovr(b)}\n`+mac.map(([ab,,w])=>`${ab} ${macVal(a,w)} - ${macVal(b,w)}`).join('\n')+'\n\nMISTER';
+}
+function cmpView(){
+ const C=S.ui.cmp,a=getP(C.a);if(!a){S.ui.cmp=null;return viewPlayers()}
+ const b=C.b&&getP(C.b);if(!b)return cmpPicker(a);
+ const gk=isGK(a)&&isGK(b),mac=gk?MAC_GK:MAC_OUT,sa=pstats(a.id,SF()),sb=pstats(b.id,SF());
+ const la=esc(a.name),lb=esc(b.name);
+ const used=new Set();mac.forEach(m=>Object.keys(m[2]).forEach(k=>used.add(k)));
+ const rest=gk?[]:KEYS.filter(k=>!used.has(k)&&!GKK.includes(k));
+ const blocks=mac.map(([ab,nmz,w])=>{
+  const va=macVal(a,w),vb=macVal(b,w);
+  return`<details class="panel" style="margin:0 0 6px;padding:6px 12px"><summary style="cursor:pointer;list-style:none">${cmpRow(`<b>${ab}</b> · ${nmz}`,va,vb)}</summary><div style="margin-top:2px">${Object.entries(w).map(([k,x])=>cmpRow(`${LBL[k]} <span class="mut">${Math.round(x*100)}%</span>`,sv(a,k),sv(b,k))).join('')}</div></details>`}).join('')
+  +(rest.length?`<details class="panel" style="margin:0 0 6px;padding:6px 12px"><summary style="cursor:pointer" class="small mut">Altri attributi (influenzano l'OVR per ruolo)</summary>${rest.map(k=>cmpRow(LBL[k],sv(a,k),sv(b,k))).join('')}</details>`:'');
+ const av_=x=>x.avg!=null?+x.avg.toFixed(1):'–',fm=p=>p._f||0;
+ const season=[['Presenze',sa.app,sb.app],...(gk?[['Clean sheet',sa.cs,sb.cs],['Gol subiti',sa.gc,sb.gc,{low:1}]]:(isGK(a)||isGK(b)?[]:[['Gol',sa.g,sb.g],['Assist',sa.a,sb.a]])),['MVP',sa.mv,sb.mv],['Voto medio',av_(sa),av_(sb)],['Forma',fm(a),fm(b)]].map(([l,x,y,o])=>cmpRow(l,x,y,o)).join('');
+ const sm={n:0,w:0,d:0,l:0},op={n:0,a:0,d:0,b:0};
+ S.matches.forEach(m=>{const Ta=playedIn(m,a.id),Tb=playedIn(m,b.id);if(!Ta||!Tb)return;
+  if(Ta===Tb){sm.n++;const o=Ta==='A'?m.sa:m.sb,q=Ta==='A'?m.sb:m.sa;o>q?sm.w++:o===q?sm.d++:sm.l++}
+  else{op.n++;const x=Ta==='A'?m.sa:m.sb,y=Ta==='A'?m.sb:m.sa;x>y?op.a++:x===y?op.d++:op.b++}});
+ const tog=(sm.n+op.n)?`<h3>Insieme</h3><div class="panel small">${sm.n?`<div class="row sp" style="padding:3px 0"><span>Stessa squadra · ${sm.n} partite</span><b>${sm.w}V ${sm.d}N ${sm.l}P</b></div>`:''}${op.n?`<div class="row sp" style="padding:3px 0"><span>Avversari · ${op.n} partite</span><b><span style="color:${CMPC[0]}">${op.a}</span> · ${op.d}N · <span style="color:${CMPC[1]}">${op.b}</span></b></div>`:''}</div>`:'';
+ const head=p=>`<div style="text-align:center;min-width:0"><div style="max-width:150px;margin:0 auto">${card(p)}</div></div>`;
+ return`<div class="row sp" style="margin-bottom:10px">${back('cmpBack',la)}<span class="row" style="gap:6px"><button class="btn sec sm" data-act="cmpChange">Cambia</button><button class="btn sec sm" data-act="cmpShare">Condividi</button></span></div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${head(a)}${head(b)}</div>
+ <div class="row sp" style="margin:10px 0 0;font-weight:800"><span style="color:${CMPC[0]}">● ${la}</span><span style="color:${CMPC[1]}">${lb} ●</span></div>
+ ${radar2(mac.map(m=>m[0]),mac.map(m=>macVal(a,m[2])),mac.map(m=>macVal(b,m[2])))}
+ ${!gk&&(isGK(a)||isGK(b))?'<div class="small mut" style="text-align:center">Ruoli diversi: confronto sulle stats di movimento.</div>':''}
+ <h3>Overall</h3><div class="panel" style="padding:4px 12px">${cmpRow('<b>OVR</b>',ovr(a),ovr(b))}</div>
+ <h3>Attributi <span class="small mut" style="font-weight:400">· tocca un gruppo per aprirlo</span></h3>${blocks}
+ <h3>Stagione</h3><div class="panel" style="padding:4px 12px">${season}</div>${tog}`;
+}
 function viewPlayers(){
+ if(S.ui.cmp&&S.ui.pid)return cmpView();
  if(S.ui.pid){const p=getP(S.ui.pid);if(p)return playerPage(p,p.id===myPid()&&false);S.ui.pid=null}
  const q=S.ui.q.toLowerCase(),base=S.players.slice().sort((a,b)=>ovr(b)-ovr(a)).filter(p=>!q||p.name.toLowerCase().includes(q));
  const panel=k=>{const L=k==='all'?base:base.filter(p=>famF(p)===k);return L.length?`<div class="grid">${L.map(card).join('')}</div>`:`<div class="empty">${S.players.length?'Nessun giocatore qui.':'Nessun giocatore.'}</div>`};
@@ -1199,7 +1254,7 @@ function playerPage(p,own){
  <div style="margin:6px 0"><div style="font-size:20px;font-weight:800">${esc(p.name)} ${p.num!==''&&p.num!=null?`<span class="mut">#${esc(p.num)}</span>`:''}${own&&VA()?` <button class="btn sec sm" data-act="editP" data-id="${p.id}" style="vertical-align:middle">✎</button>`:''}</div>
  ${metaOf(p)?`<div class="mut small">${metaOf(p)}</div>`:''}
  <div class="row wrap" style="margin-top:6px"><span class="formb ${p._f>0?'up':p._f<0?'dn':'z'}">Forma ${p._f>0?'▲ +'+p._f:p._f<0?'▼ '+p._f:'stabile'}</span>${p._prov?`<span class="tag">⏳ Provvisoria · ${p._n}/${MINV} votanti</span>`:`<span class="tag">${p._n} votanti</span>`}${p._ev?`<span class="tag" style="color:#34d399">▲ +${p._ev} crescita</span>`:''}${isMe&&!own?'<span class="tag">Sei tu</span>':''}${p.roles.map((r,i)=>`<span class="chip ${i?'':'on'}" style="padding:2px 9px;font-size:12px">${r} · ${roleOvr(p,r)}</span>`).join('')}</div></div>
- <div class="row" style="margin:8px 0">${me&&!isMe?(ratedByMe(p.id)?`<button class="btn sec grow" disabled style="opacity:.7">✓ Valutazione inviata</button>`:`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ ${S.ratings.some(r=>r.id===p.id+'_'+me)?'Rifai la valutazione':'Proponi valutazione'}</button>`):''}${isMe?`<button class="btn sec" data-act="myPhoto">📷 Foto</button>`:''}${VA()&&lk&&!own?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
+ <div class="row" style="margin:8px 0">${me&&!isMe?(ratedByMe(p.id)?`<button class="btn sec grow" disabled style="opacity:.7">✓ Valutazione inviata</button>`:`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ ${S.ratings.some(r=>r.id===p.id+'_'+me)?'Rifai la valutazione':'Proponi valutazione'}</button>`):''}<button class="btn sec" data-act="cmpOpen" data-id="${p.id}">⚔ Confronta</button>${isMe?`<button class="btn sec" data-act="myPhoto">📷 Foto</button>`:''}${VA()&&lk&&!own?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
  <h3>Stagione</h3><div class="tiles5">${tiles.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
  <details class="panel" style="margin-top:8px;padding:8px 12px"><summary class="small mut" style="cursor:pointer">Altre statistiche</summary><div class="tiles" style="margin-top:8px">${more.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div></details>
  <h3>Andamento overall</h3><div class="panel">${ovrChart(p)}</div>
@@ -1356,6 +1411,11 @@ const A={
  unlink:d=>{S.links=S.links.filter(l=>l.id!==d.id);save();render()},
  /* valutazioni */
  rateP:d=>{if(!myPid()){claimModal();return}if(ratedByMe(d.id)){toast('Hai già valutato: chiedi all\'admin di riattivarla');return}rateModal(d.id)},
+ cmpOpen:d=>{S.ui.tab='players';S.ui.pid=d.id;S.ui.cmp={a:d.id,b:null};render();window.scrollTo(0,0)},
+ cmpPick:d=>{if(S.ui.cmp){S.ui.cmp.b=d.id;render();window.scrollTo(0,0)}},
+ cmpChange:()=>{if(S.ui.cmp){S.ui.cmp.b=null;render();window.scrollTo(0,0)}},
+ cmpBack:()=>{S.ui.cmp=null;render();window.scrollTo(0,0)},
+ cmpShare:()=>{const C=S.ui.cmp,a=C&&getP(C.a),b=C&&getP(C.b);if(a&&b)shareModal('Condividi confronto',cmpText(a,b))},
  rateReopen:d=>{const r=S.ratings.find(x=>x.id===d.id);if(!r||!VA())return;ASK('Riattivare a <b>'+esc(nm(r.r))+'</b> la valutazione di <b>'+esc(nm(r.t))+'</b>? Il voto attuale resta valido finché ne invia uno nuovo.',()=>{r.open=true;save();NT('rate_request','✍️ Puoi rifare la valutazione','Hai di nuovo accesso alla valutazione di '+nm(r.t),'./?tab=players',[r.r]);closeModal();render();toast('Valutazione riattivata')})},
  voteOpen:d=>voteModal(d.id),
  voteClose:d=>ASK('Chiudere ora la votazione e pubblicare i voti finali?',()=>{const m=S.matches.find(x=>x.id===d.id);if(!m||!m.vote)return;m.vote.until=Date.now()-1;save();render()}),
@@ -1433,9 +1493,9 @@ const A={
 };
 /* ===================== AZIONI NUOVE / SOSTITUITE ===================== */
 Object.assign(A,{
- tab:d=>{S.ui.tab=d.k;S.ui.pid=null;S.ui.mid=null;S.ui.from=null;MEDIT=null;if(d.k==='rosa')S.ui.rid=null;SEL=null;save();render();window.scrollTo(0,0)},
- openP:d=>{S.ui.from=d.from||null;S.ui.tab='players';S.ui.pid=d.id;render();window.scrollTo(0,0)},
- backP:()=>{const f=S.ui.from;S.ui.pid=null;S.ui.from=null;if(f)S.ui.tab=f;render();window.scrollTo(0,0)},
+ tab:d=>{S.ui.tab=d.k;S.ui.pid=null;S.ui.cmp=null;S.ui.mid=null;S.ui.from=null;MEDIT=null;if(d.k==='rosa')S.ui.rid=null;SEL=null;save();render();window.scrollTo(0,0)},
+ openP:d=>{S.ui.from=d.from||null;S.ui.tab='players';S.ui.pid=d.id;S.ui.cmp=null;render();window.scrollTo(0,0)},
+ backP:()=>{const f=S.ui.from;S.ui.pid=null;S.ui.cmp=null;S.ui.from=null;if(f)S.ui.tab=f;render();window.scrollTo(0,0)},
  openM:d=>{S.ui.tab='calcio';S.ui.sub.calcio='res';S.ui.mid=d.id;MEDIT=null;saveUI();render();window.scrollTo(0,0)},
  openMe:()=>{S.ui.tab='prof';S.ui.pid=null;save();render();window.scrollTo(0,0)},
  rankGo:d=>{S.ui.tab='rank';S.ui.sub.rank=d.k;saveUI();render();window.scrollTo(0,0)},
