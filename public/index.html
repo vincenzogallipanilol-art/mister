@@ -160,6 +160,7 @@ input[type=range]{width:100%;accent-color:var(--ac)}
 /* modal */
 #modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center}
 #modal.on{display:flex}
+body:has(#modal.on){overflow:hidden}
 .sheet{background:var(--bg);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:760px;max-height:92vh;overflow:auto;padding:16px 16px 26px}
 @media(min-width:760px){#modal{align-items:center}.sheet{border-radius:18px}}
 .sl{display:grid;grid-template-columns:120px 1fr 30px;gap:8px;align-items:center;font-size:13px;margin:4px 0}
@@ -215,7 +216,7 @@ header .hb{display:flex;align-items:center;gap:8px}
 .nrow.un b:after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);margin-left:6px}
 .ni{font-size:20px;line-height:1.1;flex:none}
 .ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
-.cbar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -14px 12px;padding:2px 14px;justify-content:safe center}
+.cbar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -14px 12px;padding:2px 14px;justify-content:safe center;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent)}
 .cbar::-webkit-scrollbar{display:none}
 .cchip{flex:1 0 auto;min-width:62px;height:34px;display:inline-flex;align-items:center;justify-content:center;text-align:center;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);font-size:13px;white-space:nowrap;cursor:pointer;user-select:none;line-height:1}
 .cchip.on{background:var(--ac);color:#12160a;border-color:var(--ac);font-weight:800}
@@ -364,7 +365,12 @@ const GROUPS=[
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
-const VERSION='1.1.0';
+const VERSION='1.2.0';
+/* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra. */
+const CHANGELOG=[
+ {v:'1.2.0',d:'5 ott 2026',items:['Nuovo stile card: statistiche in riga unica, come nei pack di calcio','Valutazione compagni a doppia colonna: tutte le macro-statistiche visibili insieme, ordinate per importanza sul ruolo','Pagina giocatore: attributi su due colonne, più compatta e leggibile','Corretti alcuni bug grafici (numeri con troppi decimali nel confronto giocatori, tab tagliate a metà, pagina che scorreva dietro le finestre popup)']},
+ {v:'1.1.0',d:'5 ott 2026',items:['Le card mostrano 5 statistiche principali invece di 6 (Velocità assorbita nel Fisico)','Valutazione compagni riorganizzata per macro-categorie']}
+];
 const ROLES=[['GK','Portiere'],['CB','Difensore centrale'],['LB','Terzino sx'],['RB','Terzino dx'],['CDM','Mediano'],['CM','Centrocampista'],['CAM','Trequartista'],['LM','Esterno sx'],['RM','Esterno dx'],['LW','Ala sx'],['RW','Ala dx'],['CF','Seconda punta'],['ST','Attaccante']];
 const PROF={GK:'GK',CB:'CB',LB:'FB',RB:'FB',CDM:'CDM',CM:'CM',CAM:'CAM',LM:'WM',RM:'WM',LW:'W',RW:'W',CF:'CF',ST:'ST'};
 const FAM={GK:'gk',CB:'def',LB:'def',RB:'def',CDM:'mid',CM:'mid',CAM:'mid',LM:'wide',RM:'wide',LW:'wide',RW:'wide',CF:'att',ST:'att'};
@@ -1054,12 +1060,13 @@ function notifWatch(){
 function updBell(){const b=$('#bdg');if(!b)return;const n=unreadN();b.textContent=n>9?'9+':n;b.classList.toggle('on',n>0)}
 function goUrl(u){
  try{
-  const q=new URL(u,location.href).searchParams,tb=q.get('tab'),mid=q.get('mid'),ev=q.get('ev'),fb=q.get('fb');
+  const q=new URL(u,location.href).searchParams,tb=q.get('tab'),mid=q.get('mid'),ev=q.get('ev'),fb=q.get('fb'),upd=q.get('update');
   S.ui.pid=null;S.ui.mid=null;MEDIT=null;
   if(mid){S.ui.tab='calcio';S.ui.sub.calcio='res';S.ui.mid=mid}
   else if(ev){S.ui.tab='calcio';S.ui.sub.calcio='match'}
   else if(tb){const m={match:['calcio','match'],res:['calcio','res'],calcio:['calcio'],players:['players'],home:['home'],rosa:['rosa'],rank:['rank'],prof:['prof']}[tb];if(m){S.ui.tab=m[0];if(m[1])S.ui.sub.calcio=m[1]}}
   if(fb)setTimeout(()=>fbOpenId(fb),700);
+  if(upd)setTimeout(()=>A.changelog(),700);
  }catch(e){}
 }
 /* notifiche locali: nuovi traguardi e upgrade delle statistiche */
@@ -1072,6 +1079,14 @@ function localWatch(){
  if(prevE){const up=KEYS.filter(k=>e[k]!=null&&prevE[k]!=null&&e[k]-prevE[k]>=1).map(k=>`${LBL[k]} +${e[k]-prevE[k]}`);
   if(up.length)pushLocal('award','📈 Upgrade statistiche',up.slice(0,4).join(' · ')+(up.length>4?' …':''),'./?tab=prof')}
  if(!prevE||KEYS.some(k=>prevE[k]!==e[k]))lsSet(kE,e);
+}
+/* notifica locale: nuova versione dell'app installata su questo dispositivo */
+function checkUpdateNotif(){
+ if(!ready)return;
+ const seen=lsGet('mister_seen_ver',null);
+ if(seen===VERSION)return;
+ if(seen){const c=CHANGELOG[0],first=c&&c.items&&c.items[0]||'';pushLocal('award','🆕 Novità in app! v'+VERSION,first+(c&&c.items.length>1?' e altro…':''),'./?update=1')}
+ lsSet('mister_seen_ver',VERSION);
 }
 
 /* ---------- stagioni, classifiche, albo d'oro ---------- */
@@ -1250,7 +1265,7 @@ function radar2(l,v1,v2){
 function cmpRow(label,va,vb,o){
  o=o||{};const na=typeof va==='number',nb=typeof vb==='number';
  const win=(x,y,c)=>{if(!(na&&nb)||x===y)return'';const better=o.low?x<y:x>y;return better?`color:${c};font-weight:800`:'opacity:.55'};
- const dl=(x,y,r)=>na&&nb&&x!==y&&(o.low?x<y:x>y)?`<span class="small mut" style="margin-${r?'right':'left'}:5px">${o.low?'−':'+'}${Math.abs(x-y)}</span>`:'';
+ const dl=(x,y,r)=>na&&nb&&x!==y&&(o.low?x<y:x>y)?`<span class="small mut" style="margin-${r?'right':'left'}:5px">${o.low?'−':'+'}${Math.round(Math.abs(x-y)*100)/100}</span>`:'';
  return`<div style="display:grid;grid-template-columns:1fr 1.7fr 1fr;gap:6px;padding:4px 0;border-bottom:1px solid var(--line);font-size:13.5px;align-items:baseline"><span style="${win(va,vb,CMPC[0])}">${va}${dl(va,vb)}</span><span class="mut small" style="text-align:center">${label}</span><span style="text-align:right;${win(vb,va,CMPC[1])}">${dl(vb,va,1)}${vb}</span></div>`;
 }
 function cmpPicker(a){
@@ -1354,7 +1369,7 @@ function viewCalcio(){
 /* ===================== render ===================== */
 const TABS=[['players','👤','Giocatori'],['calcio','⚽','Calcio'],['home','🏠','Home'],['rank','🏆','Classifica'],['prof','🙂','Profilo']];
 function render(){
- computeEff();checkClose();localWatch();
+ computeEff();checkClose();localWatch();checkUpdateNotif();
  const tab=S.ui.tab,nt=tab==='rosa'?'players':tab;
  $('#nav').innerHTML=TABS.map(([k,i,l])=>`<button class="${nt===k?'on':''}" data-act="tab" data-k="${k}"><i>${i}</i>${l}</button>`).join('');
  const v=({home:viewHome,players:viewPlayers,rosa:viewRosa,calcio:viewCalcio,rank:viewRank,prof:viewProfile}[tab]||viewHome)();
@@ -1683,7 +1698,7 @@ Object.assign(A,{
   openModal(`<h2>Impostazioni</h2>
   ${me?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Sei collegato come</div><b>${esc(nm(me))}</b></div>${ADM?`<button class="btn sec sm" data-act="claim">Cambia</button>`:''}</div>`:ADM?`<div class="panel" style="margin-bottom:10px"><div class="small mut" style="margin-bottom:6px">Non sei collegato a nessun giocatore</div><button class="btn sm" data-act="claim">👤 Scegli chi sei</button></div>`:''}
   ${ADM?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Modalità</div><b>${S.ui.previewPlayer?'👁 Giocatore':'👑 Admin'}</b></div><button class="btn sec sm" data-act="togglePreview">${S.ui.previewPlayer?'Torna Admin':'Vedi come giocatore'}</button></div>`:''}
-  <div class="row wrap" style="gap:8px;margin-bottom:10px"><button class="btn sec" data-act="notifSettings">🔔 Notifiche</button><button class="btn sec" data-act="fbTip">💡 Consigli${nt?` <span class="tag">${nt}</span>`:''}</button><button class="btn sec" data-act="fbBug">🐞 Bug${nb?` <span class="tag">${nb}</span>`:''}</button><button class="btn sec" data-act="tourStart">📖 Guida</button></div>
+  <div class="row wrap" style="gap:8px;margin-bottom:10px"><button class="btn sec" data-act="notifSettings">🔔 Notifiche</button><button class="btn sec" data-act="fbTip">💡 Consigli${nt?` <span class="tag">${nt}</span>`:''}</button><button class="btn sec" data-act="fbBug">🐞 Bug${nb?` <span class="tag">${nb}</span>`:''}</button><button class="btn sec" data-act="tourStart">📖 Guida</button><button class="btn sec" data-act="changelog">🆕 Novità</button></div>
   ${VA()?`<h3>Admin</h3><div class="row wrap" style="gap:8px"><button class="btn sec" data-act="tokensPanel">🔑 Token giocatori</button><button class="btn sec" data-act="rateReq">📣 Chiedi valutazioni</button><button class="btn sec" data-act="matchesAdmin">🗑 Gestisci partite</button><button class="btn sec" data-act="exp">⬇ Backup</button><button class="btn sec" data-act="imp">⬆ Importa</button></div><input type="file" id="impF" accept=".json" style="display:none">`:''}
   <div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)},
  matchesAdmin:()=>{const M=S.matches.slice().sort((a,b)=>b.date-a.date);
@@ -1722,7 +1737,8 @@ Object.assign(A,{
   const lb=(FB_ST[f.kind][d.s]||[])[1];if(f.pid&&f.pid!==myPid())NT('feedback',f.kind==='bug'?'🐞 Aggiornamento sul tuo bug':'💡 Aggiornamento sul tuo consiglio',`${f.title} → ${lb}`,'./?fb='+f.id,[f.pid]);fbList(f.kind)},
  fbDel:d=>ASK('Eliminare definitivamente?',()=>{const f=S.feedback.find(x=>x.id===d.id),k=f?f.kind:FBK;S.feedback=S.feedback.filter(x=>x.id!==d.id);S.fbvotes=S.fbvotes.filter(v=>v.f!==d.id);save();fbList(k)}),
 });
-Object.assign(A,{nbClick:()=>{const b=$('#nbanner');b.classList.remove('on');if(NBN){markRead([NBN.id]);goUrl(NBN.url);render();window.scrollTo(0,0)}},backRosa:()=>{S.ui.tab='players';S.ui.rid=null;render();window.scrollTo(0,0)}});
+Object.assign(A,{nbClick:()=>{const b=$('#nbanner');b.classList.remove('on');if(NBN){markRead([NBN.id]);goUrl(NBN.url);render();window.scrollTo(0,0)}},backRosa:()=>{S.ui.tab='players';S.ui.rid=null;render();window.scrollTo(0,0)},
+ changelog:()=>{openModal(`<h2>🆕 Novità</h2><div class="small mut" style="margin-bottom:10px">Cosa cambia ad ogni aggiornamento</div>${CHANGELOG.map(c=>`<div class="panel"><div class="row sp" style="margin-bottom:6px"><b>v${c.v}</b><span class="small mut">${c.d}</span></div><ul style="margin:0;padding-left:18px">${c.items.map(x=>`<li style="margin:3px 0;font-size:13.5px">${esc(x)}</li>`).join('')}</ul></div>`).join('')}<div class="row" style="margin-top:12px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)}});
 document.addEventListener('click',e=>{
  const t=e.target.closest('[data-act]');if(!t)return;
  const fn=A[t.dataset.act];if(fn){e.stopPropagation();fn(Object.assign({el:t},t.dataset),e)}
