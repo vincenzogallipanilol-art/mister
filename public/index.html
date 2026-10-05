@@ -171,6 +171,21 @@ header .hb{display:flex;align-items:center;gap:8px}
 .bell{position:relative;width:40px;height:34px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--tx);font-size:16px;cursor:pointer;padding:0;line-height:1}
 .bell i{position:absolute;right:-4px;top:-5px;min-width:17px;height:17px;border-radius:9px;background:#ef4444;color:#fff;font-size:10px;font-style:normal;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 4px}
 .bell i.on{display:flex}
+/* tour */
+#tour{position:fixed;inset:0;z-index:500;display:none;touch-action:none}
+#tour.on{display:block}
+#tour.intro{background:rgba(0,0,0,.8)}
+.tspot{position:fixed;border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.78);outline:2px solid var(--ac);pointer-events:none;transition:left .25s,top .25s,width .25s,height .25s}
+.tbox{position:fixed;left:12px;right:12px;max-width:420px;margin:0 auto;background:var(--bg);border:1px solid var(--ac);border-radius:20px;padding:14px 16px 12px;box-shadow:0 12px 40px #000c}
+.tbox.tbt{bottom:calc(env(safe-area-inset-bottom) + 14px)}
+.tbox.mid{top:50%;transform:translateY(-50%)}
+.tbox h3{margin:2px 0 6px;font-size:17px}
+.tbox .tx{font-size:14px;line-height:1.45}
+.tbox .tx b{color:var(--ac)}
+.tbox .tsec{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);font-weight:700}
+.tbox .tp{height:3px;border-radius:2px;background:var(--line);margin-bottom:8px;overflow:hidden}
+.tbox .tp i{display:block;height:100%;background:var(--ac)}
+.tbox .tb{margin-top:12px;gap:8px}
 #nbanner{position:fixed;left:10px;right:10px;top:10px;z-index:400;transform:translateY(-160%);transition:transform .35s;background:#1c2410;border:1px solid var(--ac);border-radius:18px;padding:10px 14px;box-shadow:0 10px 30px #000a;cursor:pointer;max-width:560px;margin:0 auto}
 #nbanner.on{transform:translateY(0)}
 .nrow{display:flex;gap:10px;align-items:flex-start;padding:10px 6px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:10px}
@@ -1175,7 +1190,7 @@ function viewHome(){
  const L=lbData(SF()),pod=(t,k,rows)=>`<div class="pod" data-act="rankGo" data-k="${k}"><div class="small mut" style="font-weight:700;margin-bottom:4px">${t}</div>${rows.length?rows.slice(0,3).map((r,i)=>`<div class="row sp small"><span class="ell">${MEDAL[i]} ${esc(r[0].name)}</span><b>${r[1]}</b></div>`).join(''):'<span class="small mut">–</span>'}</div>`;
  const podH=S.matches.length?`<h3>Podio</h3><div class="podio">${pod('⚽ Marcatori','goals',L.goals)}${pod('⭐ MVP','mvp',L.mvp)}${pod('📊 Voto medio','avg',L.avg)}</div>`:'';
  const feed=activityFeed(),feedH=feed.length?`<h3>Attività recente</h3><div class="panel" style="padding:2px 12px">${feed.map((x,i)=>`<div class="todo" data-act="${x.act}" ${x.id?`data-id="${x.id}"`:''} ${x.k?`data-k="${x.k}"`:''} style="${i?'border-top:1px solid var(--line)':''}"><span class="ni">${x.ico}</span><div class="grow ell">${x.t}</div><span class="small mut" style="flex:none">${ago(x.at)}</span></div>`).join('')}</div>`:'';
- return`<h2 class="hello">Ciao${p?', <b>'+esc(p.name)+'</b>':''}</h2>${S.ui.previewPlayer?`<div class="tag" style="margin-bottom:10px">👁 Vista giocatore attiva · <span data-act="togglePreview" style="cursor:pointer;text-decoration:underline">torna admin</span></div>`:''}${pushBanner}${claim}${todoH}${next}${lastH}${podH}${feedH}`;
+ return`<h2 class="hello">Ciao${p?', <b>'+esc(p.name)+'</b>':''}</h2>${S.ui.previewPlayer?`<div class="tag" style="margin-bottom:10px">👁 Vista giocatore attiva · <span data-act="togglePreview" style="cursor:pointer;text-decoration:underline">torna admin</span></div>`:''}${pushBanner}${claim}<div data-tour="todo">${todoH}</div><div data-tour="next">${next}</div><div data-tour="last">${lastH}</div><div data-tour="pod">${podH}</div>${feedH}`;
 }
 
 /* ----- Giocatori ----- */
@@ -1254,14 +1269,14 @@ function playerPage(p,own){
  <div style="margin:6px 0"><div style="font-size:20px;font-weight:800">${esc(p.name)} ${p.num!==''&&p.num!=null?`<span class="mut">#${esc(p.num)}</span>`:''}${own&&VA()?` <button class="btn sec sm" data-act="editP" data-id="${p.id}" style="vertical-align:middle">✎</button>`:''}</div>
  ${metaOf(p)?`<div class="mut small">${metaOf(p)}</div>`:''}
  <div class="row wrap" style="margin-top:6px"><span class="formb ${p._f>0?'up':p._f<0?'dn':'z'}">Forma ${p._f>0?'▲ +'+p._f:p._f<0?'▼ '+p._f:'stabile'}</span>${p._prov?`<span class="tag">⏳ Provvisoria · ${p._n}/${MINV} votanti</span>`:`<span class="tag">${p._n} votanti</span>`}${p._ev?`<span class="tag" style="color:#34d399">▲ +${p._ev} crescita</span>`:''}${isMe&&!own?'<span class="tag">Sei tu</span>':''}${p.roles.map((r,i)=>`<span class="chip ${i?'':'on'}" style="padding:2px 9px;font-size:12px">${r} · ${roleOvr(p,r)}</span>`).join('')}</div></div>
- <div class="row" style="margin:8px 0">${me&&!isMe?(ratedByMe(p.id)?`<button class="btn sec grow" disabled style="opacity:.7">✓ Valutazione inviata</button>`:`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ ${S.ratings.some(r=>r.id===p.id+'_'+me)?'Rifai la valutazione':'Proponi valutazione'}</button>`):''}<button class="btn sec" data-act="cmpOpen" data-id="${p.id}">⚔ Confronta</button>${isMe?`<button class="btn sec" data-act="myPhoto">📷 Foto</button>`:''}${VA()&&lk&&!own?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
+ <div class="row" data-tour="rate" style="margin:8px 0">${me&&!isMe?(ratedByMe(p.id)?`<button class="btn sec grow" disabled style="opacity:.7">✓ Valutazione inviata</button>`:`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ ${S.ratings.some(r=>r.id===p.id+'_'+me)?'Rifai la valutazione':'Proponi valutazione'}</button>`):''}<button class="btn sec" data-act="cmpOpen" data-id="${p.id}">⚔ Confronta</button>${isMe?`<button class="btn sec" data-act="myPhoto">📷 Foto</button>`:''}${VA()&&lk&&!own?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
  <h3>Stagione</h3><div class="tiles5">${tiles.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
  <details class="panel" style="margin-top:8px;padding:8px 12px"><summary class="small mut" style="cursor:pointer">Altre statistiche</summary><div class="tiles" style="margin-top:8px">${more.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div></details>
- <h3>Andamento overall</h3><div class="panel">${ovrChart(p)}</div>
- ${ms.length?`<h3>Ultime partite</h3><div class="panel lms">${ms.map(m=>resChip(m,p)).join('')}</div>`:''}
- ${bachecaHTML(p)}
- <h3>Chimica</h3>${chemHTML(p)}
- <h3>Valutazioni ricevute</h3>${ratingLogHTML(p)}${ratingAdminHTML(p)}
+ <div data-tour="ovr"><h3>Andamento overall</h3><div class="panel">${ovrChart(p)}</div>
+ ${ms.length?`<h3>Ultime partite</h3><div class="panel lms">${ms.map(m=>resChip(m,p)).join('')}</div>`:''}</div>
+ <div data-tour="bach">${bachecaHTML(p)}</div>
+ <div data-tour="chem"><h3>Chimica</h3>${chemHTML(p)}</div>
+ <div data-tour="ratings"><h3>Valutazioni ricevute</h3>${ratingLogHTML(p)}${ratingAdminHTML(p)}</div>
  <h3>Attributi</h3>${GROUPS.filter(g=>g.id!=='por'||gk||p.roles.includes('GK')).map(g=>`<div class="panel"><div class="small mut row sp" style="margin-bottom:4px;font-weight:700"><span>${g.name.toUpperCase()}</span><span class="v ${vcls(gval(p,g.id))}" style="font-size:16px">${gval(p,g.id)}</span></div><div class="attr">${g.stats.map(([k,l])=>`<div><span>${l}</span><span class="v ${vcls(sv(p,k))}">${sv(p,k)}</span></div>`).join('')}</div></div>`).join('')}`;
 }
 function viewProfile(){
@@ -1301,7 +1316,8 @@ function render(){
  const v=({home:viewHome,players:viewPlayers,rosa:viewRosa,calcio:viewCalcio,rank:viewRank,prof:viewProfile}[tab]||viewHome)();
  const scr=window.scrollY;$('#view').innerHTML=v;carSync();window.scrollTo(0,scr);
  updBell();notifWatch();
- if(needPhoto()&&!$('#modal').classList.contains('on'))photoModal(true);
+ if(needPhoto()&&!TOUR.on&&!TOUR.intro&&!$('#modal').classList.contains('on'))photoModal(true);
+ if(TOUR.on)tourPlace();
 }
 
 setInterval(()=>{const c=$('#clock');if(c&&S.live&&S.live.stage==='live')c.textContent=fmtClock(elapsed())},500);
@@ -1492,6 +1508,114 @@ const A={
  cfYes:()=>{const f=CFN;CFN=null;closeModal();f&&f()},
 };
 /* ===================== AZIONI NUOVE / SOSTITUITE ===================== */
+/* ===================== TOUR GUIDATO ===================== */
+var TOUR={on:false,i:0,steps:[],save:null,intro:false};
+const tourKey=()=>'mister_tour_v1_'+FV();
+const tourSeen=()=>!!lsGet(tourKey(),0);
+const tourMark=()=>lsSet(tourKey(),1);
+const TSTEPS=[
+ {sec:'Benvenuto',t:'Il tour in 2 minuti',x:'MISTER è l\'app del nostro calcetto: <b>card in stile FIFA</b>, statistiche, partite, voti e classifiche. Ti faccio vedere ogni area: tocca <b>Avanti</b>. Puoi uscire quando vuoi.'},
+ {sec:'Barra in alto',t:'🔔 Notifiche',sel:['header .bell'],go:{tab:'home'},x:'Qui trovi gli avvisi: nuove partite, voti da dare, valutazioni ricevute, premi. Il <b>numero rosso</b> indica quelli non letti. Toccane uno per aprire subito la schermata giusta.'},
+ {sec:'Barra in alto',t:'⚙️ Impostazioni',sel:['header [data-act=menu]'],x:'Notifiche push sul telefono, <b>Consigli</b> per migliorare l\'app (puoi votare quelli degli altri), segnalazione <b>Bug</b> e questa <b>Guida</b>, che puoi rifare quando vuoi.'},
+ {sec:'Navigazione',t:'Le 5 sezioni',sel:['#nav'],pos:'top',x:'👤 <b>Giocatori</b> · ⚽ <b>Calcio</b> · 🏠 <b>Home</b> (al centro) · 🏆 <b>Classifica</b> · 🙂 <b>Profilo</b>. Dentro molte sezioni puoi <b>scorrere lateralmente</b> (swipe) tra le schede in alto.'},
+ {sec:'🏠 Home',t:'Da fare',sel:['[data-tour=todo]'],go:{tab:'home'},x:'La tua lista di cose in sospeso: inviti a cui rispondere, <b>partite da votare</b> (scadono dopo 48 ore), votazioni sui consigli, compagni da valutare. Tocca una voce per andare dritto all\'azione. Se la lista non c\'è, sei in pari.'},
+ {sec:'🏠 Home',t:'Prossima partita',sel:['[data-tour=next]'],x:'Data, formato e luogo. Rispondi <b>✅ Ci sono</b>, <b>❔ Forse</b> o <b>❌ No</b>: serve a organizzare le squadre e il contatore mostra quanti hanno confermato. Puoi cambiare risposta quando vuoi.'},
+ {sec:'🏠 Home',t:'Ultima partita e Podio',sel:['[data-tour=last]','[data-tour=pod]'],x:'Risultato dell\'ultima partita con <b>MVP</b>, marcatori e il <b>tuo voto</b> (provvisorio finché la votazione è aperta). Sotto, il <b>Podio</b>: primi 3 per Marcatori, MVP e Voto medio (tocca per la classifica completa). In fondo l\'<b>Attività recente</b>.'},
+ {sec:'👤 Giocatori',t:'Tutta la rosa',sel:['#view > .row.sp','#q','[data-cb=players]'],go:{tab:'players',sub:{players:'all'}},x:'Tutti i giocatori ordinati per <b>overall</b>. Cerca per nome e scorri lateralmente per filtrare per ruolo (Por, Dif, Cen, Att). Il tasto <b>📋 Rose</b> apre le formazioni salvate.'},
+ {sec:'👤 Giocatori',t:'La card',sel:['[data-car=players] .cardw'],pos:'bottom',x:'Il numero grande è l\'<b>overall</b>, sotto il ruolo e il numero di maglia; il colore (bronzo → oro → speciale) dipende dal valore. <b>▲▼</b> è la forma delle ultime partite, <b>PROV.</b> = valutazione ancora provvisoria, <b>✓ verde</b> = hai già valutato quel giocatore. Tocca una card per aprirla.'},
+ {sec:'👤 Scheda giocatore',t:'Card e radar',sel:['.pp-top'],go:{tab:'players',pid:'other'},when:()=>!!tourOther(),x:'La card e il <b>radar</b> delle 6 aree (ritmo, tiro, passaggio, dribbling, difesa, fisico). Sotto trovi forma, numero di votanti e la crescita dell\'overall.'},
+ {sec:'👤 Scheda giocatore',t:'Valuta e Confronta',sel:['[data-tour=rate]'],when:()=>!!tourOther(),x:'<b>✍ Valuta</b>: dai un voto alle singole statistiche del compagno. Si fa <b>una volta sola per giocatore</b> e non puoi valutare te stesso; solo l\'admin può riaprire una valutazione. Dai <b>6 votanti</b> in su l\'overall nasce dalla <b>media dei voti dei compagni</b>. <b>⚖ Confronta</b> mette due giocatori a confronto su overall, macro categorie e singole stat, più stagione e partite giocate insieme.'},
+ {sec:'👤 Scheda giocatore',t:'Stagione',sel:['.tiles5'],when:()=>!!tourOther(),x:'Presenze, gol, assist, MVP e voto medio della stagione (per i portieri: clean sheet e gol subiti). <b>Altre statistiche</b> apre il dettaglio: cartellini, rigori, vittorie/pareggi/sconfitte.'},
+ {sec:'👤 Scheda giocatore',t:'Andamento e ultime partite',sel:['[data-tour=ovr]'],when:()=>!!tourOther(),x:'Il grafico mostra come cambia l\'<b>overall</b> partita dopo partita. Sotto, le ultime partite con risultato (<b>V/N/P</b>) e voto preso.'},
+ {sec:'👤 Scheda giocatore',t:'Bacheca',sel:['[data-tour=bach]'],when:()=>!!tourOther(),x:'I <b>premi vinti</b> (MVP, Bomber, Assistman, titoli mensili e di stagione) e i <b>traguardi</b> da sbloccare, con il tuo avanzamento.'},
+ {sec:'👤 Scheda giocatore',t:'Chimica, valutazioni, attributi',sel:['[data-tour=chem]'],when:()=>!!tourOther(),x:'<b>Chimica</b>: con chi rende meglio e i risultati giocando insieme. Più in basso le <b>valutazioni ricevute</b> (anonime) e tutti gli <b>attributi</b> divisi per area.'},
+ {sec:'⚽ Calcio',t:'Partita e Risultati',sel:['[data-cb=calcio]'],go:{tab:'calcio',pid:null,mid:null,sub:{calcio:'match'}},x:'Due schede: <b>Partita</b> (la prossima, le squadre, la diretta) e <b>Risultati</b> (storico). Scorri lateralmente per passare dall\'una all\'altra.'},
+ {sec:'⚽ Calcio',t:'Partite in programma',sel:['[data-car=calcio] .ev-card'],x:'Rispondi alla convocazione (<b>✅ ❔ ❌</b>), guarda chi ha confermato e quanti ne mancano, e condividi l\'<b>invito su WhatsApp</b>.'},
+ {sec:'⚽ Calcio',t:'Squadre e diretta',sel:['[data-car=calcio] .teams'],x:'Quando l\'admin prepara le formazioni compaiono qui: squadre, modulo, <b>forza</b> e differenza di livello. Durante la partita c\'è la <b>diretta</b> con risultato, cronometro e marcatori.'},
+ {sec:'⚽ Calcio',t:'Risultati',sel:['[data-car=calcio] > :nth-child(2)'],go:{sub:{calcio:'res'}},x:'Lo storico di tutte le partite. Tocca una partita per vedere formazioni, marcatori, cartellini, MVP e i <b>voti</b> di ognuno.'},
+ {sec:'⚽ Calcio',t:'🗳️ Dopo la partita: i voti',pos:'center',x:'Appena finita la partita si apre la <b>votazione per 48 ore</b>: dai un voto da <b>1 a 10</b> a ogni compagno che ha giocato (non a te stesso). La trovi in <b>Home → Da fare</b>. Allo scadere i voti diventano definitivi e decidono <b>voto medio, MVP e premi</b>. Più gente vota, più le classifiche sono giuste.'},
+ {sec:'🏆 Classifica',t:'Le classifiche',sel:['#view > .row.sp','[data-cb=rank]'],go:{tab:'rank',sub:{rank:'goals'}},x:'Scorri tra <b>Marcatori, Assist, MVP, Voto medio</b> (minimo 3 presenze votate), <b>Forma</b> (ultime 5 partite), <b>Overall, Premi</b> e <b>Albo d\'oro</b>. La chip <b>🏁 Stagione / 📅 Sempre</b> cambia il periodo. Tocca un giocatore per aprirne la scheda.'},
+ {sec:'🙂 Profilo',t:'Il tuo profilo',sel:['.pp-top'],go:{tab:'prof',pid:null},when:()=>!!myPid(),x:'La tua card e il tuo radar. Il profilo è la scheda di un giocatore come le altre: <b>stagione, andamento, ultime partite, bacheca e traguardi</b> sono tutti qui. Con <b>📷 Foto</b> puoi cambiare l\'immagine della card.'},
+ {sec:'🙂 Profilo',t:'Cosa dicono di te',sel:['[data-tour=ratings]'],when:()=>!!myPid(),x:'Le <b>valutazioni ricevute</b> dai compagni, in forma anonima: sono queste a costruire il tuo overall. Dai 6 votanti in su la card smette di essere provvisoria.'},
+ {sec:'Fine',t:'Sei pronto! 🎉',pos:'center',x:'Ora conosci l\'app. Puoi rivedere questa guida quando vuoi da <b>Impostazioni → 📖 Guida</b>. Buon calcetto!'}
+];
+function tourOther(){const me=myPid();const l=S.players.slice().sort((a,b)=>ovr(b)-ovr(a));return l.find(x=>x.id!==me)||l[0]||null}
+function tourDOM(){let t=$('#tour');if(!t){t=document.createElement('div');t.id='tour';document.body.appendChild(t)}return t}
+function tourIntro(){
+ TOUR.intro=true;const t=tourDOM();t.className='on intro';
+ t.innerHTML=`<div class="tbox mid"><div style="font-size:42px;text-align:center">⚽</div><h2 style="text-align:center;margin:6px 0 8px">Benvenuto!</h2><div style="text-align:center;font-size:15px;line-height:1.45">Ormai sei un giocatore di Mister! Preferisci imparare da solo o vieni con me per un breve tour tra le funzioni dell'app?</div><div class="row" style="margin-top:16px;gap:8px"><button class="btn sec grow" data-act="tourSkip">Imparo da solo</button><button class="btn grow" data-act="tourBegin">Guidami grazie!</button></div></div>`;
+}
+function tourStart(){
+ const m=$('#modal');if(m.classList.contains('on'))closeModal();
+ const u=S.ui;TOUR.save={tab:u.tab,pid:u.pid,mid:u.mid,cmp:u.cmp,rid:u.rid,sub:Object.assign({},u.sub)};
+ TOUR.steps=TSTEPS.filter(s=>!s.when||s.when());TOUR.i=0;TOUR.on=true;TOUR.intro=false;
+ tourMark();tourShow();
+}
+function tourEnd(){
+ const t=$('#tour');if(t){t.className='';t.innerHTML=''}
+ TOUR.intro=false;if(!TOUR.on)return;TOUR.on=false;
+ const s=TOUR.save;if(s){Object.assign(S.ui,{tab:s.tab,pid:s.pid,mid:s.mid,cmp:s.cmp,rid:s.rid});S.ui.sub=Object.assign(S.ui.sub||{},s.sub);saveUI();render();window.scrollTo(0,0)}
+ TOUR.save=null;
+}
+function tourShow(){
+ const st=TOUR.steps[TOUR.i];if(!st)return tourEnd();
+ const eff={sub:{}};
+ for(let k=0;k<=TOUR.i;k++){const q=TOUR.steps[k].go;if(q)Object.assign(eff,q,{sub:Object.assign(eff.sub,q.sub||{})})}
+ {const u=S.ui;
+  if(eff.tab)u.tab=eff.tab;
+  if('pid' in eff)u.pid=eff.pid==='other'?(tourOther()||{}).id||null:eff.pid;
+  if('mid' in eff)u.mid=eff.mid;
+  u.cmp=false;
+  u.sub=Object.assign(u.sub||{},eff.sub);
+  SEL=null;render();window.scrollTo(0,0);
+ }
+ tourPlace();setTimeout(()=>TOUR.on&&tourPlace(),250);
+}
+function tourPlace(){
+ if(!TOUR.on)return;
+ const st=TOUR.steps[TOUR.i];if(!st)return;
+ const t=tourDOM(),n=TOUR.steps.length,i=TOUR.i;
+ let els=(st.sel||[]).map(s=>document.querySelector(s)).filter(e=>e&&e.offsetHeight>20);
+ const mid=!els.length||st.pos==='center';
+ const miss=st.sel&&!els.length;
+ const hh=($('header')||{offsetHeight:56}).offsetHeight,vh=window.innerHeight,vw=window.innerWidth;
+ const rect=()=>{let r=null;els.forEach(e=>{const b=e.getBoundingClientRect();r=r?{l:Math.min(r.l,b.left),t:Math.min(r.t,b.top),r:Math.max(r.r,b.right),b:Math.max(r.b,b.bottom)}:{l:b.left,t:b.top,r:b.right,b:b.bottom}});return r};
+ const fixed=els.length&&els.every(e=>e.closest('header,nav'));
+ const body=`<div class="tp"><i style="width:${Math.round((i+1)/n*100)}%"></i></div><div class="tsec">${st.sec} · ${i+1}/${n}</div><h3>${st.t}</h3><div class="tx">${miss?'<div class="small mut" style="margin-bottom:6px">(Ora non c\'è nulla da mostrare qui, ma funziona così)</div>':''}${st.x}</div><div class="row tb"><button class="btn sec sm" data-act="tourEnd">Salta</button><span class="grow"></span>${i?`<button class="btn sec sm" data-act="tourPrev">‹ Indietro</button>`:''}<button class="btn sm" data-act="tourNext">${i===n-1?'Fine ✓':'Avanti ›'}</button></div>`;
+ t.className='on';
+ if(mid){t.className='on intro';
+  t.innerHTML=`<div class="tbox mid">${body}</div>`;return;
+ }
+ const top=st.pos==='top'||(fixed&&els[0].closest('nav'));
+ t.innerHTML=`<div class="tspot"></div><div class="tbox ${top?'tt':'tbt'}" ${top?`style="top:${hh+8}px"`:''}>${body}</div>`;
+ const box=t.querySelector('.tbox'),th=box.offsetHeight,navH=($('#nav')||{offsetHeight:70}).offsetHeight;
+ const lo=top?hh+th+24:hh+10,hi=top?vh-navH-14:vh-th-24;
+ if(!fixed){
+  let r=rect();const h=r.b-r.t,room=hi-lo,y=window.scrollY;
+  const want=h>room?r.t-lo:(r.t+h/2)-(lo+room/2);
+  window.scrollTo(0,Math.max(0,y+want));
+ }
+ const r=rect();let T=Math.max(r.t,lo),B=Math.min(r.b,hi);if(fixed||B<T+10){T=r.t;B=r.b}
+ const sp=t.querySelector('.tspot'),pad=6;
+ sp.style.cssText=`left:${Math.max(4,r.l-pad)}px;top:${T-pad}px;width:${Math.min(vw-8,r.r-r.l+pad*2)}px;height:${B-T+pad*2}px`;
+}
+Object.assign(A,{
+ tourStart:()=>tourStart(),
+ tourBegin:()=>tourStart(),
+ tourSkip:()=>{tourMark();tourEnd()},
+ tourEnd:()=>tourEnd(),
+ tourNext:()=>{if(TOUR.i>=TOUR.steps.length-1)return tourEnd();TOUR.i++;tourShow()},
+ tourPrev:()=>{if(TOUR.i>0){TOUR.i--;tourShow()}}
+});
+function tourCheck(){
+ if(TOUR.on||TOUR.intro||!ready||tourSeen())return;
+ if($('#modal').classList.contains('on')||needPhoto()||!$('#view').innerHTML)return;
+ const n=$('#nbanner');if(n&&n.classList.contains('on'))return;
+ tourIntro();
+}
+setInterval(tourCheck,2500);
+window.addEventListener('resize',()=>{if(TOUR.on)tourPlace()});
+
 Object.assign(A,{
  tab:d=>{S.ui.tab=d.k;S.ui.pid=null;S.ui.cmp=null;S.ui.mid=null;S.ui.from=null;MEDIT=null;if(d.k==='rosa')S.ui.rid=null;SEL=null;save();render();window.scrollTo(0,0)},
  openP:d=>{S.ui.from=d.from||null;S.ui.tab='players';S.ui.pid=d.id;S.ui.cmp=null;render();window.scrollTo(0,0)},
@@ -1513,7 +1637,7 @@ Object.assign(A,{
   openModal(`<h2>Impostazioni</h2>
   ${me?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Sei collegato come</div><b>${esc(nm(me))}</b></div>${ADM?`<button class="btn sec sm" data-act="claim">Cambia</button>`:''}</div>`:ADM?`<div class="panel" style="margin-bottom:10px"><div class="small mut" style="margin-bottom:6px">Non sei collegato a nessun giocatore</div><button class="btn sm" data-act="claim">👤 Scegli chi sei</button></div>`:''}
   ${ADM?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Modalità</div><b>${S.ui.previewPlayer?'👁 Giocatore':'👑 Admin'}</b></div><button class="btn sec sm" data-act="togglePreview">${S.ui.previewPlayer?'Torna Admin':'Vedi come giocatore'}</button></div>`:''}
-  <div class="row wrap" style="gap:8px;margin-bottom:10px"><button class="btn sec" data-act="notifSettings">🔔 Notifiche</button><button class="btn sec" data-act="fbTip">💡 Consigli${nt?` <span class="tag">${nt}</span>`:''}</button><button class="btn sec" data-act="fbBug">🐞 Bug${nb?` <span class="tag">${nb}</span>`:''}</button></div>
+  <div class="row wrap" style="gap:8px;margin-bottom:10px"><button class="btn sec" data-act="notifSettings">🔔 Notifiche</button><button class="btn sec" data-act="fbTip">💡 Consigli${nt?` <span class="tag">${nt}</span>`:''}</button><button class="btn sec" data-act="fbBug">🐞 Bug${nb?` <span class="tag">${nb}</span>`:''}</button><button class="btn sec" data-act="tourStart">📖 Guida</button></div>
   ${VA()?`<h3>Admin</h3><div class="row wrap" style="gap:8px"><button class="btn sec" data-act="tokensPanel">🔑 Token giocatori</button><button class="btn sec" data-act="rateReq">📣 Chiedi valutazioni</button><button class="btn sec" data-act="matchesAdmin">🗑 Gestisci partite</button><button class="btn sec" data-act="exp">⬇ Backup</button><button class="btn sec" data-act="imp">⬆ Importa</button></div><input type="file" id="impF" accept=".json" style="display:none">`:''}
   <div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)},
  matchesAdmin:()=>{const M=S.matches.slice().sort((a,b)=>b.date-a.date);
