@@ -59,23 +59,25 @@ label{font-size:12px;color:var(--mut);display:block;margin:10px 0 4px}
 .card.t3{--c1:#f7dc82;--c2:#c8901f;--c3:#fff6cd;--tx:#2b1d00;--ac:#5a3d00}
 .card.t4{--c1:#1f78e0;--c2:#081a44;--c3:#5fd8ff;--tx:#fff;--ac:#7df9ff}
 .card.t5{--c1:#fffdf3;--c2:#d8c58a;--c3:#ffffff;--tx:#231a05;--ac:#7a5d10}
-.c-left{position:absolute;left:10cqw;top:13cqw;line-height:1;text-align:center;z-index:3;width:20cqw}
-.c-ovr{font-size:18cqw;font-weight:800;letter-spacing:-.5cqw;font-variant-numeric:tabular-nums}
+.c-left{position:absolute;left:7cqw;top:12cqw;line-height:1;text-align:center;z-index:3;width:23cqw}
+.c-ovr{font-size:19cqw;font-weight:800;letter-spacing:-.5cqw;font-variant-numeric:tabular-nums}
 .c-role{font-size:7.2cqw;font-weight:700;letter-spacing:.4cqw;margin-top:1.5cqw;opacity:.9}
-.c-sep{width:9cqw;height:.5cqw;background:var(--ac);opacity:.45;margin:3cqw auto}
-.c-num{font-size:6.4cqw;font-weight:700;opacity:.75}
-.c-ph{position:absolute;right:2cqw;top:8cqw;width:60cqw;height:62cqw;z-index:2;-webkit-mask-image:linear-gradient(#000 74%,transparent);mask-image:linear-gradient(#000 74%,transparent);display:flex;align-items:flex-end;justify-content:center}
+.c-right{position:absolute;right:6cqw;top:13cqw;width:20cqw;display:flex;flex-direction:column;align-items:center;gap:1.8cqw;z-index:3}
+.c-right i{font-style:normal;font-size:6.6cqw;font-weight:800;letter-spacing:.2cqw;line-height:1.15;background:rgba(0,0,0,.14);border-radius:99px;padding:1cqw 2.6cqw}
+.card.t4 .c-right i{background:rgba(255,255,255,.2)}
+.c-num{position:absolute;left:0;right:0;top:128cqw;text-align:center;font-size:9cqw;font-weight:800;line-height:1;opacity:.85;z-index:3}
+.c-ph{position:absolute;left:50%;transform:translateX(-50%);top:4cqw;width:72cqw;height:72cqw;z-index:2;-webkit-mask-image:linear-gradient(#000 76%,transparent);mask-image:linear-gradient(#000 76%,transparent);display:flex;align-items:flex-end;justify-content:center}
 .c-ph img{width:100%;height:100%;object-fit:cover;object-position:center top}
 .c-ph span{font-size:22cqw;font-weight:800;opacity:.22;align-self:center}
-.c-name{position:absolute;left:8cqw;right:8cqw;top:71cqw;text-align:center;font-weight:800;font-size:8.6cqw;text-transform:uppercase;letter-spacing:.6cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:3}
-.c-meta{position:absolute;left:0;right:0;top:82cqw;text-align:center;font-size:5cqw;font-weight:600;letter-spacing:.2cqw;opacity:.7;z-index:3}
-.c-st{position:absolute;left:3cqw;right:3cqw;top:89.5cqw;display:flex;flex-direction:row;justify-content:space-between;z-index:3;border-top:.5cqw solid rgba(0,0,0,.2);padding-top:2.5cqw}
+.c-name{position:absolute;left:8cqw;right:8cqw;top:78cqw;text-align:center;font-weight:800;font-size:8.6cqw;text-transform:uppercase;letter-spacing:.6cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:3}
+.c-meta{position:absolute;left:0;right:0;top:88.5cqw;text-align:center;font-size:5cqw;font-weight:600;letter-spacing:.2cqw;opacity:.7;z-index:3}
+.c-st{position:absolute;left:3cqw;right:3cqw;top:97cqw;display:flex;flex-direction:row;justify-content:space-between;z-index:3;border-top:.5cqw solid rgba(0,0,0,.2);padding-top:2.5cqw}
 .card.t4 .c-st{border-color:rgba(255,255,255,.3)}
 .c-st div{display:flex;flex-direction:column;align-items:center;gap:.8cqw;flex:1;min-width:0}
 .c-st span{order:1;font-size:4.6cqw;font-weight:700;letter-spacing:.3cqw;opacity:.8;line-height:1}
 .c-st b{order:2;font-size:7.6cqw;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;line-height:1}
-.c-ok{position:absolute;left:0;right:0;top:128cqw;text-align:center;font-size:11cqw;font-weight:800;line-height:1;color:rgba(34,197,94,.6);z-index:3;pointer-events:none}
-.c-form{font-size:5.4cqw;font-weight:800;margin-top:2.5cqw}
+.c-ok{position:absolute;left:15cqw;top:127cqw;text-align:left;font-size:10cqw;font-weight:800;line-height:1;color:rgba(34,197,94,.7);z-index:3;pointer-events:none}
+.c-form{font-size:5.4cqw;font-weight:800;margin-top:3cqw}
 .c-prov{font-size:3.4cqw;font-weight:800;opacity:.7;margin-top:2cqw;letter-spacing:.2cqw}
 .c-form.up{color:#0b7a3f}.c-form.dn{color:#b3261e}
 .card.t4 .c-form.up{color:#7dffb0}.card.t4 .c-form.dn{color:#ffb4ab}
@@ -265,6 +267,41 @@ header .hb{display:flex;align-items:center;gap:8px}
 .ach b{display:block;font-size:12px;margin-top:2px}
 .ach span{font-size:11px;color:var(--mut)}
 details>summary{list-style:none}details>summary::-webkit-details-marker{display:none}
+
+/* v1.4 */
+.grab{height:22px;margin:-8px 0 4px;display:flex;justify-content:center;align-items:flex-start;padding-top:2px;touch-action:none;cursor:grab}
+.grab i{display:block;width:42px;height:5px;border-radius:99px;background:rgba(150,155,165,.45)}
+.sheet.fx{display:flex;flex-direction:column;overflow:hidden;padding:16px 0 0;max-height:92vh;max-height:92dvh}
+.sheet.fx .grab{margin:-8px 0 2px;flex:none}
+.sheet.fx .sbody{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 16px 8px}
+.sheet.fx .sfoot{flex:none;padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--bg)}
+#cfm{position:fixed;inset:0;z-index:130;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px}
+#cfm .cbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;width:100%;max-width:340px;text-align:center}
+#cfm .cbox p{margin:0 0 16px;color:var(--mut)}
+#cfm .col{display:flex;flex-direction:column;gap:8px}
+.ovrgrid{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:8px;align-items:start}
+.ovrgrid>div{min-width:0}
+.ovrgrid.one{grid-template-columns:minmax(0,1fr)}
+.ovrgrid .lms{flex-direction:column;justify-content:flex-start;gap:5px;padding:8px 6px}
+.ovrgrid .lm{flex-direction:row;justify-content:space-between;gap:4px;flex:none}
+.ovrgrid .lm .lc{width:26px;height:26px;font-size:12px}
+.ovrgrid .panel{padding:8px}
+.rcv{display:flex;flex-wrap:wrap;gap:6px}
+.rcvb{display:inline-block;border:1px solid var(--line);background:var(--bg2);color:var(--tx);border-radius:12px;padding:6px 12px;font-size:13px;font-family:inherit}
+button.rcvb{cursor:pointer;border-color:var(--ac)}
+span.rcvb{opacity:.85;cursor:default}
+.attr2 .agrp.dim{opacity:.6}
+.goal{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.goal:last-child{border-bottom:none}
+.goal i{font-style:normal;font-size:22px;grid-row:span 2;text-align:center}
+.goal .gb{height:7px;border-radius:99px;background:var(--bg2);overflow:hidden;grid-column:2/4}
+.goal .gb u{display:block;height:100%;background:var(--ac);text-decoration:none}
+.goal.ok .gb u{background:#34d399}
+.dtp{display:flex;flex-direction:column;gap:6px}
+.dtp .r{display:flex;gap:6px;align-items:center}
+.dtp select{padding:9px 6px;min-width:0}
+.dtp .r b{flex:none}
+.cl-h{font-size:12px;font-weight:800;letter-spacing:.5px;margin:10px 0 2px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="shim.js"></script>
 </head>
@@ -372,13 +409,46 @@ const GROUPS=[
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
-const VERSION='1.3.0';
-/* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra. */
+const VERSION='1.4.0';
+/* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra.
+   Voce = [tipo, testo, soloAdmin?]  ·  tipo: 'new' novità · 'imp' miglioramento · 'bug' correzione.
+   Le voci soloAdmin (3° elemento true) NON compaiono mai nelle notifiche né ai giocatori. */
+const CLT={new:['✨','Novità','novità'],imp:['🔧','Miglioramenti','miglioramenti'],bug:['🐞','Correzioni','bug risolti']};
 const CHANGELOG=[
- {v:'1.3.0',d:'6 ott 2026',items:['Rose: ognuno modifica solo le sue; con la funzione Jam puoi dare il permesso a 1-4 amici. Tutti possono vedere tutte le rose','Numeri maglia unici: se un numero è già preso ti viene chiesto se riassegnarlo','Solo l\'admin può collegare un profilo a un giocatore','Valutazione compagni sistemata: ora entra tutta nello schermo, senza scorrere di lato','Swipe tra le sotto-schede ora funziona in tutta la schermata','Nomi lunghi sulle card abbreviati (es. Mario Rossi → Mario.R)','Notifica a tutti quando esce una nuova versione (si può disattivare dalle notifiche)']},
- {v:'1.2.0',d:'5 ott 2026',items:['Nuovo stile card: statistiche in riga unica, come nei pack di calcio','Valutazione compagni a doppia colonna: tutte le macro-statistiche visibili insieme, ordinate per importanza sul ruolo','Pagina giocatore: attributi su due colonne, più compatta e leggibile','Corretti alcuni bug grafici (numeri con troppi decimali nel confronto giocatori, tab tagliate a metà, pagina che scorreva dietro le finestre popup)']},
- {v:'1.1.0',d:'5 ott 2026',items:['Le card mostrano 5 statistiche principali invece di 6 (Velocità assorbita nel Fisico)','Valutazione compagni riorganizzata per macro-categorie']}
+ {v:'1.4.0',d:'6 ott 2026',items:[
+  ['new','Profilo diviso in due schede: Card e Bacheca (premi, traguardi e i tuoi obiettivi, tipo «fai 15 gol»)'],
+  ['new','Pulsante Chimica accanto a Confronta: vedi con chi rende meglio ogni giocatore'],
+  ['new','Valutazioni ricevute: ora vedi il nome di chi ha votato'],
+  ['new','Rose: dalla lista si vede subito se è una Jam e chi ne fa parte'],
+  ['new','Chiudi le finestre trascinandole verso il basso; se hai dati non salvati ti viene chiesto cosa fare'],
+  ['new','Data e ora delle partite con selettore in italiano, a 24 ore'],
+  ['imp','Nuova grafica delle card: ruoli secondari a destra, foto più grande, numero di maglia in basso'],
+  ['imp','Andamento overall più compatto, con le ultime partite a fianco'],
+  ['imp','Valutazione: i pulsanti Invia e Annulla restano sempre visibili in fondo'],
+  ['imp','Attributi da portiere visibili su tutti i giocatori'],
+  ['imp','I traguardi si vedono solo dal proprio profilo'],
+  ['imp','«Classifica» ora si chiama «Classifiche»'],
+  ['bug','Lo swipe tra le schede ora cambia le tab in alto nello stesso momento'],
+  ['imp','Admin: apri le valutazioni ricevute e riattivale da lì',1]]},
+ {v:'1.3.0',d:'6 ott 2026',items:[
+  ['new','Rose: ognuno modifica solo le sue; con la funzione Jam puoi dare il permesso a 1-4 amici. Tutti possono vedere tutte le rose'],
+  ['new','Numeri maglia unici: se un numero è già preso ti viene chiesto se riassegnarlo'],
+  ['new','Notifica a tutti quando esce una nuova versione (si può disattivare dalle notifiche)'],
+  ['imp','Nomi lunghi sulle card abbreviati (es. Mario Rossi → Mario.R)'],
+  ['bug','Valutazione compagni sistemata: ora entra tutta nello schermo, senza scorrere di lato'],
+  ['bug','Swipe tra le sotto-schede ora funziona in tutta la schermata'],
+  ['imp','Solo l\'admin può collegare un profilo a un giocatore',1]]},
+ {v:'1.2.0',d:'5 ott 2026',items:[
+  ['imp','Nuovo stile card: statistiche in riga unica, come nei pack di calcio'],
+  ['imp','Valutazione compagni a doppia colonna: tutte le macro-statistiche visibili insieme, ordinate per importanza sul ruolo'],
+  ['imp','Pagina giocatore: attributi su due colonne, più compatta e leggibile'],
+  ['bug','Corretti alcuni bug grafici (numeri con troppi decimali nel confronto giocatori, tab tagliate a metà, pagina che scorreva dietro le finestre popup)']]},
+ {v:'1.1.0',d:'5 ott 2026',items:[
+  ['imp','Le card mostrano 5 statistiche principali invece di 6 (Velocità assorbita nel Fisico)'],
+  ['imp','Valutazione compagni riorganizzata per macro-categorie']]}
 ];
+const clPub=c=>c.items.filter(i=>!i[2]);
+function clSummary(c){const n={};clPub(c).forEach(i=>n[i[0]]=(n[i[0]]||0)+1);return['new','imp','bug'].filter(k=>n[k]).map(k=>CLT[k][0]+' '+n[k]+' '+(n[k]===1&&k!=='new'?CLT[k][2].replace(/i$/,'o'):CLT[k][2])).join(' · ')}
 const ROLES=[['GK','Portiere'],['CB','Difensore centrale'],['LB','Terzino sx'],['RB','Terzino dx'],['CDM','Mediano'],['CM','Centrocampista'],['CAM','Trequartista'],['LM','Esterno sx'],['RM','Esterno dx'],['LW','Ala sx'],['RW','Ala dx'],['CF','Seconda punta'],['ST','Attaccante']];
 const PROF={GK:'GK',CB:'CB',LB:'FB',RB:'FB',CDM:'CDM',CM:'CM',CAM:'CAM',LM:'WM',RM:'WM',LW:'W',RW:'W',CF:'CF',ST:'ST'};
 const FAM={GK:'gk',CB:'def',LB:'def',RB:'def',CDM:'mid',CM:'mid',CAM:'mid',LM:'wide',RM:'wide',LW:'wide',RW:'wide',CF:'att',ST:'att'};
@@ -596,8 +666,8 @@ const metaOf=p=>[p.age?p.age+' anni':'',p.h?p.h+' cm':'',p.w?p.w+' kg':''].filte
 function ratedByMe(pid){const me=myPid();return !!me&&me!==pid&&S.ratings.some(r=>r.id===pid+'_'+me&&r.r!==r.t&&!r.open)}
 function cardName(n){n=String(n||'').trim();const t=n.split(/\s+/);if(n.length<=11||t.length<2)return n;return t[0]+'.'+t.slice(1).map(x=>x[0].toUpperCase()).join('.')}
 function card(p){
- const f=face(p),o=ovr(p),m=metaOf(p);
- return`<div class="cardw" data-act="openP" data-id="${p.id}"><div class="card ${tierOf(o)}"><div class="c-left"><div class="c-ovr">${o}</div><div class="c-role">${p.roles[0]}</div><div class="c-sep"></div>${p.num!==''&&p.num!=null?`<div class="c-num">${esc(p.num)}</div>`:''}${p._f?`<div class="c-form ${p._f>0?'up':'dn'}">${p._f>0?'▲':'▼'}${Math.abs(p._f)}</div>`:''}${p._prov?'<div class="c-prov">PROV.</div>':''}</div><div class="c-ph">${p.photo?`<img src="${p.photo}">`:`<span>${ini(p.name)}</span>`}</div><div class="c-name">${esc(cardName(p.name))}</div><div class="c-meta">${m||'&nbsp;'}</div><div class="c-st">${f.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>${ratedByMe(p.id)?'<div class="c-ok">✓</div>':''}</div></div>`;
+ const f=face(p),o=ovr(p),m=metaOf(p),sec=(p.roles||[]).slice(1,4);
+ return`<div class="cardw" data-act="openP" data-id="${p.id}"><div class="card ${tierOf(o)}"><div class="c-left"><div class="c-ovr">${o}</div><div class="c-role">${p.roles[0]}</div>${p._f?`<div class="c-form ${p._f>0?'up':'dn'}">${p._f>0?'▲':'▼'}${Math.abs(p._f)}</div>`:''}${p._prov?'<div class="c-prov">PROV.</div>':''}</div>${sec.length?`<div class="c-right">${sec.map(r=>`<i>${r}</i>`).join('')}</div>`:''}<div class="c-ph">${p.photo?`<img src="${p.photo}">`:`<span>${ini(p.name)}</span>`}</div><div class="c-name">${esc(cardName(p.name))}</div><div class="c-meta">${m||'&nbsp;'}</div><div class="c-st">${f.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>${p.num!==''&&p.num!=null?`<div class="c-num">${esc(p.num)}</div>`:''}${ratedByMe(p.id)?'<div class="c-ok">✓</div>':''}</div></div>`;
 }
 function radar(f){
  const c=100,R=68,n=5,pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[c+r*Math.cos(a),c+r*Math.sin(a)]};
@@ -606,10 +676,27 @@ function radar(f){
  return`<svg viewBox="0 0 200 200" width="100%">${[1,.66,.33].map(k=>`<polygon points="${poly(k)}" fill="none" stroke="#35353b" stroke-width="1"/>`).join('')}${f.map((_,i)=>`<line x1="${c}" y1="${c}" x2="${pt(i,R)[0]}" y2="${pt(i,R)[1]}" stroke="#35353b"/>`).join('')}<polygon points="${data}" fill="rgba(209,255,66,.35)" stroke="#d1ff42" stroke-width="2"/>${f.map((x,i)=>{const[a,b]=pt(i,R+17);return`<text x="${a}" y="${b}" fill="#f2f4f7" font-size="10" font-weight="700" text-anchor="middle" dominant-baseline="middle">${x[0]} ${x[1]}</text>`}).join('')}</svg>`;
 }
 const back=(act,t)=>`<button class="btn sec sm" data-act="${act}" style="margin-bottom:12px">← ${t}</button>`;
-function openModal(h){const m=$('#modal');m.innerHTML=`<div class="sheet">${h}</div>`;m.classList.add('on')}
+let MO={save:null,dirty:null,edited:false},ED0='';
+function openModal(h,foot,o){const m=$('#modal');o=o||{};MO={save:o.save||null,dirty:o.dirty||null,edited:false};
+ m.innerHTML=`<div class="sheet${foot?' fx':''}"><div class="grab" aria-hidden="true"><i></i></div>${foot?`<div class="sbody">${h}</div><div class="sfoot">${foot}</div>`:h}</div>`;m.classList.add('on')}
+function isDirty(){if(!MO.save)return false;try{return MO.dirty?!!MO.dirty():MO.edited}catch(e){return false}}
+function reqClose(){if(MLOCK)return false;if(isDirty()){cfmOpen();return false}closeModal();return true}
+function cfmOpen(){if(document.getElementById('cfm'))return;const d=document.createElement('div');d.id='cfm';d.innerHTML='<div class="cbox"><h3 style="margin:0 0 6px">Prima di chiudere</h3><p>Vuoi salvare i dati?</p><div class="col"><button class="btn" data-act="cfmSave">Conferma i dati ed esci</button><button class="btn sec" data-act="cfmNo">Esci senza modificare</button></div></div>';d.addEventListener('click',e=>{if(e.target===d)d.remove()});document.body.appendChild(d)}
+(function(){const m=document.getElementById('modal');let g=null;
+ m.addEventListener('input',()=>{MO.edited=true});m.addEventListener('change',()=>{MO.edited=true});
+ m.addEventListener('touchstart',e=>{const sh=e.target.closest&&e.target.closest('.sheet');if(!sh||e.touches.length!==1){g=null;return}const t=e.touches[0],r=sh.getBoundingClientRect(),sc=e.target.closest('.sbody')||sh;
+  g={y:t.clientY,x:t.clientX,sh,grab:!!e.target.closest('.grab')||t.clientY-r.top<34,top:sc.scrollTop<=0,dy:0,on:false}},{passive:true});
+ m.addEventListener('touchmove',e=>{if(!g)return;const t=e.touches[0],dy=t.clientY-g.y,dx=t.clientX-g.x;
+  if(!g.on){if(dy>8&&dy>Math.abs(dx)*1.5&&(g.grab||(g.top&&!(e.target.closest&&e.target.closest('input,select,textarea,[data-drag]'))))){g.on=true;g.sh.style.transition='none'}else return}
+  g.dy=Math.max(0,dy);g.sh.style.transform='translateY('+g.dy+'px)';if(e.cancelable)e.preventDefault()},{passive:false});
+ const end=()=>{if(!g)return;const s=g;g=null;if(!s.on)return;s.sh.style.transition='transform .18s ease';
+  if(s.dy>110&&!MLOCK&&!isDirty()){s.sh.style.transform='translateY(100%)';setTimeout(closeModal,170)}
+  else{s.sh.style.transform='';if(s.dy>110&&isDirty())cfmOpen()}};
+ m.addEventListener('touchend',end);m.addEventListener('touchcancel',end);
+})();
 let CFN=null;
 function ASK(msg,fn){CFN=fn;openModal(`<h2>Confermi?</h2><p>${msg}</p><div class="row" style="margin-top:16px"><button class="btn dan grow" data-act="cfYes">Sì, procedi</button><button class="btn sec grow" data-act="closeM">Annulla</button></div>`)}
-function closeModal(){MLOCK=false;const m=$('#modal');m.classList.remove('on');m.innerHTML='';if(stale)render()}
+function closeModal(){MLOCK=false;MO={save:null,dirty:null,edited:false};const cf=document.getElementById('cfm');if(cf)cf.remove();const m=$('#modal');m.classList.remove('on');m.innerHTML='';if(stale)render()}
 
 /* ===== VISTA: GIOCATORI ===== */
 const FILT=[['all','Tutti'],['gk','Por'],['def','Dif'],['mid','Cen'],['att','Att']];
@@ -653,7 +740,7 @@ const jamLbl=r=>(r.editors||[]).filter(getP).map(nm).join(', ');
 function viewRosa(){
  const r=curR();
  if(!r){S.ui.rid=null;return`${back('backRosa','Giocatori')}<div class="row sp"><h2>Rose</h2>${RE()?`<button class="btn sm" data-act="newR">+ Nuova rosa</button>`:''}</div>
- ${S.rosters.length?S.rosters.map(r=>{const sl=slotsOf(r.format,r.formation);return`<div class="panel row sp" data-act="openR" data-id="${r.id}" style="cursor:pointer"><div><b>${esc(r.name)}${(r.editors||[]).length?' 🎶':''}</b><div class="small mut">Calcio a ${r.format} · ${r.pids.length} giocatori · modulo ${esc(r.formation)}${r.owner&&getP(r.owner)?' · di '+esc(nm(r.owner)):''}</div></div><div style="text-align:right"><div style="font-size:22px;font-weight:900;color:var(--gold)">${Math.round(lineRating(r.lineup,sl))||'–'}</div><div class="small mut">forza</div></div></div>`}).join(''):`<div class="empty">Nessuna rosa.${RE()?`<br><br><button class="btn" data-act="newR">Crea rosa</button>`:''}</div>`}`;
+ ${S.rosters.length?S.rosters.map(r=>{const sl=slotsOf(r.format,r.formation);return`<div class="panel row sp" data-act="openR" data-id="${r.id}" style="cursor:pointer"><div><b>${esc(r.name)}${(r.editors||[]).filter(getP).length?' <span class="tag">🎶 Jam</span>':''}</b><div class="small mut">Calcio a ${r.format} · ${r.pids.length} giocatori · modulo ${esc(r.formation)}${r.owner&&getP(r.owner)?' · di '+esc(nm(r.owner)):''}</div>${(r.editors||[]).filter(getP).length?`<div class="small" style="margin-top:3px">🎶 Con: ${esc(jamLbl(r))}</div>`:''}</div><div style="text-align:right"><div style="font-size:22px;font-weight:900;color:var(--gold)">${Math.round(lineRating(r.lineup,sl))||'–'}</div><div class="small mut">forza</div></div></div>`}).join(''):`<div class="empty">Nessuna rosa.${RE()?`<br><br><button class="btn" data-act="newR">Crea rosa</button>`:''}</div>`}`;
  }
  const ce=canEditR(r),ow=ownsR(r),sl=slotsOf(r.format,r.formation),inL=new Set(r.lineup.filter(Boolean)),bench=r.pids.filter(id=>!inL.has(id)&&getP(id));
  return`<div class="row sp">${back('backR','Rose')}${ow?`<button class="btn dan sm" data-act="delR" style="margin-bottom:12px">Elimina</button>`:''}</div>
@@ -759,6 +846,14 @@ function viewRate(){
 /* ===== VISTA: RISULTATI ===== */
 const balLbl=d=>d<=1?['Equilibrata','g']:d===2?['Quasi','y']:['Sbilanciata','r'];
 let MEDIT=null;
+const MESI3=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+function dtPick(id,ts){
+ const d=new Date(ts),Y=d.getFullYear(),pad=n=>String(n).padStart(2,'0');
+ const sel=(p,list,v,w)=>`<select data-dt="${id}" data-p="${p}" style="flex:${w}">${list.map(o=>`<option value="${o[0]}" ${o[0]===v?'selected':''}>${o[1]}</option>`).join('')}</select>`;
+ const mins=[...new Set([...Array.from({length:12},(_,i)=>i*5),d.getMinutes()])].sort((a,b)=>a-b);
+ return`<div class="dtp" id="${id}"><div class="r">${sel('d',Array.from({length:31},(_,i)=>[i+1,i+1]),d.getDate(),'1')}${sel('m',MESI3.map((m,i)=>[i,m]),d.getMonth(),'1.3')}${sel('y',[Y-3,Y-2,Y-1,Y,Y+1,Y+2].map(y=>[y,y]),Y,'1.4')}</div><div class="r"><span class="small mut" style="flex:none">Ore</span>${sel('h',Array.from({length:24},(_,i)=>[i,pad(i)]),d.getHours(),'1')}<b>:</b>${sel('i',mins.map(x=>[x,pad(x)]),d.getMinutes(),'1')}</div></div>`;
+}
+function dtVal(id){const g=p=>{const e=document.querySelector(`[data-dt="${id}"][data-p="${p}"]`);return e?+e.value:null};const y=g('y'),m=g('m');if(y==null)return null;return new Date(y,m,Math.min(g('d'),new Date(y,m+1,0).getDate()),g('h'),g('i'))}
 const dl=t=>{const d=new Date(t);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
 function viewMatchDet(m){
  const[l,c]=balLbl(Math.abs(m.sa-m.sb)),mv=m.motm&&getP(m.motm);
@@ -777,7 +872,7 @@ function viewMatchEdit(){
  const opt=()=>all.map(([id,T])=>`<option value="${id}">${esc(nm(id))} (${esc(m[T].name)})</option>`).join('');
  const rt=T=>pl(T).map(id=>`<div class="row sp" style="padding:3px 0;gap:6px"><span class="small" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(nm(id))}</span><input type="number" data-mr="${id}" value="${m.ratings[id]??''}" min="1" max="10" step="0.5" style="width:64px;flex:none;padding:6px"></div>`).join('');
  return`<h2>Modifica partita</h2>
- <div class="panel"><label style="margin-top:0">Data e ora</label><input type="datetime-local" id="meD" value="${dl(m.date)}">
+ <div class="panel"><label style="margin-top:0">Data e ora</label>${dtPick('meD',m.date)}
  <div class="row" style="gap:8px"><div class="grow"><label>Squadra A</label><input type="text" id="meA" value="${esc(m.A.name)}"></div><div class="grow"><label>Squadra B</label><input type="text" id="meB" value="${esc(m.B.name)}"></div></div>
  <label>Risultato</label><div class="row" style="gap:8px"><input type="number" id="meSa" value="${m.sa}" min="0" style="text-align:center;font-size:20px;font-weight:800"><b>–</b><input type="number" id="meSb" value="${m.sb}" min="0" style="text-align:center;font-size:20px;font-weight:800"></div>
  <div class="small mut" style="margin-top:4px">Si aggiorna in automatico se aggiungi o togli gol nella cronaca.</div></div>
@@ -792,7 +887,7 @@ function viewMatchEdit(){
  <div class="row" style="margin-top:14px;gap:8px"><button class="btn sec" data-act="meCancel">Annulla</button><button class="btn grow" data-act="meSave">💾 Salva modifiche</button></div>`;
 }
 function meSync(){if(!MEDIT)return;const v=id=>$('#'+id);
- if(v('meD')&&v('meD').value){const t=new Date(v('meD').value).getTime();if(t)MEDIT.date=t}
+ {const dt=dtVal('meD');if(dt&&dt.getTime())MEDIT.date=dt.getTime()}
  if(v('meA'))MEDIT.A.name=v('meA').value.trim()||MEDIT.A.name;if(v('meB'))MEDIT.B.name=v('meB').value.trim()||MEDIT.B.name;
  if(v('meSa'))MEDIT.sa=Math.max(0,+v('meSa').value||0);if(v('meSb'))MEDIT.sb=Math.max(0,+v('meSb').value||0);
  document.querySelectorAll('[data-mr]').forEach(i=>{const x=parseFloat(i.value);if(!isNaN(x))MEDIT.ratings[i.dataset.mr]=clamp(Math.round(x*2)/2,1,10)});
@@ -820,12 +915,13 @@ const myVote=(m,me)=>S.mvotes.find(v=>v.id===m.id+'_'+me);
 const hLeft=m=>{const h=Math.max(0,m.vote.until-Date.now())/3600e3;return h>=1?Math.round(h)+' ore':Math.max(1,Math.round(h*60))+' min'};
 function voteModal(mid){
  const m=S.matches.find(x=>x.id===mid),me=myPid();if(!m||!me||!mOpen(m)||!playedIn(m,me))return;
- const ex=myVote(m,me);MV={m:mid,v:Object.assign({},ex?ex.v:{})};
+ const ex=myVote(m,me);MV={m:mid,v:Object.assign({},ex?ex.v:{})};const V0=JSON.stringify(MV.v);
  const row=T=>(m[T].played||m[T].pids).filter(id=>id!==me&&getP(id)).map(id=>{const v=MV.v[id]??6;return`<div class="sl" style="grid-template-columns:100px 1fr 38px"><span>${esc(nm(id))}</span><input type="range" min="1" max="10" step="0.5" value="${v}" data-mv="${id}"><b id="mv_${id}">${v}</b></div>`}).join('');
  openModal(`<h2>🗳️ Vota la partita</h2><p class="small mut" style="margin-top:0">${esc(m.A.name)} ${m.sa}-${m.sb} ${esc(m.B.name)} · chiude tra ${hLeft(m)}</p>
  <div class="panel" style="border-color:#f59e0b;font-size:13px">⚠️ Dai il voto alla <b>prestazione in campo</b> (da 1 a 10). <b>Non contare gol, assist e cartellini</b>: i bonus vengono aggiunti in automatico, altrimenti verrebbero contati due volte.</div>
- ${row('A')?`<h3>${esc(m.A.name)}</h3>${row('A')}`:''}${row('B')?`<h3>${esc(m.B.name)}</h3>${row('B')}`:''}
- <div class="row" style="margin-top:18px"><button class="btn grow" data-act="voteSave">Invia voti</button><button class="btn sec" data-act="closeM">Annulla</button></div>`);
+ ${row('A')?`<h3>${esc(m.A.name)}</h3>${row('A')}`:''}${row('B')?`<h3>${esc(m.B.name)}</h3>${row('B')}`:''}`,
+ `<div class="row"><button class="btn grow" data-act="voteSave">Invia voti</button><button class="btn sec" data-act="closeM">Annulla</button></div>`,
+ {save:'voteSave',dirty:()=>!!MV&&JSON.stringify(MV.v)!==V0});
 }
 function voteBox(m){
  if(!m.vote)return'';const me=myPid(),n=mVotes(m);
@@ -875,38 +971,39 @@ function rateModal(pid){
  }).join('');
  openModal(`<h2>Valuta ${esc(p.name)}</h2>
  <p class="small mut" style="margin-bottom:12px">Tocca − o + per proporre un valore. Tocca il numero per digitarlo.</p>
- <div class="rm-grid"><div class="rm-col">${colHTML(left)}</div><div class="rm-col">${colHTML(right)}</div></div>
- <div class="row" style="margin-top:16px"><button class="btn grow" data-act="rateSave">Invia valutazione</button><button class="btn sec" data-act="closeM">Annulla</button></div>`);
+ <div class="rm-grid"><div class="rm-col">${colHTML(left)}</div><div class="rm-col">${colHTML(right)}</div></div>`,
+ `<div class="row"><button class="btn grow" data-act="rateSave">Invia valutazione</button><button class="btn sec" data-act="closeM">Annulla</button></div>`,
+ {save:'rateSave',dirty:()=>!!RT&&Object.keys(RT.touched).length>0});
 }
-function ratingAdminHTML(p){
- if(!VA())return'';const rs=S.ratings.filter(r=>r.t===p.id&&r.r!==r.t).sort((a,b)=>(b.at||0)-(a.at||0));if(!rs.length)return'';
- const gs=GROUPS.filter(g=>g.id!=='por'||isGK(p));
- const full=r=>gs.map(g=>`<div class="small mut" style="margin:8px 0 2px;font-weight:700">${g.name}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 14px">${g.stats.map(([k,l])=>{const t=r.s&&r.s[k]!=null,v=t?r.s[k]:clamp(p.s[k]??DEF[k],1,99);return`<div class="row sp" style="font-size:12.5px;${t?'':'opacity:.45'}"><span>${l}</span><b>${v}</b></div>`}).join('')}</div>`).join('');
- return`<h3>Admin · votazioni e riattivazione</h3><div class="panel">${rs.map(r=>`<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13px"><div class="row sp"><span><b>${esc(nm(r.r))}</b> <span class="mut small">${r.at?fdate(r.at,{day:'numeric',month:'short'}):''}</span></span>${r.open?'<span class="tag">Riattivata</span>':`<button class="btn sec sm" data-act="rateReopen" data-id="${r.id}">Riattiva</button>`}</div><details style="margin-top:4px"><summary class="small mut" style="cursor:pointer">Vedi votazione completa</summary>${full(r)}<div class="small mut" style="margin-top:6px">Grigio = non modificato (base ${'admin'}).</div></details></div>`).join('')}</div>`;
+function ratingsRecvHTML(p){
+ const rs=S.ratings.filter(r=>r.t===p.id&&r.r!==r.t&&getP(r.r)).sort((a,b)=>(b.at||0)-(a.at||0));
+ if(!rs.length)return'<h3>Valutazioni ricevute</h3><div class="mut small">Nessuna valutazione ricevuta.</div>';
+ return`<h3>Valutazioni ricevute <span class="small mut" style="font-weight:400">· ${rs.length}</span></h3><div class="rcv">${rs.map(r=>VA()?`<button class="rcvb" data-act="rateView" data-id="${r.id}">${esc(nm(r.r))}</button>`:`<span class="rcvb">${esc(nm(r.r))}</span>`).join('')}</div>`;
 }
-function ratingLogHTML(p){
- const rows=[];S.ratings.filter(r=>r.t===p.id).forEach(r=>(r.log||[]).forEach(e=>rows.push({at:e.at,by:r.r,s:e.s})));
- rows.sort((a,b)=>b.at-a.at);
- if(!rows.length)return'<div class="mut small">Nessuna valutazione ricevuta.</div>';
- return`<div class="panel">${rows.slice(0,10).map(e=>{const ks=Object.keys(e.s);return`<div style="padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><div class="row sp"><b>${VA()?esc(nm(e.by)):'Un compagno'}</b><span class="mut small">${fdate(e.at,{day:'numeric',month:'short',year:'2-digit'})}</span></div><div class="mut small">${ks.slice(0,5).map(k=>`${LBL[k]} ${e.s[k]}`).join(' · ')}${ks.length>5?` · +${ks.length-5}`:''}</div></div>`}).join('')}</div>`;
+function rateViewModal(id){
+ const r=S.ratings.find(x=>x.id===id);if(!r||!VA())return;const p=getP(r.t);if(!p)return;
+ const gs=GROUPS.slice();
+ const full=gs.map(g=>`<div class="small mut" style="margin:8px 0 2px;font-weight:700">${g.name}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 14px">${g.stats.map(([k,l])=>{const t=r.s&&r.s[k]!=null,v=t?r.s[k]:clamp(p.s[k]??DEF[k],1,99);return`<div class="row sp" style="font-size:12.5px;${t?'':'opacity:.45'}"><span>${l}</span><b>${v}</b></div>`}).join('')}</div>`).join('');
+ openModal(`<h2>${esc(nm(r.r))} → ${esc(p.name)}</h2><div class="small mut" style="margin-bottom:6px">${r.at?fdate(r.at,{day:'numeric',month:'short',year:'numeric'}):''}${r.open?' · riattivata':''}</div>${full}<div class="small mut" style="margin-top:8px">Grigio = non modificato (valore base).</div>`,
+  `<div class="row">${r.open?'<span class="tag grow" style="text-align:center">Riattivata</span>':`<button class="btn grow" data-act="rateReopen" data-id="${r.id}">🔓 Riattiva valutazione</button>`}<button class="btn sec" data-act="closeM">Chiudi</button></div>`);
 }
 
 /* storico overall partita per partita */
-function ovrChart(p){
+function ovrChart(p,Wd){
  const ms=S.matches.slice().sort((a,b)=>a.date-b.date).filter(m=>m.ovrs&&m.ovrs[p.id]!=null);
  const pts=ms.map((m,i)=>({v:m.ovrs[p.id],pl:!!playedIn(m,p.id),t:`Partita ${i+1}: ${m.ovrs[p.id]}${playedIn(m,p.id)?'':' (assente)'}`}));
  pts.push({v:ovr(p),pl:false,now:true,t:'Ora: '+ovr(p)});
  if(pts.length<2)return'<div class="mut small">Lo storico si costruisce partita dopo partita: ora '+ovr(p)+'.</div>';
- const W=340,H=170,L=28,R=12,T=14,B=26,vs=pts.map(x=>x.v);
+ const W=Wd||340,H=170,L=28,R=12,T=14,B=26,vs=pts.map(x=>x.v);
  let lo=Math.floor(Math.min(...vs)-2),hi=Math.ceil(Math.max(...vs)+2);if(hi-lo<6){lo-=2;hi+=2}
  const X=i=>L+(W-L-R)*i/(pts.length-1),Y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
  const step=Math.max(1,Math.ceil((hi-lo)/4)),grid=[];for(let v=Math.ceil(lo/step)*step;v<=hi;v+=step)grid.push(v);
- const every=Math.ceil(pts.length/8);
+ const every=Math.ceil(pts.length/(W<300?5:8));
  return`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Storico overall">
  ${grid.map(v=>`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#35353b" stroke-width="1"/><text x="${L-5}" y="${Y(v)+3}" text-anchor="end" font-size="9" fill="#9096a0">${v}</text>`).join('')}
  <polyline fill="none" stroke="#d1ff42" stroke-width="2" stroke-linejoin="round" points="${pts.map((x,i)=>X(i)+','+Y(x.v)).join(' ')}"/>
  ${pts.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(x.v)}" r="${x.now?4.5:3.5}" fill="${x.pl||x.now?'#d1ff42':'#0e0e10'}" stroke="#d1ff42" stroke-width="1.6"><title>${esc(x.t)}</title></circle>${i%every===0||x.now?`<text x="${X(i)}" y="${H-9}" text-anchor="middle" font-size="9" fill="#9096a0">${x.now?'ora':i+1}</text>`:''}`).join('')}
- </svg><div class="small mut" style="margin-top:4px">● giocata · ○ assente (overall stabile) · asse x: partite</div>`;
+ </svg><div class="small mut" style="margin-top:4px">● giocata · ○ assente · x: partite</div>`;
 }
 
 /* chimica di coppia */
@@ -1040,15 +1137,13 @@ function carSync(){
  },{passive:true});
 })();
 let carT=null;
+function chipsSet(id,k){const bar=document.querySelector(`[data-cb="${id}"]`);if(bar)bar.querySelectorAll('.cchip').forEach(ch=>{const on=ch.dataset.kk===k;ch.classList.toggle('on',on);if(on)ch.scrollIntoView({inline:'center',block:'nearest'})})}
 document.addEventListener('scroll',e=>{
  const c=e.target&&e.target.dataset&&e.target.dataset.car?e.target:null;if(!c)return;
- clearTimeout(carT);carT=setTimeout(()=>{
-  const keys=c.dataset.keys.split(','),i=Math.round(c.scrollLeft/(c.clientWidth||1)),k=keys[i];if(!k)return;
-  c.dataset.cur=k;const id=c.dataset.car;S.ui.sub[id]=k;saveUI();
-  const bar=document.querySelector(`[data-cb="${id}"]`);
-  if(bar)bar.querySelectorAll('.cchip').forEach(ch=>{const on=ch.dataset.kk===k;ch.classList.toggle('on',on);if(on)ch.scrollIntoView({inline:'center',block:'nearest'})});
-  const p=c.children[i];if(p)c.style.height=p.offsetHeight+'px';
- },90);
+ if(c._lk&&Date.now()<c._lk)return;
+ const keys=c.dataset.keys.split(','),i=Math.max(0,Math.min(keys.length-1,Math.round(c.scrollLeft/(c.clientWidth||1)))),k=keys[i],id=c.dataset.car;
+ if(k&&k!==c.dataset.cur){c.dataset.cur=k;S.ui.sub[id]=k;chipsSet(id,k)}
+ clearTimeout(carT);carT=setTimeout(()=>{saveUI();const p=c.children[i];if(p)c.style.height=p.offsetHeight+'px'},90);
 },true);
 
 /* ---------- notifiche ---------- */
@@ -1111,8 +1206,8 @@ function localWatch(){
 function checkUpdateNotif(){
  if(!ready||!ADM)return;
  const id='upd_'+VERSION;if(S.notifs.some(n=>n.id===id))return;
- const c=CHANGELOG[0],first=c&&c.items&&c.items[0]||'';
- NT('update','🆕 Novità in app! v'+VERSION,first+(c&&c.items.length>1?' e altro…':''),'./?update=1',null,id);
+ const c=CHANGELOG[0];if(!c||!clPub(c).length)return;
+ NT('update','🆕 Novità in app! v'+VERSION,clSummary(c)+' · tocca per leggere','./?update=1',null,id);
 }
 
 /* ---------- stagioni, classifiche, albo d'oro ---------- */
@@ -1187,14 +1282,32 @@ function achOf(p){
   mk('evo','📈','In crescita','Ottieni un +1 di crescita',p._ev||0,1)
  ];
 }
-function bachecaHTML(p){
- const tr=trophies(p.id),ti=titlesOf(p.id),ach=achOf(p),done=ach.filter(a=>a[4]).length;
+function premiHTML(p){
+ const tr=trophies(p.id),ti=titlesOf(p.id);
  const cards=AWARDS.filter(([k])=>tr[k]).map(([k,i,l])=>`<div class="troph"><i>${i}</i><b>${tr[k]}</b><span>${l}</span></div>`);
  if(ti.m)cards.push(`<div class="troph"><i>📅</i><b>${ti.m}</b><span>Titoli mensili</span></div>`);
  if(ti.s)cards.push(`<div class="troph"><i>🏆</i><b>${ti.s}</b><span>Titoli stagione</span></div>`);
- return`<h3>Bacheca premi</h3><div class="panel">${cards.length?`<div class="trgrid">${cards.join('')}</div>`:'<div class="mut small" style="text-align:center">Ancora vuota: vinci MVP, Bomber o Assistman per riempirla.</div>'}</div>
- <div class="row sp" style="margin:6px 0"><b class="small mut" style="text-transform:uppercase;letter-spacing:1px">Traguardi</b><span class="small mut">${done}/${ach.length}</span></div>
+ return`<h3>Bacheca premi</h3><div class="panel">${cards.length?`<div class="trgrid">${cards.join('')}</div>`:'<div class="mut small" style="text-align:center">Ancora vuota: vinci MVP, Bomber o Assistman per riempirla.</div>'}</div>`;
+}
+function traguardiHTML(p){
+ const ach=achOf(p),done=ach.filter(a=>a[4]).length;
+ return`<div class="row sp" style="margin:14px 0 6px"><b class="small mut" style="text-transform:uppercase;letter-spacing:1px">Traguardi</b><span class="small mut">${done}/${ach.length}</span></div>
  <div class="achgrid">${ach.map(a=>`<div class="ach ${a[4]?'on':''}" title="${esc(a[3])}"><i>${a[1]}</i><b>${a[2]}</b><span>${a[4]?'✓':a[5]+'/'+a[6]}</span></div>`).join('')}</div>`;
+}
+/* obiettivi personali (salvati su questo dispositivo, visibili solo al proprietario) */
+const GOALT=[['g','⚽','gol'],['a','🅰️','assist'],['app','🎽','presenze'],['mv','⭐','MVP'],['cs','🧤','clean sheet']];
+const goalsKey=pid=>'mister_goals_'+pid,goalsOf=pid=>lsGet(goalsKey(pid),[]);
+const goalTypes=p=>GOALT.filter(t=>isGK(p)?t[0]!=='g'&&t[0]!=='a':t[0]!=='cs');
+function goalsHTML(p){
+ const st=pstats(p.id),L=goalsOf(p.id);
+ const rows=L.map(g=>{const t=GOALT.find(x=>x[0]===g.k)||GOALT[0],cur=Math.max(0,(st[g.k]||0)-g.b),pc=Math.min(100,Math.round(cur/g.t*100)),ok=cur>=g.t;
+  return`<div class="goal${ok?' ok':''}"><i>${t[1]}</i><b>${ok?'✓ ':''}Fai ${g.t} ${t[2]}</b><span class="small mut">${Math.min(cur,g.t)}/${g.t} <span data-act="goalDel" data-id="${g.id}" style="cursor:pointer;padding:4px 6px">✕</span></span><div class="gb"><u style="width:${pc}%"></u></div></div>`}).join('');
+ return`<div class="row sp" style="margin:14px 0 6px"><b class="small mut" style="text-transform:uppercase;letter-spacing:1px">Obiettivi</b><button class="btn sm" data-act="goalNew">＋ Nuovo</button></div><div class="panel" style="padding:2px 12px">${rows||'<div class="mut small" style="padding:12px 0;text-align:center">Nessun obiettivo: creane uno, tipo “fai 15 gol”. Si conta da quando lo crei.</div>'}</div>`;
+}
+function goalModal(k){
+ const p=getP(myPid());if(!p)return;const ts=goalTypes(p);k=k||ts[0][0];
+ openModal(`<h2>🎯 Nuovo obiettivo</h2><label>Cosa vuoi fare?</label><div class="row wrap">${ts.map(t=>`<span class="chip ${t[0]===k?'on':''}" data-act="goalType" data-k="${t[0]}">${t[1]} ${t[2]}</span>`).join('')}</div><input type="hidden" id="glK" value="${k}"><label>Quanti? (si conta da adesso)</label><input type="number" id="glT" min="1" max="999" value="10" inputmode="numeric">`,
+  `<div class="row"><button class="btn grow" data-act="goalSave">Crea obiettivo</button><button class="btn sec" data-act="closeM">Annulla</button></div>`,{save:'goalSave'});
 }
 
 /* ---------- consigli e bug ---------- */
@@ -1345,24 +1458,25 @@ function playerPage(p,own){
  const st=pstats(p.id,SF()),f=face(p),gk=isGK(p),me=myPid(),isMe=me===p.id,lk=S.links.find(l=>l.p===p.id);
  const tiles=gk?[['Pres.',st.app],['Clean',st.cs],['Subiti',st.gc],['MVP',st.mv],['Voto',st.avg!=null?st.avg.toFixed(1):'–']]:[['Pres.',st.app],['Gol',st.g],['Assist',st.a],['MVP',st.mv],['Voto',st.avg!=null?st.avg.toFixed(1):'–']];
  const more=[['Gialli',st.y],['Rossi',st.r],['Rigori segn.',st.ps],['Rigori sbagl.',st.pm],['V / N / P',`${st.w}/${st.d}/${st.l}`],gk?['Autogol',st.og]:['Clean sheet',st.cs]];
- const ms=S.matches.filter(m=>playedIn(m,p.id)).sort((a,b)=>b.date-a.date).slice(0,6).reverse();
- const fromLbl={rank:'Classifica',home:'Home'}[S.ui.from]||'Giocatori';
- return`${own?'':`<div class="row sp">${back('backP',fromLbl)}${VA()?`<button class="btn sm" data-act="editP" data-id="${p.id}">✎ Modifica</button>`:''}</div>`}
+ const ms=S.matches.filter(m=>playedIn(m,p.id)).sort((a,b)=>b.date-a.date).slice(0,6);
+ const fromLbl={rank:'Classifiche',home:'Home'}[S.ui.from]||'Giocatori';
+ const rateB=me&&!isMe?(ratedByMe(p.id)?`<div class="row" style="margin:8px 0 0"><button class="btn sec grow" disabled style="opacity:.7">✓ Valutazione inviata</button></div>`:`<div class="row" style="margin:8px 0 0"><button class="btn grow" data-act="rateP" data-id="${p.id}">✍ ${S.ratings.some(r=>r.id===p.id+'_'+me)?'Rifai la valutazione':'Proponi valutazione'}</button></div>`):'';
+ const cardTab=`${own?'':`<div class="row sp">${back('backP',fromLbl)}${VA()?`<button class="btn sm" data-act="editP" data-id="${p.id}">✎ Modifica</button>`:''}</div>`}
  <div class="pp-top"><div class="pp-card">${card(p)}</div><div>${radar(f)}</div></div>
  <div style="margin:6px 0"><div style="font-size:20px;font-weight:800">${esc(p.name)} ${p.num!==''&&p.num!=null?`<span class="mut">#${esc(p.num)}</span>`:''}${own&&VA()?` <button class="btn sec sm" data-act="editP" data-id="${p.id}" style="vertical-align:middle">✎</button>`:''}</div>
  ${metaOf(p)?`<div class="mut small">${metaOf(p)}</div>`:''}
  <div class="row wrap" style="margin-top:6px"><span class="formb ${p._f>0?'up':p._f<0?'dn':'z'}">Forma ${p._f>0?'▲ +'+p._f:p._f<0?'▼ '+p._f:'stabile'}</span>${p._prov?`<span class="tag">⏳ Provvisoria · ${p._n}/${MINV} votanti</span>`:`<span class="tag">${p._n} votanti</span>`}${p._ev?`<span class="tag" style="color:#34d399">▲ +${p._ev} crescita</span>`:''}${isMe&&!own?'<span class="tag">Sei tu</span>':''}${p.roles.map((r,i)=>`<span class="chip ${i?'':'on'}" style="padding:2px 9px;font-size:12px">${r} · ${roleOvr(p,r)}</span>`).join('')}</div></div>
- <div class="row" data-tour="rate" style="margin:8px 0">${me&&!isMe?(ratedByMe(p.id)?`<button class="btn sec grow" disabled style="opacity:.7">✓ Valutazione inviata</button>`:`<button class="btn grow" data-act="rateP" data-id="${p.id}">✍ ${S.ratings.some(r=>r.id===p.id+'_'+me)?'Rifai la valutazione':'Proponi valutazione'}</button>`):''}<button class="btn sec" data-act="cmpOpen" data-id="${p.id}">⚔ Confronta</button>${isMe?`<button class="btn sec" data-act="myPhoto">📷 Foto</button>`:''}${VA()&&lk&&!own?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div>
+ <div data-tour="rate">${rateB}<div class="row wrap" style="margin:8px 0"><button class="btn sec grow" data-act="cmpOpen" data-id="${p.id}">⚔ Confronta</button><button class="btn sec grow" data-tour="chem" data-act="chemOpen" data-id="${p.id}">🧪 Chimica</button>${isMe?`<button class="btn sec grow" data-act="myPhoto">📷 Foto</button>`:''}${VA()&&lk&&!own?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div></div>
  <h3>Stagione</h3><div class="tiles5">${tiles.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
  <details class="panel" style="margin-top:8px;padding:8px 12px"><summary class="small mut" style="cursor:pointer">Altre statistiche</summary><div class="tiles" style="margin-top:8px">${more.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div></details>
- <div data-tour="ovr"><h3>Andamento overall</h3><div class="panel">${ovrChart(p)}</div>
- ${ms.length?`<h3>Ultime partite</h3><div class="panel lms">${ms.map(m=>resChip(m,p)).join('')}</div>`:''}</div>
- <div data-tour="bach">${bachecaHTML(p)}</div>
- <div data-tour="chem"><h3>Chimica</h3>${chemHTML(p)}</div>
- <div data-tour="ratings"><h3>Valutazioni ricevute</h3>${ratingLogHTML(p)}${ratingAdminHTML(p)}</div>
- <h3>Attributi</h3>${(()=>{const gs=GROUPS.filter(g=>g.id!=='por'||gk||p.roles.includes('GK')),half=Math.ceil(gs.length/2),lft=gs.slice(0,half),rgt=gs.slice(half),
-  col=arr=>arr.map(g=>`<div class="agrp"><div class="ahd"><span>${g.name.toUpperCase()}</span><span class="v ${vcls(gval(p,g.id))}">${gval(p,g.id)}</span></div>${g.stats.map(([k,l])=>`<div class="arow"><span>${l}</span><span class="v ${vcls(sv(p,k))}">${sv(p,k)}</span></div>`).join('')}</div>`).join('');
-  return`<div class="attr2"><div class="acol">${col(lft)}</div><div class="acol">${col(rgt)}</div></div>`})()}`;
+ <div data-tour="ovr" class="ovrgrid${ms.length?'':' one'}"><div><h3>Andamento overall</h3><div class="panel">${ovrChart(p,ms.length?250:340)}</div></div>${ms.length?`<div><h3>Ultime</h3><div class="panel lms">${ms.map(m=>resChip(m,p)).join('')}</div></div>`:''}</div>
+ ${own?'':`<div data-tour="bach">${premiHTML(p)}</div>`}
+ <div data-tour="ratings">${ratingsRecvHTML(p)}</div>
+ <h3>Attributi</h3>${(()=>{const gs=GROUPS.slice(),half=Math.ceil(gs.length/2),lft=gs.slice(0,half),rgt=gs.slice(half),
+  col=arr=>arr.map(g=>`<div class="agrp${g.id==='por'&&!gk?' dim':''}"><div class="ahd"><span>${g.name.toUpperCase()}</span><span class="v ${vcls(gval(p,g.id))}">${gval(p,g.id)}</span></div>${g.stats.map(([k,l])=>`<div class="arow"><span>${l}</span><span class="v ${vcls(sv(p,k))}">${sv(p,k)}</span></div>`).join('')}</div>`).join('');
+  return`<div class="attr2"><div class="acol">${col(lft)}</div><div class="acol">${col(rgt)}</div></div>`})()}${gk?'':'<div class="small mut" style="margin-top:6px">Le statistiche da portiere non incidono sull\'overall di chi gioca in campo.</div>'}`;
+ if(!own)return cardTab;
+ return carousel('prof',[['card','Card',cardTab],['bach','Bacheca',`<div data-tour="bach">${premiHTML(p)}</div>${traguardiHTML(p)}${goalsHTML(p)}`]]);
 }
 function viewProfile(){
  const me=myPid(),p=me&&getP(me);
@@ -1372,7 +1486,7 @@ function viewProfile(){
 /* ----- Classifica ----- */
 function viewRank(){
  const from=S.ui.allTime?0:SF(),L=lbData(from);
- const head=`<div class="row sp" style="margin-bottom:10px"><h2 style="margin:0">Classifica</h2>${SF()?`<span class="chip" data-act="allTime">${S.ui.allTime?'📅 Sempre':'🏁 Stagione'}</span>`:''}</div>`;
+ const head=`<div class="row sp" style="margin-bottom:10px"><h2 style="margin:0">Classifiche</h2>${SF()?`<span class="chip" data-act="allTime">${S.ui.allTime?'📅 Sempre':'🏁 Stagione'}</span>`:''}</div>`;
  return head+carousel('rank',[
   ['goals','⚽ Marcatori',lbPanel(L.goals)],['assist','🅰️ Assist',lbPanel(L.assist)],['mvp','⭐ MVP',lbPanel(L.mvp)],
   ['avg','📊 Voto medio',lbPanel(L.avg,'Minimo 3 presenze votate')],['form','📈 Forma',lbPanel(L.form,'Ultime 5 partite')],
@@ -1393,7 +1507,7 @@ function viewCalcio(){
 }
 
 /* ===================== render ===================== */
-const TABS=[['players','👤','Giocatori'],['calcio','⚽','Calcio'],['home','🏠','Home'],['rank','🏆','Classifica'],['prof','🙂','Profilo']];
+const TABS=[['players','👤','Giocatori'],['calcio','⚽','Calcio'],['home','🏠','Home'],['rank','🏆','Classifiche'],['prof','🙂','Profilo']];
 function render(){
  computeEff();checkClose();localWatch();checkUpdateNotif();
  const tab=S.ui.tab,nt=tab==='rosa'?'players':tab;
@@ -1413,10 +1527,10 @@ const A={
  fil:d=>{S.ui.fil=d.k;render()},
  
  
- newP:()=>{ED={id:null,name:'',num:'',photo:'',roles:['CM'],s:{}};openModal(editorHTML())},
- editP:d=>{const p=getP(d.id);ED=JSON.parse(JSON.stringify(p));ED.num=ED.num??'';openModal(editorHTML())},
- edSec:d=>{edSync();const k=d.k;if(k===ED.roles[0])return;const i=ED.roles.indexOf(k);i>0?ED.roles.splice(i,1):ED.roles.push(k);const y=$('.sheet').scrollTop;openModal(editorHTML());$('.sheet').scrollTop=y},
- edGen:()=>{edSync();const b=clamp(+$('#edBase').value||70,30,95);ED.s=genStats(ED.roles[0],b);const y=$('.sheet').scrollTop;openModal(editorHTML());$('#edBase').value=b;$('.sheet').scrollTop=y},
+ newP:()=>{ED={id:null,name:'',num:'',photo:'',roles:['CM'],s:{}};ED0=JSON.stringify(ED);openModal(editorHTML(),null,{save:'edSave',dirty:()=>{try{edSync()}catch(e){}return JSON.stringify(ED)!==ED0}})},
+ editP:d=>{const p=getP(d.id);ED=JSON.parse(JSON.stringify(p));ED.num=ED.num??'';ED0=JSON.stringify(ED);openModal(editorHTML(),null,{save:'edSave',dirty:()=>{try{edSync()}catch(e){}return JSON.stringify(ED)!==ED0}})},
+ edSec:d=>{edSync();const k=d.k;if(k===ED.roles[0])return;const i=ED.roles.indexOf(k);i>0?ED.roles.splice(i,1):ED.roles.push(k);const y=$('.sheet').scrollTop;openModal(editorHTML(),null,{save:'edSave',dirty:()=>{try{edSync()}catch(e){}return JSON.stringify(ED)!==ED0}});$('.sheet').scrollTop=y},
+ edGen:()=>{edSync();const b=clamp(+$('#edBase').value||70,30,95);ED.s=genStats(ED.roles[0],b);const y=$('.sheet').scrollTop;openModal(editorHTML(),null,{save:'edSave',dirty:()=>{try{edSync()}catch(e){}return JSON.stringify(ED)!==ED0}});$('#edBase').value=b;$('.sheet').scrollTop=y},
  edSave:()=>{edSync();if(!ADM){toast('Solo l\'admin può modificare i giocatori');return}if(!ED.name.trim()){toast('Inserisci il nome');return}
   const num=String(ED.num||'').trim();if(num&&!/^\d{1,2}$/.test(num)){toast('Il numero maglia deve essere da 0 a 99');return}
   KEYS.forEach(k=>{if(ED.s[k]==null)ED.s[k]=DEF[k]});
@@ -1428,7 +1542,9 @@ const A={
   fin()},
  edDel:()=>ASK('Eliminare il giocatore?',()=>{const id=ED.id;S.players=S.players.filter(p=>p.id!==id);S.rosters.forEach(r=>{r.pids=r.pids.filter(x=>x!==id);r.lineup=r.lineup.map(x=>x===id?null:x)});S.setup.pool=S.setup.pool.filter(x=>x!==id);S.ui.pid=null;save();closeModal();render()}),
  closeM:()=>{closeModal()},
- edBack:()=>{openModal(editorHTML())},
+ cfmNo:()=>{const c=document.getElementById('cfm');if(c)c.remove();closeModal()},
+ cfmSave:()=>{const c=document.getElementById('cfm');if(c)c.remove();const b=MO.save&&document.querySelector('#modal [data-act="'+MO.save+'"]');if(b)b.click();else closeModal()},
+ edBack:()=>{openModal(editorHTML(),null,{save:'edSave',dirty:()=>{try{edSync()}catch(e){}return JSON.stringify(ED)!==ED0}})},
  demo:()=>{
   const names=['Marco','Luca','Andrea','Matteo','Davide','Simone','Alessio','Fabio','Giorgio','Stefano','Riccardo','Nicola','Paolo','Daniele','Gabriele','Federico','Emanuele','Claudio','Roberto','Antonio','Salvatore','Vincenzo'];
   const roles=['GK','GK','CB','CB','CB','LB','RB','CDM','CDM','CM','CM','CM','CAM','LM','RM','LW','RW','ST','ST','ST','CF','CB'];
@@ -1436,7 +1552,7 @@ const A={
    S.players.push({id:uid(),name:n,num:String(i+1),photo:'',roles:rl,s:genStats(r,rnd(58,86))})});
   save();render()},
  /* rosa */
- newR:()=>openModal(`<h2>Nuova rosa</h2><label>Nome</label><input type="text" id="rName" value="La mia squadra"><label>Tipo</label><div class="row">${[5,7,11].map(n=>`<span class="chip ${n===7?'on':''}" data-act="rFmt" data-n="${n}" style="flex:1;justify-content:center;padding:9px">Calcio a ${n}</span>`).join('')}</div><input type="hidden" id="rFmt" value="7"><div class="row" style="margin-top:16px"><button class="btn grow" data-act="rCreate">Crea</button><button class="btn sec" data-act="closeM">Annulla</button></div>`),
+ newR:()=>openModal(`<h2>Nuova rosa</h2><label>Nome</label><input type="text" id="rName" value="La mia squadra"><label>Tipo</label><div class="row">${[5,7,11].map(n=>`<span class="chip ${n===7?'on':''}" data-act="rFmt" data-n="${n}" style="flex:1;justify-content:center;padding:9px">Calcio a ${n}</span>`).join('')}</div><input type="hidden" id="rFmt" value="7"><div class="row" style="margin-top:16px"><button class="btn grow" data-act="rCreate">Crea</button><button class="btn sec" data-act="closeM">Annulla</button></div>`,null,{save:'rCreate'}),
  rFmt:d=>{$('#rFmt').value=d.n;document.querySelectorAll('[data-act=rFmt]').forEach(c=>c.classList.toggle('on',c.dataset.n===d.n))},
  rCreate:()=>{const f=+$('#rFmt').value,r={id:uid(),name:$('#rName').value.trim()||'Squadra',format:f,formation:DEFF[f],pids:[],lineup:Array(f).fill(null),owner:myPid()||null,editors:[]};S.rosters.push(r);S.ui.rid=r.id;save();closeModal();render();A.rPlayers()},
  openR:d=>{S.ui.rid=d.id;SEL=null;render();window.scrollTo(0,0)},
@@ -1539,6 +1655,12 @@ const A={
   const tg=RT.t;RT=null;save();closeModal();render();toast('Valutazione inviata');
   if(!S.notifs.some(n=>n.to&&n.to[0]===tg&&n.title.startsWith('✍️')&&Date.now()-n.at<36e5))NT('rate_request','✍️ Un compagno ha valutato la tua card','Guarda come cambiano le tue statistiche','./?tab=prof',[tg])},
  /* chimica */
+ goalNew:()=>goalModal(),
+ goalType:d=>{const k=$('#glK');if(k)k.value=d.k;document.querySelectorAll('[data-act=goalType]').forEach(c=>c.classList.toggle('on',c.dataset.k===d.k));MO.edited=true},
+ goalSave:()=>{const me=myPid();if(!me)return;const k=$('#glK').value,t=clamp(parseInt($('#glT').value)||0,1,999);if(!t){toast('Inserisci un numero');return}const L=goalsOf(me);L.push({id:uid(),k,t,b:pstats(me)[k]||0,at:Date.now()});lsSet(goalsKey(me),L.slice(-20));closeModal();render();toast('Obiettivo creato ✓')},
+ goalDel:d=>{const me=myPid();if(!me)return;ASK('Eliminare questo obiettivo?',()=>{lsSet(goalsKey(me),goalsOf(me).filter(g=>g.id!==d.id));render()})},
+ chemOpen:d=>{const p=getP(d.id);if(!p)return;openModal(`<h2>🧪 Chimica · ${esc(p.name)}</h2>${chemHTML(p)}<div class="row" style="margin-top:6px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)},
+ rateView:d=>rateViewModal(d.id),
  relNew:d=>{const others=S.players.filter(p=>p.id!==d.id).sort((a,b)=>a.name.localeCompare(b.name));RL={a:d.id,b:null};
   openModal(`<h2>Relazione · ${esc(nm(d.id))}</h2><label>Con</label><div class="row wrap">${others.map(p=>{const r=relOf(d.id,p.id);return`<span class="chip" data-act="relPick" data-id="${p.id}">${esc(p.name)}${r==='friend'?' 🤝':r==='rival'?' ⚔️':''}</span>`}).join('')}</div><div id="relBtns"></div><div class="row" style="margin-top:16px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)},
  relPick:d=>{RL.b=d.id;document.querySelectorAll('[data-act=relPick]').forEach(c=>c.classList.toggle('on',c.dataset.id===d.id));
@@ -1549,14 +1671,14 @@ const A={
  shareTeams:()=>{const su=S.setup;if(!(su.A&&su.B))return;shareModal('Condividi squadre',teamsText(su,su.format))},
  shareMatch:d=>{const m=S.matches.find(x=>x.id===d.id);if(m)shareModal('Condividi risultato',matchText(m))},
  /* partite proposte */
- evNew:()=>{const d=new Date(Date.now()+864e5),iso=d.toISOString().slice(0,10);
-  openModal(`<h2>Proponi una partita</h2><div class="row"><div class="grow"><label>Data</label><input type="date" id="evD" value="${iso}"></div><div class="grow"><label>Ora</label><input type="time" id="evT" value="21:00"></div></div>
+ evNew:()=>{const d=new Date(Date.now()+864e5);d.setHours(21,0,0,0);
+  openModal(`<h2>Proponi una partita</h2><label>Data e ora</label>${dtPick('evW',d.getTime())}
   <label>Formato</label><div class="row">${[5,7,11].map(n=>`<span class="chip ${n===7?'on':''}" data-act="evFmt" data-n="${n}" style="flex:1;justify-content:center;padding:9px">${n} vs ${n}</span>`).join('')}</div><input type="hidden" id="evF" value="7">
   <label>Campo / luogo</label><input type="text" id="evP" maxlength="60" placeholder="Es. Campo comunale">
   <label>Note</label><input type="text" id="evN" maxlength="120" placeholder="Es. porta la maglia scura">
-  <div class="row" style="margin-top:16px"><button class="btn grow" data-act="evSave">Proponi e condividi</button><button class="btn sec" data-act="closeM">Annulla</button></div>`)},
+  <div class="row" style="margin-top:16px"><button class="btn grow" data-act="evSave">Proponi e condividi</button><button class="btn sec" data-act="closeM">Annulla</button></div>`,null,{save:'evSave'})},
  evFmt:d=>{$('#evF').value=d.n;document.querySelectorAll('[data-act=evFmt]').forEach(c=>c.classList.toggle('on',c.dataset.n===d.n))},
- evSave:()=>{const dd=$('#evD').value,tt=$('#evT').value;if(!dd||!tt){toast('Inserisci data e ora');return}
+ evSave:()=>{const dt=dtVal('evW');if(!dt||isNaN(dt)){toast('Inserisci data e ora');return}const z=n=>String(n).padStart(2,'0'),dd=dt.getFullYear()+'-'+z(dt.getMonth()+1)+'-'+z(dt.getDate()),tt=z(dt.getHours())+':'+z(dt.getMinutes());
   const e={id:uid(),when:dd+'T'+tt,format:+$('#evF').value,place:$('#evP').value.trim(),note:$('#evN').value.trim(),status:'open',at:Date.now()};
   S.events.push(e);const mp=myPid();if(mp)setRsvp(e.id,mp,'y');else save();closeModal();render();NT('proposal','⚽ Calcetto proposto!',`${fdate(e.when)} · ${e.format}v${e.format}${e.place?' · '+e.place:''} — conferma la tua presenza`,'./?ev='+e.id,null);shareModal('Invita il gruppo',inviteText(e))},
  evShare:d=>{const e=S.events.find(x=>x.id===d.e);if(e)shareModal('Invito partita',inviteText(e))},
@@ -1607,25 +1729,25 @@ const TSTEPS=[
  {sec:'Benvenuto',t:'Il tour in 2 minuti',x:'MISTER è l\'app del nostro calcetto: <b>card in stile FIFA</b>, statistiche, partite, voti e classifiche. Ti faccio vedere ogni area: tocca <b>Avanti</b>. Puoi uscire quando vuoi.'},
  {sec:'Barra in alto',t:'🔔 Notifiche',sel:['header .bell'],go:{tab:'home'},x:'Qui trovi gli avvisi: nuove partite, voti da dare, valutazioni ricevute, premi. Il <b>numero rosso</b> indica quelli non letti. Toccane uno per aprire subito la schermata giusta.'},
  {sec:'Barra in alto',t:'⚙️ Impostazioni',sel:['header [data-act=menu]'],x:'Notifiche push sul telefono, <b>Consigli</b> per migliorare l\'app (puoi votare quelli degli altri), segnalazione <b>Bug</b> e questa <b>Guida</b>, che puoi rifare quando vuoi.'},
- {sec:'Navigazione',t:'Le 5 sezioni',sel:['#nav'],pos:'top',x:'👤 <b>Giocatori</b> · ⚽ <b>Calcio</b> · 🏠 <b>Home</b> (al centro) · 🏆 <b>Classifica</b> · 🙂 <b>Profilo</b>. Dentro molte sezioni puoi <b>scorrere lateralmente</b> (swipe) tra le schede in alto.'},
+ {sec:'Navigazione',t:'Le 5 sezioni',sel:['#nav'],pos:'top',x:'👤 <b>Giocatori</b> · ⚽ <b>Calcio</b> · 🏠 <b>Home</b> (al centro) · 🏆 <b>Classifiche</b> · 🙂 <b>Profilo</b>. Dentro molte sezioni puoi <b>scorrere lateralmente</b> (swipe) tra le schede in alto.'},
  {sec:'🏠 Home',t:'Da fare',sel:['[data-tour=todo]'],go:{tab:'home'},x:'La tua lista di cose in sospeso: inviti a cui rispondere, <b>partite da votare</b> (scadono dopo 48 ore), votazioni sui consigli, compagni da valutare. Tocca una voce per andare dritto all\'azione. Se la lista non c\'è, sei in pari.'},
  {sec:'🏠 Home',t:'Prossima partita',sel:['[data-tour=next]'],x:'Data, formato e luogo. Rispondi <b>✅ Ci sono</b>, <b>❔ Forse</b> o <b>❌ No</b>: serve a organizzare le squadre e il contatore mostra quanti hanno confermato. Puoi cambiare risposta quando vuoi.'},
  {sec:'🏠 Home',t:'Ultima partita e Podio',sel:['[data-tour=last]','[data-tour=pod]'],x:'Risultato dell\'ultima partita con <b>MVP</b>, marcatori e il <b>tuo voto</b> (provvisorio finché la votazione è aperta). Sotto, il <b>Podio</b>: primi 3 per Marcatori, MVP e Voto medio (tocca per la classifica completa). In fondo l\'<b>Attività recente</b>.'},
  {sec:'👤 Giocatori',t:'Tutta la rosa',sel:['#view > .row.sp','#q','[data-cb=players]'],go:{tab:'players',sub:{players:'all'}},x:'Tutti i giocatori ordinati per <b>overall</b>. Cerca per nome e scorri lateralmente per filtrare per ruolo (Por, Dif, Cen, Att). Il tasto <b>📋 Rose</b> apre le formazioni salvate.'},
  {sec:'👤 Giocatori',t:'La card',sel:['[data-car=players] .cardw'],pos:'bottom',x:'Il numero grande è l\'<b>overall</b>, sotto il ruolo e il numero di maglia; il colore (bronzo → oro → speciale) dipende dal valore. <b>▲▼</b> è la forma delle ultime partite, <b>PROV.</b> = valutazione ancora provvisoria, <b>✓ verde</b> = hai già valutato quel giocatore. Tocca una card per aprirla.'},
  {sec:'👤 Scheda giocatore',t:'Card e radar',sel:['.pp-top'],go:{tab:'players',pid:'other'},when:()=>!!tourOther(),x:'La card e il <b>radar</b> delle 6 aree (ritmo, tiro, passaggio, dribbling, difesa, fisico). Sotto trovi forma, numero di votanti e la crescita dell\'overall.'},
- {sec:'👤 Scheda giocatore',t:'Valuta e Confronta',sel:['[data-tour=rate]'],when:()=>!!tourOther(),x:'<b>✍ Valuta</b>: dai un voto alle singole statistiche del compagno. Si fa <b>una volta sola per giocatore</b> e non puoi valutare te stesso; solo l\'admin può riaprire una valutazione. Dai <b>6 votanti</b> in su l\'overall nasce dalla <b>media dei voti dei compagni</b>. <b>⚖ Confronta</b> mette due giocatori a confronto su overall, macro categorie e singole stat, più stagione e partite giocate insieme.'},
+ {sec:'👤 Scheda giocatore',t:'Valuta, Confronta, Chimica',sel:['[data-tour=rate]'],when:()=>!!tourOther(),x:'<b>✍ Valuta</b>: dai un voto alle singole statistiche del compagno. Si fa <b>una volta sola per giocatore</b> e non puoi valutare te stesso; solo l\'admin può riaprire una valutazione. Dai <b>6 votanti</b> in su l\'overall nasce dalla <b>media dei voti dei compagni</b>. <b>⚖ Confronta</b> mette due giocatori a confronto su overall, macro categorie e singole stat, più stagione e partite giocate insieme. <b>🧪 Chimica</b>: con chi rende meglio quel giocatore e i risultati giocando insieme.'},
  {sec:'👤 Scheda giocatore',t:'Stagione',sel:['.tiles5'],when:()=>!!tourOther(),x:'Presenze, gol, assist, MVP e voto medio della stagione (per i portieri: clean sheet e gol subiti). <b>Altre statistiche</b> apre il dettaglio: cartellini, rigori, vittorie/pareggi/sconfitte.'},
  {sec:'👤 Scheda giocatore',t:'Andamento e ultime partite',sel:['[data-tour=ovr]'],when:()=>!!tourOther(),x:'Il grafico mostra come cambia l\'<b>overall</b> partita dopo partita. Sotto, le ultime partite con risultato (<b>V/N/P</b>) e voto preso.'},
- {sec:'👤 Scheda giocatore',t:'Bacheca',sel:['[data-tour=bach]'],when:()=>!!tourOther(),x:'I <b>premi vinti</b> (MVP, Bomber, Assistman, titoli mensili e di stagione) e i <b>traguardi</b> da sbloccare, con il tuo avanzamento.'},
- {sec:'👤 Scheda giocatore',t:'Chimica, valutazioni, attributi',sel:['[data-tour=chem]'],when:()=>!!tourOther(),x:'<b>Chimica</b>: con chi rende meglio e i risultati giocando insieme. Più in basso le <b>valutazioni ricevute</b> (anonime) e tutti gli <b>attributi</b> divisi per area.'},
+ {sec:'👤 Scheda giocatore',t:'Bacheca',sel:['[data-tour=bach]'],when:()=>!!tourOther(),x:'I <b>premi vinti</b> dal giocatore (MVP, Bomber, Assistman, titoli mensili e di stagione). Traguardi e obiettivi sono privati: li vedi solo nel tuo profilo.'},
+ {sec:'👤 Scheda giocatore',t:'Valutazioni e attributi',sel:['[data-tour=ratings]'],when:()=>!!tourOther(),x:'Le <b>valutazioni ricevute</b> mostrano il nome di chi ha votato. Più in basso tutti gli <b>attributi</b> divisi per area, portiere incluso.'},
  {sec:'⚽ Calcio',t:'Partita e Risultati',sel:['[data-cb=calcio]'],go:{tab:'calcio',pid:null,mid:null,sub:{calcio:'match'}},x:'Due schede: <b>Partita</b> (la prossima, le squadre, la diretta) e <b>Risultati</b> (storico). Scorri lateralmente per passare dall\'una all\'altra.'},
  {sec:'⚽ Calcio',t:'Partite in programma',sel:['[data-car=calcio] .ev-card'],x:'Rispondi alla convocazione (<b>✅ ❔ ❌</b>), guarda chi ha confermato e quanti ne mancano, e condividi l\'<b>invito su WhatsApp</b>.'},
  {sec:'⚽ Calcio',t:'Squadre e diretta',sel:['[data-car=calcio] .teams'],x:'Quando l\'admin prepara le formazioni compaiono qui: squadre, modulo, <b>forza</b> e differenza di livello. Durante la partita c\'è la <b>diretta</b> con risultato, cronometro e marcatori.'},
  {sec:'⚽ Calcio',t:'Risultati',sel:['[data-car=calcio] > :nth-child(2)'],go:{sub:{calcio:'res'}},x:'Lo storico di tutte le partite. Tocca una partita per vedere formazioni, marcatori, cartellini, MVP e i <b>voti</b> di ognuno.'},
  {sec:'⚽ Calcio',t:'🗳️ Dopo la partita: i voti',pos:'center',x:'Appena finita la partita si apre la <b>votazione per 48 ore</b>: dai un voto da <b>1 a 10</b> a ogni compagno che ha giocato (non a te stesso). La trovi in <b>Home → Da fare</b>. Allo scadere i voti diventano definitivi e decidono <b>voto medio, MVP e premi</b>. Più gente vota, più le classifiche sono giuste.'},
- {sec:'🏆 Classifica',t:'Le classifiche',sel:['#view > .row.sp','[data-cb=rank]'],go:{tab:'rank',sub:{rank:'goals'}},x:'Scorri tra <b>Marcatori, Assist, MVP, Voto medio</b> (minimo 3 presenze votate), <b>Forma</b> (ultime 5 partite), <b>Overall, Premi</b> e <b>Albo d\'oro</b>. La chip <b>🏁 Stagione / 📅 Sempre</b> cambia il periodo. Tocca un giocatore per aprirne la scheda.'},
- {sec:'🙂 Profilo',t:'Il tuo profilo',sel:['.pp-top'],go:{tab:'prof',pid:null},when:()=>!!myPid(),x:'La tua card e il tuo radar. Il profilo è la scheda di un giocatore come le altre: <b>stagione, andamento, ultime partite, bacheca e traguardi</b> sono tutti qui. Con <b>📷 Foto</b> puoi cambiare l\'immagine della card.'},
+ {sec:'🏆 Classifiche',t:'Le classifiche',sel:['#view > .row.sp','[data-cb=rank]'],go:{tab:'rank',sub:{rank:'goals'}},x:'Scorri tra <b>Marcatori, Assist, MVP, Voto medio</b> (minimo 3 presenze votate), <b>Forma</b> (ultime 5 partite), <b>Overall, Premi</b> e <b>Albo d\'oro</b>. La chip <b>🏁 Stagione / 📅 Sempre</b> cambia il periodo. Tocca un giocatore per aprirne la scheda.'},
+ {sec:'🙂 Profilo',t:'Il tuo profilo',sel:['.pp-top'],go:{tab:'prof',pid:null},when:()=>!!myPid(),x:'Due schede: <b>Card</b> (stagione, andamento, ultime partite, attributi) e <b>Bacheca</b> (premi, traguardi e i tuoi obiettivi). Con <b>📷 Foto</b> cambi l\'immagine della card.'},
  {sec:'🙂 Profilo',t:'Cosa dicono di te',sel:['[data-tour=ratings]'],when:()=>!!myPid(),x:'Le <b>valutazioni ricevute</b> dai compagni, in forma anonima: sono queste a costruire il tuo overall. Dai 6 votanti in su la card smette di essere provvisoria.'},
  {sec:'Fine',t:'Sei pronto! 🎉',pos:'center',x:'Ora conosci l\'app. Puoi rivedere questa guida quando vuoi da <b>Impostazioni → 📖 Guida</b>. Buon calcetto!'}
 ];
@@ -1714,7 +1836,7 @@ Object.assign(A,{
  openMe:()=>{S.ui.tab='prof';S.ui.pid=null;save();render();window.scrollTo(0,0)},
  rankGo:d=>{S.ui.tab='rank';S.ui.sub.rank=d.k;saveUI();render();window.scrollTo(0,0)},
  allTime:()=>{S.ui.allTime=!S.ui.allTime;saveUI();render()},
- cgo:d=>{const c=document.querySelector(`[data-car="${d.c}"]`);if(!c)return;const i=c.dataset.keys.split(',').indexOf(d.k);if(i<0)return;S.ui.sub[d.c]=d.k;c.dataset.cur=d.k;saveUI();document.querySelectorAll(`[data-cb="${d.c}"] .cchip`).forEach(ch=>ch.classList.toggle('on',ch.dataset.kk===d.k));c.scrollTo({left:i*c.clientWidth,behavior:'smooth'});const p=c.children[i];if(p)c.style.height=p.offsetHeight+'px'},
+ cgo:d=>{const c=document.querySelector(`[data-car="${d.c}"]`);if(!c)return;const i=c.dataset.keys.split(',').indexOf(d.k);if(i<0)return;S.ui.sub[d.c]=d.k;c.dataset.cur=d.k;c._lk=Date.now()+750;saveUI();document.querySelectorAll(`[data-cb="${d.c}"] .cchip`).forEach(ch=>ch.classList.toggle('on',ch.dataset.kk===d.k));c.scrollTo({left:i*c.clientWidth,behavior:'smooth'});const p=c.children[i];if(p)c.style.height=p.offsetHeight+'px'},
  /* notifiche */
  bell:()=>{const L=myNotifs(),r=readSet();
   openModal(`<div class="row sp"><h2 style="margin:0">🔔 Notifiche</h2>${L.length?`<button class="btn sec sm" data-act="readAll">✓ Leggi tutto</button>`:''}</div><div class="small mut" style="margin:6px 0 8px">Ultimi 15 giorni</div>
@@ -1752,7 +1874,7 @@ Object.assign(A,{
  /* consigli e bug */
  fbTip:()=>fbList('tip'),fbBug:()=>fbList('bug'),
  fbOpen:d=>fbOpenId(d.id),
- fbNew:d=>{FBK=d.k;openModal(`<h2>${d.k==='tip'?'💡 Nuovo consiglio':'🐞 Segnala un bug'}</h2><label>Titolo</label><input type="text" id="fbT" maxlength="80" placeholder="${d.k==='tip'?'Es. Aggiungere le statistiche del portiere':'Es. Non riesco a caricare la foto'}"><label>${d.k==='tip'?'Dettagli (facoltativo)':'Cosa è successo? (telefono, passaggi…)'}</label><textarea id="fbX" rows="4" style="font-family:inherit"></textarea><div class="row" style="margin-top:16px"><button class="btn grow" data-act="fbSave" data-k="${d.k}">Invia</button><button class="btn sec" data-act="fbBack" data-k="${d.k}">Annulla</button></div>`)},
+ fbNew:d=>{FBK=d.k;openModal(`<h2>${d.k==='tip'?'💡 Nuovo consiglio':'🐞 Segnala un bug'}</h2><label>Titolo</label><input type="text" id="fbT" maxlength="80" placeholder="${d.k==='tip'?'Es. Aggiungere le statistiche del portiere':'Es. Non riesco a caricare la foto'}"><label>${d.k==='tip'?'Dettagli (facoltativo)':'Cosa è successo? (telefono, passaggi…)'}</label><textarea id="fbX" rows="4" style="font-family:inherit"></textarea><div class="row" style="margin-top:16px"><button class="btn grow" data-act="fbSave" data-k="${d.k}">Invia</button><button class="btn sec" data-act="fbBack" data-k="${d.k}">Annulla</button></div>`,null,{save:'fbSave'})},
  fbBack:d=>fbList(d.k),
  fbSave:d=>{const t=$('#fbT').value.trim();if(!t){toast('Scrivi un titolo');return}
   S.feedback.push({id:uid(),kind:d.k,title:t,text:$('#fbX').value.trim(),by:FV(),pid:myPid()||null,at:Date.now(),status:'new'});save();toast('Inviato ✓');fbList(d.k)},
@@ -1767,7 +1889,7 @@ Object.assign(A,{
  fbDel:d=>ASK('Eliminare definitivamente?',()=>{const f=S.feedback.find(x=>x.id===d.id),k=f?f.kind:FBK;S.feedback=S.feedback.filter(x=>x.id!==d.id);S.fbvotes=S.fbvotes.filter(v=>v.f!==d.id);save();fbList(k)}),
 });
 Object.assign(A,{nbClick:()=>{const b=$('#nbanner');b.classList.remove('on');if(NBN){markRead([NBN.id]);goUrl(NBN.url);render();window.scrollTo(0,0)}},backRosa:()=>{S.ui.tab='players';S.ui.rid=null;render();window.scrollTo(0,0)},
- changelog:()=>{openModal(`<h2>🆕 Novità</h2><div class="small mut" style="margin-bottom:10px">Cosa cambia ad ogni aggiornamento</div>${CHANGELOG.map(c=>`<div class="panel"><div class="row sp" style="margin-bottom:6px"><b>v${c.v}</b><span class="small mut">${c.d}</span></div><ul style="margin:0;padding-left:18px">${c.items.map(x=>`<li style="margin:3px 0;font-size:13.5px">${esc(x)}</li>`).join('')}</ul></div>`).join('')}<div class="row" style="margin-top:12px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)}});
+ changelog:()=>{const adm=VA();openModal(`<h2>🆕 Novità</h2><div class="small mut" style="margin-bottom:10px">Cosa cambia ad ogni aggiornamento</div>${CHANGELOG.map(c=>{const its=c.items.filter(i=>adm||!i[2]);if(!its.length)return'';return`<div class="panel"><div class="row sp" style="margin-bottom:2px"><b>v${c.v}</b><span class="small mut">${c.d}</span></div>${['new','imp','bug'].map(k=>{const L=its.filter(i=>i[0]===k);return L.length?`<div class="cl-h">${CLT[k][0]} ${CLT[k][1].toUpperCase()}</div><ul style="margin:0;padding-left:18px">${L.map(x=>`<li style="margin:3px 0;font-size:13.5px">${esc(x[1])}${x[2]?' <span class="tag">admin</span>':''}</li>`).join('')}</ul>`:''}).join('')}</div>`}).join('')}`,`<div class="row"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)}});
 document.addEventListener('click',e=>{
  const t=e.target.closest('[data-act]');if(!t)return;
  const fn=A[t.dataset.act];if(fn){e.stopPropagation();fn(Object.assign({el:t},t.dataset),e)}
@@ -1795,7 +1917,7 @@ document.addEventListener('input',e=>{
  if(t.dataset.mv&&MV){MV.v[t.dataset.mv]=+t.value;$('#mv_'+t.dataset.mv).textContent=t.value}
  if(t.dataset.rs&&RT){RT.touched[t.dataset.rs]=+t.value;$('#rv_'+t.dataset.rs).textContent=t.value}
 });
-$('#modal').addEventListener('click',e=>{if(e.target.id==='modal'&&!MLOCK)closeModal()});
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')reqClose()});
 document.addEventListener('focusout',()=>setTimeout(()=>{if(stale)afterRemote()},50));
 try{if(location.search){goUrl(location.href);history.replaceState({},'',location.pathname)}}catch(e){}
 render();
