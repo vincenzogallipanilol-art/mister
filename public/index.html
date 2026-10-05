@@ -251,7 +251,7 @@ details>summary{list-style:none}details>summary::-webkit-details-marker{display:
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="shim.js"></script>
 </head>
 <body>
-<header><h1>MIS<span>TER</span></h1><div class="hb"><button class="bell" data-act="bell" aria-label="Notifiche">🔔<i id="bdg"></i></button><button class="btn sec sm" data-act="menu">Impostazioni</button></div></header>
+<header><h1>MIS<span>TER</span> <small id="ver" style="font-size:10px;font-weight:400;letter-spacing:1px;color:#555;vertical-align:middle"></small></h1><div class="hb"><button class="bell" data-act="bell" aria-label="Notifiche">🔔<i id="bdg"></i></button><button class="btn sec sm" data-act="menu">Impostazioni</button></div></header>
 <main id="view"></main>
 <nav id="nav"></nav>
 <div id="modal"></div>
@@ -344,31 +344,31 @@ async function initDB(){
 
 /* ===== statistiche & overall ===== */
 const GROUPS=[
- {id:'rit',name:'Ritmo',stats:[['acc','Accelerazione'],['spr','Velocità']]},
- {id:'tir',name:'Tiro',stats:[['pos','Piazzamento'],['fin','Finalizzazione'],['pow','Potenza tiro'],['lsh','Tiro da fuori'],['vol','Tiro al volo'],['pen','Rigori']]},
- {id:'pas',name:'Passaggio',stats:[['vis','Visione'],['cro','Cross'],['fk','Punizioni'],['sp','Pass. corto'],['lp','Pass. lungo'],['cur','Effetto']]},
- {id:'drb',name:'Dribbling',stats:[['agi','Agilità'],['bal','Equilibrio'],['rea','Reattività'],['bc','Controllo palla'],['dri','Dribbling'],['com','Freddezza']]},
- {id:'dif',name:'Difesa',stats:[['int','Intercetti'],['hea','Colpo di testa'],['dfa','Senso difensivo'],['stk','Contrasto'],['slk','Scivolata']]},
- {id:'fis',name:'Fisico',stats:[['jum','Salto'],['sta','Resistenza'],['str','Forza'],['agg','Aggressività']]},
- {id:'por',name:'Portiere',stats:[['div','Tuffo'],['han','Presa'],['kic','Rinvio'],['ref','Riflessi'],['gpo','Piazz. portiere']]}
+ {id:'por',name:'Portiere',stats:[['div','Tuffo'],['han','Presa'],['ref','Riflessi'],['kic','Rinvio'],['gpo','Piazz. portiere']]},
+ {id:'dif',name:'Difesa',stats:[['dfa','Senso difensivo'],['int','Intercetti'],['stk','Contrasto'],['slk','Scivolata'],['prs','Presenza difensiva']]},
+ {id:'fis',name:'Fisico',stats:[['sta','Resistenza'],['str','Forza'],['jum','Salto'],['spr','Velocità'],['acc','Accelerazione']]},
+ {id:'pas',name:'Passaggio',stats:[['vis','Visione'],['sp','Pass. corto'],['lp','Pass. lungo'],['cro','Cross'],['fk','Punizioni']]},
+ {id:'drb',name:'Dribbling',stats:[['bc','Controllo palla'],['dri','Dribbling'],['rea','Reattività'],['agi','Agilità'],['bal','Equilibrio']]},
+ {id:'tir',name:'Tiro',stats:[['cur','Effetto'],['com','Freddezza'],['fin','Finalizzazione'],['pow','Potenza tiro'],['lsh','Tiro da fuori']]}
 ];
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
+const VERSION='1.1.0';
 const ROLES=[['GK','Portiere'],['CB','Difensore centrale'],['LB','Terzino sx'],['RB','Terzino dx'],['CDM','Mediano'],['CM','Centrocampista'],['CAM','Trequartista'],['LM','Esterno sx'],['RM','Esterno dx'],['LW','Ala sx'],['RW','Ala dx'],['CF','Seconda punta'],['ST','Attaccante']];
 const PROF={GK:'GK',CB:'CB',LB:'FB',RB:'FB',CDM:'CDM',CM:'CM',CAM:'CAM',LM:'WM',RM:'WM',LW:'W',RW:'W',CF:'CF',ST:'ST'};
 const FAM={GK:'gk',CB:'def',LB:'def',RB:'def',CDM:'mid',CM:'mid',CAM:'mid',LM:'wide',RM:'wide',LW:'wide',RW:'wide',CF:'att',ST:'att'};
 const W={
- GK:{div:.22,han:.22,ref:.25,kic:.10,gpo:.21},
- CB:{dfa:.22,stk:.18,int:.15,hea:.12,slk:.08,str:.10,jum:.05,agg:.05,spr:.05},
- FB:{spr:.10,acc:.07,sta:.15,stk:.12,dfa:.12,int:.10,cro:.10,sp:.08,dri:.06,bc:.05,slk:.05},
- CDM:{dfa:.18,int:.17,stk:.15,sp:.12,lp:.08,sta:.10,str:.08,agg:.06,bc:.06},
- CM:{sp:.20,vis:.15,lp:.10,bc:.12,sta:.12,int:.08,dfa:.05,dri:.06,rea:.06,com:.06},
- CAM:{vis:.15,sp:.15,bc:.15,dri:.15,pos:.08,fin:.08,agi:.08,lsh:.05,rea:.06,com:.05},
- WM:{cro:.14,dri:.14,bc:.12,spr:.10,acc:.10,sta:.10,sp:.10,vis:.06,fin:.05,agi:.05,cur:.04},
- W:{dri:.18,acc:.12,spr:.12,bc:.12,agi:.08,cro:.10,fin:.10,pos:.06,sp:.06,cur:.06},
- CF:{fin:.20,pos:.15,bc:.12,dri:.10,sp:.10,vis:.08,pow:.07,acc:.06,spr:.06,com:.06},
- ST:{fin:.25,pos:.20,pow:.10,hea:.05,bc:.10,dri:.05,acc:.08,spr:.07,com:.05,rea:.05}
+ GK:{div:.2025,han:.162,ref:.2025,kic:.081,gpo:.162,sta:.015,str:.0375,jum:.0375,spr:.015,acc:.045,vis:.003,sp:.0105,lp:.0105,cro:.003,fk:.003,bc:.004,dri:.001,rea:.003,agi:.001,bal:.001},
+ CB:{dfa:.117,int:.099,stk:.099,slk:.045,prs:.09,sta:.0375,str:.075,jum:.0625,spr:.0375,acc:.0375,vis:.036,sp:.063,lp:.045,cro:.018,fk:.018,bc:.035,dri:.01,rea:.025,agi:.01,bal:.02,cur:.002,com:.006,fin:.004,pow:.006,lsh:.002},
+ FB:{dfa:.065,int:.065,stk:.065,slk:.039,prs:.026,sta:.075,str:.025,jum:.025,spr:.075,acc:.05,vis:.05,sp:.0625,lp:.025,cro:.0875,fk:.025,bc:.06,dri:.05,rea:.02,agi:.05,bal:.02,cur:.01,com:.008,fin:.004,pow:.008,lsh:.01},
+ CDM:{dfa:.09,int:.09,stk:.06,slk:.03,prs:.03,sta:.0735,str:.0525,jum:.0315,spr:.0315,acc:.021,vis:.07,sp:.084,lp:.07,cro:.028,fk:.028,bc:.063,dri:.018,rea:.045,agi:.018,bal:.036,cur:.003,com:.006,fin:.006,pow:.0075,lsh:.0075},
+ CM:{dfa:.0375,int:.045,stk:.0375,slk:.015,prs:.015,sta:.0595,str:.017,jum:.017,spr:.0425,acc:.034,vis:.099,sp:.099,lp:.066,cro:.033,fk:.033,bc:.069,dri:.0345,rea:.0575,agi:.046,bal:.023,cur:.012,com:.03,fin:.024,pow:.024,lsh:.03},
+ CAM:{dfa:.01,int:.015,stk:.01,slk:.0075,prs:.0075,sta:.0375,str:.015,jum:.015,spr:.0375,acc:.045,vis:.1155,sp:.099,lp:.0495,cro:.033,fk:.033,bc:.081,dri:.0675,rea:.0405,agi:.054,bal:.027,cur:.04,com:.05,fin:.05,pow:.02,lsh:.04},
+ WM:{dfa:.025,int:.025,stk:.02,slk:.015,prs:.015,sta:.066,str:.022,jum:.022,spr:.055,acc:.055,vis:.07,sp:.07,lp:.028,cro:.084,fk:.028,bc:.0675,dri:.081,rea:.0405,agi:.054,bal:.027,cur:.0325,com:.026,fin:.0325,pow:.013,lsh:.026},
+ W:{dfa:.005,int:.005,stk:.004,slk:.003,prs:.003,sta:.0345,str:.023,jum:.023,spr:.069,acc:.0805,vis:.046,sp:.0575,lp:.023,cro:.0805,fk:.023,bc:.06,dri:.105,rea:.03,agi:.075,bal:.03,cur:.055,com:.044,fin:.066,pow:.033,lsh:.022},
+ CF:{dfa:.0025,int:.003,stk:.002,slk:.001,prs:.0015,sta:.04,str:.03,jum:.02,spr:.05,acc:.06,vis:.077,sp:.066,lp:.022,cro:.033,fk:.022,bc:.081,dri:.0675,rea:.0405,agi:.054,bal:.027,cur:.03,com:.075,fin:.105,pow:.045,lsh:.045},
+ ST:{dfa:.003,int:.0015,stk:.002,slk:.001,prs:.0025,sta:.025,str:.075,jum:.0625,spr:.0375,acc:.05,vis:.025,sp:.035,lp:.015,cro:.015,fk:.01,bc:.0665,dri:.038,rea:.0475,agi:.019,bal:.019,cur:.045,com:.09,fin:.18,pow:.09,lsh:.045}
 };
 Object.values(W).forEach(w=>{const t=Object.values(w).reduce((a,b)=>a+b,0);for(const k in w)w[k]/=t});
 const sv=(p,k)=>(p._e&&p._e[k]!=null)?p._e[k]:(p.s[k]??DEF[k]);
@@ -384,7 +384,6 @@ function capOf(p,k){
  else if(k==='sta')c-=Math.max(0,bmi-27)*3+(a>34?(a-34)*1.3:0);
  else if(k==='jum')c-=heavy*2.2+(h&&h<170?(170-h)*.6:0)+(a>34?a-34:0);
  else if(k==='str')c-=light*5+(w&&w<60?(60-w)*1.2:0);
- else if(k==='hea')c-=(h&&h<180?(180-h)*.7:0);
  return Math.max(25,Math.round(c));
 }
 const softCap=(v,c)=>v<=c?v:c+(v-c)*.3;
@@ -447,15 +446,14 @@ function slotScore(p,role){
  return b-(p.roles.some(r=>FAM[r]===FAM[role])?4:12);
 }
 function face(p){
- const g=k=>sv(p,k),r=x=>Math.round(x);
- if(isGK(p))return[['TUF',g('div')],['PAR',g('han')],['CAL',g('kic')],['RIF',g('ref')],['VEL',r(.5*g('acc')+.5*g('spr'))],['POS',g('gpo')]];
+ const g=k=>sv(p,k),r=x=>Math.round(x),avg5=(...ks)=>r(ks.reduce((s,k)=>s+g(k),0)/ks.length);
+ if(isGK(p))return[['TUF',g('div')],['PAR',g('han')],['RIF',g('ref')],['CAL',g('kic')],['POS',g('gpo')]];
  return[
-  ['RIT',r(.45*g('acc')+.55*g('spr'))],
-  ['TIR',r(.45*g('fin')+.20*g('pow')+.20*g('pos')+.05*g('lsh')+.05*g('vol')+.05*g('pen'))],
-  ['PAS',r(.35*g('sp')+.20*g('vis')+.20*g('lp')+.15*g('cro')+.05*g('cur')+.05*g('fk'))],
-  ['DRI',r(.50*g('dri')+.30*g('bc')+.10*g('agi')+.05*g('bal')+.05*g('com'))],
-  ['DIF',r(.30*g('int')+.30*g('dfa')+.20*g('stk')+.10*g('slk')+.10*g('hea'))],
-  ['FIS',r(.30*g('str')+.30*g('sta')+.20*g('agg')+.20*g('jum'))]];
+  ['TIR',avg5('cur','com','fin','pow','lsh')],
+  ['PAS',avg5('vis','sp','lp','cro','fk')],
+  ['DRI',avg5('bc','dri','rea','agi','bal')],
+  ['DIF',avg5('dfa','int','stk','slk','prs')],
+  ['FIS',avg5('sta','str','jum','spr','acc')]];
 }
 function genStats(role,target){
  const w=W[PROF[role]],s={},gk=role==='GK',tmp={s,roles:[role]};
@@ -474,11 +472,8 @@ function genStats(role,target){
 }
 function gval(p,gid){
  const g=GROUPS.find(x=>x.id===gid);
- if(gid==='por')return Math.round(avg(g.stats.map(([k])=>sv(p,k))));
- const i=['rit','tir','pas','drb','dif','fis'].indexOf(gid);
- const gk=isGK(p);
- if(gk)return Math.round(avg(g.stats.map(([k])=>sv(p,k))));
- return face(p)[i][1];
+ if(!g)return 0;
+ return Math.round(avg(g.stats.map(([k])=>sv(p,k))));
 }
 const getP=id=>S.players.find(p=>p.id===id);
 const vcls=v=>v>=80?'h':v>=60?'m':v>=40?'l':'z';
@@ -512,13 +507,13 @@ function lineRating(lineup,slots){const v=lineup.map((id,i)=>id?slotScore(getP(i
 
 /* ===== bilanciamento ===== */
 function balance(pids){
- const V=pids.map(getP).map(p=>({id:p.id,o:ovrF(p),gk:isGK(p),fam:FAM[p.roles[0]],f:isGK(p)?[0,0,0,0,0,0]:face(p).map(x=>x[1])}));
+ const V=pids.map(getP).map(p=>({id:p.id,o:ovrF(p),gk:isGK(p),fam:FAM[p.roles[0]],f:isGK(p)?[0,0,0,0,0]:face(p).map(x=>x[1])}));
  const n=V.length,nA=Math.ceil(n/2),totGK=V.filter(v=>v.gk).length,PR=[];for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const r=relOf(V[i].id,V[j].id);if(r)PR.push([i,j,r])}
  const cost=m=>{
-  const o=[0,0],f=[Array(6).fill(0),Array(6).fill(0)],gk=[0,0],fam=[{},{}];
+  const o=[0,0],f=[Array(5).fill(0),Array(5).fill(0)],gk=[0,0],fam=[{},{}];
   V.forEach((v,i)=>{const t=m[i];o[t]+=v.o;v.f.forEach((x,k)=>f[t][k]+=x);if(v.gk)gk[t]++;fam[t][v.fam]=(fam[t][v.fam]||0)+1});
   let c=2*Math.abs(o[0]-o[1]);
-  for(let k=0;k<6;k++)c+=.4*Math.abs(f[0][k]-f[1][k]);
+  for(let k=0;k<5;k++)c+=.4*Math.abs(f[0][k]-f[1][k]);
   ['def','mid','wide','att'].forEach(k=>c+=5*Math.abs((fam[0][k]||0)-(fam[1][k]||0)));
   PR.forEach(([i,j,r])=>{if(m[i]===m[j])c+=r==='rival'?60:-10});
   const dg=Math.abs(gk[0]-gk[1]);if(dg>totGK%2)c+=40*(dg-totGK%2);
@@ -580,7 +575,7 @@ function card(p){
  return`<div class="cardw" data-act="openP" data-id="${p.id}"><div class="card ${tierOf(o)}"><div class="c-left"><div class="c-ovr">${o}</div><div class="c-role">${p.roles[0]}</div><div class="c-sep"></div>${p.num!==''&&p.num!=null?`<div class="c-num">${esc(p.num)}</div>`:''}${p._f?`<div class="c-form ${p._f>0?'up':'dn'}">${p._f>0?'▲':'▼'}${Math.abs(p._f)}</div>`:''}${p._prov?'<div class="c-prov">PROV.</div>':''}</div><div class="c-ph">${p.photo?`<img src="${p.photo}">`:`<span>${ini(p.name)}</span>`}</div><div class="c-name">${esc(p.name)}</div><div class="c-meta">${m||'&nbsp;'}</div><div class="c-st">${f.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>${ratedByMe(p.id)?'<div class="c-ok">✓</div>':''}</div></div>`;
 }
 function radar(f){
- const c=100,R=68,n=6,pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[c+r*Math.cos(a),c+r*Math.sin(a)]};
+ const c=100,R=68,n=5,pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[c+r*Math.cos(a),c+r*Math.sin(a)]};
  const poly=k=>Array.from({length:n},(_,i)=>pt(i,R*k).join(',')).join(' ');
  const data=f.map((x,i)=>pt(i,R*x[1]/99).join(',')).join(' ');
  return`<svg viewBox="0 0 200 200" width="100%">${[1,.66,.33].map(k=>`<polygon points="${poly(k)}" fill="none" stroke="#35353b" stroke-width="1"/>`).join('')}${f.map((_,i)=>`<line x1="${c}" y1="${c}" x2="${pt(i,R)[0]}" y2="${pt(i,R)[1]}" stroke="#35353b"/>`).join('')}<polygon points="${data}" fill="rgba(209,255,66,.35)" stroke="#d1ff42" stroke-width="2"/>${f.map((x,i)=>{const[a,b]=pt(i,R+17);return`<text x="${a}" y="${b}" fill="#f2f4f7" font-size="10" font-weight="700" text-anchor="middle" dominant-baseline="middle">${x[0]} ${x[1]}</text>`}).join('')}</svg>`;
@@ -1218,8 +1213,8 @@ function viewHome(){
 
 /* ----- Giocatori ----- */
 /* ===== comparatore giocatori ===== */
-const MAC_OUT=[['RIT','Ritmo',{acc:.45,spr:.55}],['TIR','Tiro',{fin:.45,pow:.20,pos:.20,lsh:.05,vol:.05,pen:.05}],['PAS','Passaggio',{sp:.35,vis:.20,lp:.20,cro:.15,cur:.05,fk:.05}],['DRI','Dribbling',{dri:.50,bc:.30,agi:.10,bal:.05,com:.05}],['DIF','Difesa',{int:.30,dfa:.30,stk:.20,slk:.10,hea:.10}],['FIS','Fisico',{str:.30,sta:.30,agg:.20,jum:.20}]];
-const MAC_GK=[['TUF','Tuffo',{div:1}],['PAR','Presa',{han:1}],['CAL','Rinvio',{kic:1}],['RIF','Riflessi',{ref:1}],['VEL','Velocità',{acc:.5,spr:.5}],['POS','Piazzamento',{gpo:1}]];
+const MAC_OUT=[['TIR','Tiro',{cur:.2,com:.2,fin:.2,pow:.2,lsh:.2}],['PAS','Passaggio',{vis:.2,sp:.2,lp:.2,cro:.2,fk:.2}],['DRI','Dribbling',{bc:.2,dri:.2,rea:.2,agi:.2,bal:.2}],['DIF','Difesa',{dfa:.2,int:.2,stk:.2,slk:.2,prs:.2}],['FIS','Fisico',{sta:.2,str:.2,jum:.2,spr:.2,acc:.2}]];
+const MAC_GK=[['TUF','Tuffo',{div:1}],['PAR','Presa',{han:1}],['RIF','Riflessi',{ref:1}],['CAL','Rinvio',{kic:1}],['POS','Piazzamento',{gpo:1}]];
 const macVal=(p,w)=>Math.round(Object.entries(w).reduce((t,[k,x])=>t+x*sv(p,k),0));
 const CMPC=['#d1ff42','#60a5fa'];
 function radar2(l,v1,v2){
@@ -1735,6 +1730,7 @@ document.addEventListener('focusout',()=>setTimeout(()=>{if(stale)afterRemote()}
 try{if(location.search){goUrl(location.href);history.replaceState({},'',location.pathname)}}catch(e){}
 render();
 initDB();
+(function(){const v=document.getElementById('ver');if(v)v.textContent='v'+VERSION})();
 </script>
 </body>
 </html>
