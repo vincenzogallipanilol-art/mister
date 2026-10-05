@@ -1564,7 +1564,7 @@ const A={
  togglePreview:()=>{if(!S.ui.previewPlayer&&!myPid()){toast('Prima scegli quale giocatore sei');claimModal();return}S.ui.previewPlayer=!S.ui.previewPlayer;S.ui.tab='home';save();closeModal();render();window.scrollTo(0,0);toast(S.ui.previewPlayer?'Vista giocatore':'Vista admin')},
  exp:async()=>{const data=JSON.stringify(S);let d=null;try{d=window.claude?await window.claude.use('downloads'):null}catch(e){}
   if(d){try{await d.save({filename:'mister-backup.json',data})}catch(e){toast('Download annullato')}return}
-  const b=new Blob([data],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='mister-backup.json';a.click()},
+  const b=new Blob([data],{type:'application/json'}),a=document.createElement('a'),u=URL.createObjectURL(b);a.href=u;a.download='mister-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)},
  imp:()=>{const f=$('#impF');f.onchange=()=>{const r=new FileReader();r.onload=()=>{try{const ui=S.ui;S=Object.assign(fresh(),JSON.parse(r.result));S.ui=ui;save();closeModal();render();toast('Importato')}catch(e){toast('File non valido')}};r.readAsText(f.files[0])};f.click()},
  cfYes:()=>{const f=CFN;CFN=null;closeModal();f&&f()},
 };
