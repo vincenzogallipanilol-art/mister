@@ -453,19 +453,21 @@ function agoLbl(ts){const d=Date.now()-ts;if(d<90e3)return'adesso';if(d<36e5)ret
  const a=new Date(ts),n=new Date(),hm=a.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}),y=new Date(n);y.setDate(n.getDate()-1);
  if(a.toDateString()===n.toDateString())return'oggi alle '+hm;if(a.toDateString()===y.toDateString())return'ieri alle '+hm;
  return a.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' alle '+hm}
-function accessOf(p){const lk=S.links.find(l=>l.p===p.id);
- if(lk&&lk.seen&&Date.now()-lk.seen<ONLINE_MS)return{k:'on',t:'🟢 Online ora'};
- const ac=actOf(p.id);
- if(lk&&lk.seen&&(!ac.t||lk.seen>=ac.t))return{k:'ok',t:'✅ Ultimo accesso '+agoLbl(lk.seen)};
- if(ac.t)return{k:'ok',t:'✅ Ultima attività '+agoLbl(ac.t)};
- if(ac.n||lk)return{k:'ok',t:'✅ Ha già usato l\'app'};
- return{k:'no',t:'⏳ Non ha ancora effettuato l\'accesso'}}
+function accessOf(p){const lk=S.links.find(l=>l.p===p.id),ac=actOf(p.id),ts=Math.max(lk&&lk.seen||0,ac.t||0);
+ if(lk&&lk.seen&&Date.now()-lk.seen<ONLINE_MS)return{k:'on',t:'Online ora'};
+ if(ts)return{k:'ok',t:'Ultimo accesso '+agoLbl(ts)};
+ if(ac.n||lk)return{k:'ok',t:'Ha già effettuato l\'accesso'};
+ return{k:'no',t:'Mai effettuato l\'accesso'}}
+const DOT={on:'#22c55e',ok:'#8b8b95',no:'#ef4444'};
 function tkRender(){
  const el=document.getElementById('tkList');if(!el)return;
  const P=S.players.slice().sort((a,b)=>a.name.localeCompare(b.name)),acc=P.map(p=>[p,accessOf(p)]);
- const on=acc.filter(x=>x[1].k==='on').length,ok=acc.filter(x=>x[1].k!=='no').length;
- const rows=acc.map(([p,a])=>{const tok=TKBY[p.id]||null;return`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="grow small" style="min-width:0"><b>${esc(p.name)}</b><br><span class="${a.k==='no'?'mut':''}" style="font-size:12px">${a.t}</span>${tok?`<br><code style="font-size:12px;color:var(--ac)">${esc(tok)}</code>`:'<br><span class="mut" style="font-size:12px">nessun token</span>'}</span>${tok?`<button class="btn sec sm" data-act="tkCopy" data-tok="${esc(tok)}" title="Copia">📋</button><button class="btn dan sm" data-act="tkRevoke" data-pid="${p.id}" style="margin-left:4px">✕</button>`:`<button class="btn sm" data-act="tkGen" data-pid="${p.id}">Genera</button>`}</div>`}).join('');
- el.innerHTML=P.length?`<div class="panel small" style="margin-bottom:8px">🟢 <b>${on}</b> online · ✅ <b>${ok}</b> hanno effettuato l'accesso · ⏳ <b>${P.length-ok}</b> non ancora</div>${rows}`:'<div class="mut small">Nessun giocatore.</div>';
+ const on=acc.filter(x=>x[1].k==='on').length,ok=acc.filter(x=>x[1].k==='ok').length,no=acc.length-on-ok;
+ const rows=acc.map(([p,a])=>{const tok=TKBY[p.id]||null;
+  const dot=`<span style="flex:none;width:11px;height:11px;border-radius:50%;background:${DOT[a.k]};margin-right:10px;${a.k==='on'?'box-shadow:0 0 0 3px rgba(34,197,94,.25)':''}"></span>`;
+  const btn=tok?`<button class="btn sec sm" data-act="tkCopy" data-tok="${esc(tok)}" title="Copia">📋</button><button class="btn dan sm" data-act="tkRevoke" data-pid="${p.id}" style="margin-left:4px">✕</button>`:`<button class="btn sm" data-act="tkGen" data-pid="${p.id}">Genera token</button>`;
+  return`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line);align-items:center">${dot}<span class="grow small" style="min-width:0"><b>${esc(p.name)}</b><br><span class="${a.k==='no'?'':'mut'}" style="font-size:12px;${a.k==='no'?'color:#ef4444':''}">${a.t}</span>${tok?`<br><code style="font-size:12px;color:var(--ac)">${esc(tok)}</code>`:''}</span>${btn}</div>`}).join('');
+ el.innerHTML=P.length?`<div class="panel small" style="margin-bottom:8px;display:flex;gap:14px;flex-wrap:wrap"><span><span style="color:${DOT.on}">●</span> <b>${on}</b> online</span><span><span style="color:${DOT.ok}">●</span> <b>${ok}</b> offline</span><span><span style="color:${DOT.no}">●</span> <b>${no}</b> mai entrati</span></div>${rows}`:'<div class="mut small">Nessun giocatore.</div>';
 }
 setInterval(()=>{beat();tkRender()},PRES_MS);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)beat()});
