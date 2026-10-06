@@ -695,7 +695,7 @@ function lineRating(lineup,slots){const v=lineup.map((id,i)=>id?slotScore(getP(i
 
 /* ===== bilanciamento ===== */
 function balance(pids){
- const V=pids.map(getP).map(p=>({id:p.id,o:ovrF(p),gk:isGK(p),fam:FAM[p.roles[0]],f:isGK(p)?[0,0,0,0,0]:face(p).map(x=>x[1])}));
+ const V=pids.map(getP).map(p=>({id:p.id,o:+ovrF(p)||0,gk:isGK(p),fam:FAM[(p.roles||[])[0]]||'mid',f:isGK(p)?[0,0,0,0,0]:face(p).map(x=>+x[1]||0)}));
  const n=V.length,nA=Math.ceil(n/2),totGK=V.filter(v=>v.gk).length,PR=[];for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const r=relOf(V[i].id,V[j].id);if(r)PR.push([i,j,r])}
  const cost=m=>{
   const o=[0,0],f=[Array(5).fill(0),Array(5).fill(0)],gk=[0,0],fam=[{},{}];
@@ -716,7 +716,7 @@ function balance(pids){
   res.push({m:m.slice(),c});
  }
  res.sort((a,b)=>a.c-b.c);
- const lim=res[0].c*1.15+2,pool=res.filter(x=>x.c<=lim),pick=pool[rnd(0,pool.length-1)];
+ const lim=res[0].c*1.15+2,pool=res.filter(x=>x.c<=lim),pick=pool[rnd(0,pool.length-1)]||res[0];
  let A=V.filter((_,i)=>pick.m[i]===0).map(v=>v.id),B=V.filter((_,i)=>pick.m[i]===1).map(v=>v.id);
  if(Math.random()<.5)[A,B]=[B,A];
  return[A,B];
