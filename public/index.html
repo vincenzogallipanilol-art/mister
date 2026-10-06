@@ -401,6 +401,7 @@ function save(){
  for(const [path,val] of cur){const j=stab(val);if(shadow.get(path)!==j){shadow.set(path,j);if(canWrite(path))enqueue(()=>DB.doc(path).set(JSON.parse(j)))}}
  for(const path of [...shadow.keys()])if(!cur.has(path)){shadow.delete(path);if(canWrite(path))enqueue(()=>DB.doc(path).delete())}
 }
+function afterQ(){if(quietLinks){quietLinks=false;tkRender();return}afterRemote()}
 function afterRemote(){
  if($('#modal').classList.contains('on')||DR||MEDIT||(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))){stale=true;return}
  stale=false;render();
@@ -410,17 +411,17 @@ async function initDB(){
  if(!DB){ADM=!window.claude;return}
  try{USER=await window.claude.use('user');if(USER){UID=await USER.id();ADM=!!(USER.canEdit()||USER.isOwner())}else ADM=false}catch(e){ADM=false}
  const legacy=ADM&&S.players.length?JSON.parse(JSON.stringify(S)):null;
- let n=0;const first=()=>{if(++n<ALLCOLS.length+2)return;ready=true;
+ let n=0;const first=()=>{if(++n<ALLCOLS.length+2)return;ready=true;setTimeout(beat,800);
   if(legacy&&!S.players.length&&!S.rosters.length&&!S.matches.length){S.players=legacy.players;S.rosters=legacy.rosters;S.matches=legacy.matches;save();toast('Dati locali caricati online')}
   render()};
  let got={};
  const err=e=>toast('Sync non disponibile'+(e&&e.code?' ('+e.code+')':''));
- const applyCol=(name,snap)=>{for(const k of [...shadow.keys()])if(k.startsWith(name+'/'))shadow.delete(k);
-   S[name]=snap.docs.map(d=>{const v=NORM[name](clone(d.data()));shadow.set(name+'/'+d.id,stab(v));return v})};
+ const applyCol=(name,snap)=>{const sg=colSig(name);for(const k of [...shadow.keys()])if(k.startsWith(name+'/'))shadow.delete(k);
+   S[name]=snap.docs.map(d=>{const v=NORM[name](clone(d.data()));shadow.set(name+'/'+d.id,stab(v));return v});if(ready&&sg===colSig(name))quietLinks=true};
  const applyDoc=(k,snap)=>{const v=snap.exists?clone(snap.data()):null;if(v)shadow.set('state/'+k,stab(v));else shadow.delete('state/'+k);const x=v&&v.data;if(k==='setup'){S.setup=normSetup(x);applyCfg()}else S.live=normLive(x)};
  const handle=(key,snap,get,apply)=>{
-  if(inflight&&ready){pending[key]=()=>get().then(sn=>{apply(sn);afterRemote()}).catch(()=>{});return}
-  apply(snap);if(ready)afterRemote()};
+  if(inflight&&ready){pending[key]=()=>get().then(sn=>{apply(sn);afterQ()}).catch(()=>{});return}
+  apply(snap);if(ready)afterQ()};
  ALLCOLS.forEach(name=>{
   DB.collection(name).onSnapshot(snap=>{
    handle(name,snap,()=>DB.collection(name).get(),sn=>applyCol(name,sn));
@@ -432,6 +433,32 @@ async function initDB(){
    if(!got[k]){got[k]=1;first()}
   },err)});
 }
+
+
+/* ===== presenza: chi ha effettuato l'accesso e chi è online ===== */
+const PRES_MS=150e3,ONLINE_MS=210e3;
+let TKBY={},quietLinks=false;
+const linkSig=()=>JSON.stringify(S.links.map(l=>[l.id,l.p]).sort());
+const colSig=n=>n==='links'?linkSig():[...shadow].filter(([k])=>k.startsWith(n+'/')).sort((a,b)=>a[0]<b[0]?-1:1).map(x=>x[0]+x[1]).join('|');
+function beat(){if(!ready||!UID||document.hidden)return;const l=S.links.find(x=>x.id===UID);if(!l)return;l.seen=Date.now();save()}
+function agoLbl(ts){const d=Date.now()-ts;if(d<90e3)return'adesso';if(d<36e5)return Math.round(d/6e4)+' min fa';
+ const a=new Date(ts),n=new Date(),hm=a.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}),y=new Date(n);y.setDate(n.getDate()-1);
+ if(a.toDateString()===n.toDateString())return'oggi alle '+hm;if(a.toDateString()===y.toDateString())return'ieri alle '+hm;
+ return a.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' alle '+hm}
+function accessOf(p){const lk=S.links.find(l=>l.p===p.id);
+ if(lk&&lk.seen&&Date.now()-lk.seen<ONLINE_MS)return{k:'on',t:'🟢 Online ora'};
+ if(lk&&lk.seen)return{k:'ok',t:'✅ Ultimo accesso '+agoLbl(lk.seen)};
+ if(lk)return{k:'ok',t:'✅ Ha effettuato l\'accesso'};
+ return{k:'no',t:'⏳ Non ha ancora effettuato l\'accesso'}}
+function tkRender(){
+ const el=document.getElementById('tkList');if(!el)return;
+ const P=S.players.slice().sort((a,b)=>a.name.localeCompare(b.name)),acc=P.map(p=>[p,accessOf(p)]);
+ const on=acc.filter(x=>x[1].k==='on').length,ok=acc.filter(x=>x[1].k!=='no').length;
+ const rows=acc.map(([p,a])=>{const tok=TKBY[p.id]||null;return`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="grow small" style="min-width:0"><b>${esc(p.name)}</b><br><span class="${a.k==='no'?'mut':''}" style="font-size:12px">${a.t}</span>${tok?`<br><code style="font-size:12px;color:var(--ac)">${esc(tok)}</code>`:'<br><span class="mut" style="font-size:12px">nessun token</span>'}</span>${tok?`<button class="btn sec sm" data-act="tkCopy" data-tok="${esc(tok)}" title="Copia">📋</button><button class="btn dan sm" data-act="tkRevoke" data-pid="${p.id}" style="margin-left:4px">✕</button>`:`<button class="btn sm" data-act="tkGen" data-pid="${p.id}">Genera</button>`}</div>`}).join('');
+ el.innerHTML=P.length?`<div class="panel small" style="margin-bottom:8px">🟢 <b>${on}</b> online · ✅ <b>${ok}</b> hanno effettuato l'accesso · ⏳ <b>${P.length-ok}</b> non ancora</div>${rows}`:'<div class="mut small">Nessun giocatore.</div>';
+}
+setInterval(()=>{beat();tkRender()},PRES_MS);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)beat()});
 
 /* ===== statistiche & overall ===== */
 const GROUPS=[
@@ -445,12 +472,15 @@ const GROUPS=[
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
-const VERSION='1.6.1';
+const VERSION='1.6.2';
 /* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra.
    Voce = [tipo, testo, soloAdmin?]  ·  tipo: 'new' novità · 'imp' miglioramento · 'bug' correzione.
    Le voci soloAdmin (3° elemento true) NON compaiono mai nelle notifiche né ai giocatori. */
 const CLT={new:['✨','Novità','novità'],imp:['🔧','Miglioramenti','miglioramenti'],bug:['🐞','Correzioni','bug risolti']};
 const CHANGELOG=[
+ {v:'1.6.2',d:'6 ott 2026',items:[
+  ['new','Token giocatori: ora si vede chi ha effettuato l\'accesso, chi è online in questo momento e l\'ultimo accesso di ognuno','adm']
+ ].map(x=>x[2]?[x[0],x[1],true]:x)},
  {v:'1.6.1',d:'6 ott 2026',items:[
   ['bug','Panchinari e sostituti ora contano come tutti gli altri: votano, vengono votati, ricevono premi e hanno la presenza segnata'],
   ['imp','Modifica partita: nuova sezione «Presenti» per togliere o rimettere un giocatore','adm']
@@ -1821,14 +1851,13 @@ const A={
  eventDel:d=>ASK('Eliminare la partita proposta?',()=>{const ev=S.events.find(x=>x.id===d.e);if(ev&&ev.status!=='closed'){const to=S.rsvps.filter(r=>r.e===ev.id&&(r.v==='y'||r.v==='m')).map(r=>r.p).filter(id=>getP(id));NT('proposal','❌ Partita annullata',fdate(ev.when)+(ev.place?' · '+ev.place:''),'./?tab=calcio',to)}S.events=S.events.filter(x=>x.id!==d.e);S.rsvps=S.rsvps.filter(r=>r.e!==d.e);save();render()}),
  /* menu */
  
+
  tokensPanel:async()=>{
   if(!window.MisterTokenAdmin){const rows=S.players.map(p=>`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="grow small"><b>${esc(p.name)}</b><br><span class="mut">—</span></span><span class="mut small">Solo su GitHub</span></div>`).join('');return openModal(`<h2>Token giocatori</h2><div class="mut small" style="margin-bottom:10px">I token si generano dall'app su GitHub (con Supabase).<br>Qui sotto i giocatori:</div><div style="max-height:55vh;overflow-y:auto">${rows}</div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)}
   const myTok=window.MISTER_ME?.id||'';
   openModal(`<h2>Token giocatori</h2><div class="mut small" style="margin-bottom:12px">Genera un token per ogni giocatore. Inviaglielo direttamente.</div><div id="tkList"><div class="mut small">Caricamento...</div></div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`);
   const existing=await window.MisterTokenAdmin.listTokens().catch(()=>[]);
-  const byPid=Object.fromEntries(existing.map(t=>[t.pid,t.code]));
-  const rows=S.players.map(p=>{const tok=byPid[p.id]||null;return`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="grow small"><b>${esc(p.name)}</b>${tok?`<br><code style="font-size:12px;color:var(--ac)">${esc(tok)}</code>`:'<br><span class="mut">nessun token</span>'}</span>${tok?`<button class="btn sec sm" data-act="tkCopy" data-tok="${esc(tok)}" title="Copia">📋</button><button class="btn dan sm" data-act="tkRevoke" data-pid="${p.id}" style="margin-left:4px">✕</button>`:`<button class="btn sm" data-act="tkGen" data-pid="${p.id}">Genera</button>`}</div>`}).join('');
-  const el=document.getElementById('tkList');if(el)el.innerHTML=rows||'<div class="mut small">Nessun giocatore.</div>'},
+  TKBY=Object.fromEntries(existing.map(t=>[t.pid,t.code]));tkRender()},
  tkGen:async d=>{if(!window.MisterTokenAdmin)return;const myTok=window.MISTER_ME?.id||'';const pName=esc((S.players.find(p=>p.id===d.pid)||{}).name||'');try{const r=await window.MisterTokenAdmin.createToken(myTok,d.pid);openModal(`<h2>Token generato ✓</h2><p class="small mut">Invia questo codice a <b>${pName}</b> via WhatsApp o SMS.</p><div style="background:#18181b;border:1.5px solid #d1ff42;border-radius:14px;padding:18px;text-align:center;margin:16px 0;letter-spacing:.12em;font-size:22px;font-family:monospace;color:#d1ff42">${esc(r.token)}</div><div class="row" style="gap:8px"><button class="btn grow" data-act="tkCopy" data-tok="${esc(r.token)}">📋 Copia token</button><button class="btn sec" data-act="tokensPanel">← Lista</button></div>`)}catch(e){toast('Errore: '+e.message)}},
  tkRevoke:d=>ASK('Revocare il token di questo giocatore? Non potrà più accedere.',async()=>{if(!window.MisterTokenAdmin)return;const myTok=window.MISTER_ME?.id||'';try{await window.MisterTokenAdmin.revokeToken(myTok,d.pid);A.tokensPanel()}catch(e){toast('Errore: '+e.message)}}),
  tkCopy:d=>{navigator.clipboard?.writeText(d.tok).then(()=>toast('Token copiato')).catch(()=>toast(d.tok))},
