@@ -48,38 +48,53 @@ label{font-size:12px;color:var(--mut);display:block;margin:10px 0 4px}
 /* cards */
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 8px}
 @media(min-width:560px){.grid{grid-template-columns:repeat(5,1fr);gap:12px 10px}}
-.cardw{filter:drop-shadow(0 12px 20px rgba(0,0,0,.6));cursor:pointer;transition:transform .2s}
+
+/* card v2 — sagoma a scudo */
+.cardw{filter:drop-shadow(0 12px 18px rgba(0,0,0,.55));cursor:pointer;transition:transform .2s}
 .cardw:active{transform:scale(.98)}
-.card{--c1:#f5c542;--c2:#d4a834;--c3:#fef08a;--tx:#1f1509;--ac:#7d5e1f;container-type:inline-size;position:relative;aspect-ratio:5/7.5;color:var(--tx);overflow:hidden;clip-path:polygon(50% 0,86% 2.5%,100% 7%,100% 88%,88% 94%,50% 100%,12% 94%,0 88%,0 7%,14% 2.5%);background:linear-gradient(135deg,var(--c1) 0%,var(--c2) 100%)}
-.card:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.25) 50%,transparent 65%);pointer-events:none;z-index:1}
-.card:after{content:"";position:absolute;inset:2cqw;border:.5cqw solid rgba(0,0,0,.12);clip-path:inherit;pointer-events:none;z-index:1}
-.card.t1{--c1:#d59a6a;--c2:#8a4f26;--c3:#f3c9a0;--tx:#2b1406;--ac:#4a250d}
-.card.t2{--c1:#dfe4ec;--c2:#8f9bb0;--tx:#1a2333;--ac:#334259}
-.card.t3{--c1:#ffd700;--c2:#cc9900;--tx:#2b1d00;--ac:#5a3d00}
-.card.t4{--c1:#60a5fa;--c2:#1e40af;--tx:#fff;--ac:#93c5fd}
-.card.t5{--c1:#f0f0f0;--c2:#b0b0b0;--tx:#1a1a1a;--ac:#555}
-.c-left{position:absolute;left:5cqw;top:10cqw;text-align:center;z-index:3;width:28cqw;line-height:1.1}
-.c-ovr{font-size:22cqw;font-weight:900;letter-spacing:-.3cqw;font-variant-numeric:tabular-nums}
-.c-role{font-size:6.5cqw;font-weight:700;margin-top:2cqw;opacity:.85;letter-spacing:.2cqw}
-.c-right{position:absolute;right:5cqw;top:12cqw;width:18cqw;display:flex;flex-direction:column;gap:2.2cqw;align-items:center;z-index:3}
-.c-right i{font-style:normal;font-size:6.2cqw;font-weight:800;background:rgba(0,0,0,.16);border-radius:10px;padding:1.4cqw 2.8cqw;letter-spacing:.1cqw;line-height:1}
-.card.t4 .c-right i{background:rgba(255,255,255,.18)}
-.c-num{position:absolute;left:0;right:0;bottom:2cqw;text-align:center;font-size:8.8cqw;font-weight:900;line-height:1;opacity:.9;z-index:3}
-.c-ph{position:absolute;left:50%;transform:translateX(-50%);top:3cqw;width:68cqw;height:68cqw;z-index:2;-webkit-mask-image:linear-gradient(#000 70%,transparent 95%);mask-image:linear-gradient(#000 70%,transparent 95%);display:flex;align-items:flex-end;justify-content:center}
-.c-ph img{width:100%;height:100%;object-fit:cover;object-position:center 15%}
-.c-ph span{font-size:20cqw;font-weight:900;opacity:.25}
-.c-name{position:absolute;left:5cqw;right:5cqw;bottom:10cqw;text-align:center;font-weight:900;font-size:8cqw;text-transform:uppercase;letter-spacing:.5cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:3}
-.c-meta{position:absolute;left:0;right:0;bottom:5.5cqw;text-align:center;font-size:4.8cqw;font-weight:600;opacity:.75;z-index:3}
-.c-st{position:absolute;left:3cqw;right:3cqw;top:98cqw;display:flex;justify-content:space-between;z-index:3;border-top:.4cqw solid rgba(0,0,0,.15);padding-top:2cqw}
-.card.t4 .c-st{border-color:rgba(255,255,255,.2)}
-.c-st div{display:flex;flex-direction:column;align-items:center;gap:.6cqw;flex:1}
-.c-st span{font-size:4.2cqw;font-weight:700;opacity:.8}
-.c-st b{font-size:7cqw;font-weight:900;font-variant-numeric:tabular-nums}
-.c-ok{position:absolute;right:5cqw;bottom:10cqw;font-size:9cqw;font-weight:900;color:rgba(34,197,94,.8);z-index:3}
-.c-form{font-size:5cqw;font-weight:800;margin-top:2cqw;opacity:.8}
-.c-prov{font-size:3.2cqw;font-weight:800;opacity:.7;margin-top:1.5cqw}
+.card{--g1:#a07400;--g2:#fbbf00;--l1:#fcd97d;--l2:#fff4d6;--fd1:#ffffff;--fd2:#fff6dc;--bd2:#c8901a;--on:#000;--sh:rgba(0,0,0,.45);container-type:inline-size;position:relative;aspect-ratio:1545/1999;color:#000;overflow:hidden;clip-path:polygon(0.00% 2.20%,0.05% 1.77%,0.22% 1.36%,0.48% 0.98%,0.83% 0.64%,1.27% 0.37%,1.76% 0.17%,2.29% 0.04%,2.85% 0.00%,97.15% 0.00%,97.71% 0.04%,98.24% 0.17%,98.73% 0.37%,99.17% 0.64%,99.52% 0.98%,99.78% 1.36%,99.95% 1.77%,100.00% 2.20%,100.00% 84.14%,99.97% 84.47%,99.87% 84.79%,99.72% 85.09%,99.50% 85.38%,99.24% 85.64%,98.92% 85.86%,98.57% 86.05%,98.18% 86.19%,50.70% 100.44%,50.53% 100.48%,50.36% 100.52%,50.18% 100.53%,50.00% 100.54%,49.82% 100.53%,49.64% 100.52%,49.47% 100.48%,49.30% 100.44%,1.82% 86.19%,1.43% 86.05%,1.08% 85.86%,0.76% 85.64%,0.50% 85.38%,0.28% 85.09%,0.13% 84.79%,0.03% 84.47%,0.00% 84.14%);background:linear-gradient(100deg,#000 0%,#000 18%,var(--bd2) 100%);font-family:'Anton','Impact','Haettenschweiler','Arial Narrow',sans-serif;font-weight:400;letter-spacing:.02em}
+.card .c-in{position:absolute;inset:.6cqw;clip-path:polygon(0.00% 2.20%,0.05% 1.77%,0.22% 1.36%,0.48% 0.98%,0.83% 0.64%,1.27% 0.37%,1.76% 0.17%,2.29% 0.04%,2.85% 0.00%,97.15% 0.00%,97.71% 0.04%,98.24% 0.17%,98.73% 0.37%,99.17% 0.64%,99.52% 0.98%,99.78% 1.36%,99.95% 1.77%,100.00% 2.20%,100.00% 84.14%,99.97% 84.47%,99.87% 84.79%,99.72% 85.09%,99.50% 85.38%,99.24% 85.64%,98.92% 85.86%,98.57% 86.05%,98.18% 86.19%,50.70% 100.44%,50.53% 100.48%,50.36% 100.52%,50.18% 100.53%,50.00% 100.54%,49.82% 100.53%,49.64% 100.52%,49.47% 100.48%,49.30% 100.44%,1.82% 86.19%,1.43% 86.05%,1.08% 85.86%,0.76% 85.64%,0.50% 85.38%,0.28% 85.09%,0.13% 84.79%,0.03% 84.47%,0.00% 84.14%);background:radial-gradient(120% 70% at 30% 18%,var(--fd1) 0%,var(--fd2) 100%)}
+.card .c-in:after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.55) 50%,transparent 62%);opacity:.45;pointer-events:none}
+.card.t1{--g1:#7a4a22;--g2:#e0a374;--l1:#f0c9a3;--l2:#fbeee0;--fd2:#fbe9d8;--bd2:#b8763f}
+.card.t2{--g1:#5f6a7b;--g2:#d3dae6;--l1:#e3e8f1;--l2:#fafbfd;--fd2:#e9edf5;--bd2:#9aa5b8}
+.card.t4{--g1:#142f78;--g2:#5fa2f8;--l1:#b9d4ff;--l2:#eef5ff;--fd2:#d9e8ff;--bd2:#3b82f6;--on:#fff}
+.card.t5{--g1:#6f7480;--g2:#f4f4f6;--l1:#e8e8ee;--l2:#ffffff;--fd2:#ececf2;--bd2:#c9cbd4}
+.card.t5 .c-in:after{background:linear-gradient(115deg,rgba(255,80,160,.18),rgba(80,200,255,.22) 35%,rgba(255,230,90,.2) 55%,rgba(120,255,160,.18) 80%);opacity:1}
+.card .shw{position:absolute;filter:drop-shadow(0 1.6cqw 2.4cqw var(--sh));z-index:4}
+.card .shp{position:absolute;inset:0;background:#000}
+.card .shp>u{position:absolute;inset:.55cqw;display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--on);text-align:center;line-height:1}
+.card .gold .shp>u{background:linear-gradient(180deg,var(--g1),var(--g2))}
+.card .lite .shp>u{color:#000;background:linear-gradient(180deg,var(--l1),var(--l2))}
+.c-ovrb{left:4.2cqw;top:2.5cqw;width:17.5cqw;height:18.4cqw}
+.c-ovrb .shp,.c-ovrb .shp>u{clip-path:polygon(0.00% 11.96%,3.25% 11.55%,6.29% 10.35%,8.89% 8.45%,10.89% 5.98%,12.14% 3.09%,12.57% 0.00%,87.43% 0.00%,87.86% 3.09%,89.11% 5.98%,91.11% 8.45%,93.71% 10.35%,96.75% 11.55%,100.00% 11.96%,100.00% 88.04%,96.75% 88.45%,93.71% 89.65%,91.11% 91.55%,89.11% 94.02%,87.86% 96.91%,87.43% 100.00%,12.57% 100.00%,12.14% 96.91%,10.89% 94.02%,8.89% 91.55%,6.29% 89.65%,3.25% 88.45%,-0.00% 88.04%)}
+.c-ovrb .shp>u{font-size:13.4cqw;padding-top:.6cqw}
+.c-fr{position:absolute;left:13cqw;top:11.7cqw;width:73.9cqw;height:74.3cqw;border:.2cqw solid #000;z-index:1;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(0,0,0,.05))}
+.c-fr .c-ph{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;-webkit-mask-image:linear-gradient(#000 82%,transparent);mask-image:linear-gradient(#000 82%,transparent)}
+.c-ph img{width:100%;height:100%;object-fit:cover;object-position:center 18%}
+.c-ph span{font-size:30cqw;opacity:.18;align-self:center}
+.c-rg{position:absolute;left:78.8cqw;top:11.8cqw;width:16.5cqw;z-index:4}
+.c-rg .shw{position:relative;display:block;width:16.5cqw;height:11.4cqw;margin-bottom:.4cqw}
+.c-rg .shp,.c-rg .shp>u{clip-path:polygon(0 5%,50% 0,100% 5%,100% 95%,50% 100%,0 95%)}
+.c-rg .shp>u{font-size:5.6cqw}
+.c-nameb{left:28.6cqw;top:80.3cqw;width:55.4cqw;height:11.7cqw}
+.c-nameb .shp,.c-nameb .shp>u{clip-path:polygon(0 7%,50% 0,100% 7%,100% 93%,50% 100%,0 93%)}
+.c-nameb .shp>u{font-size:6.4cqw;text-transform:uppercase;white-space:nowrap;padding:0 2cqw;letter-spacing:.06em}
+.c-nameb.nn{left:16cqw;width:68cqw}
+.c-nameb.s2 .shp>u{font-size:5.4cqw}.c-nameb.s3 .shp>u{font-size:4.5cqw}
+.c-numb{left:16cqw;top:80.4cqw;width:11.2cqw;height:11.6cqw}
+.c-numb .shp,.c-numb .shp>u{clip-path:polygon(0.00% 13.79%,3.70% 13.32%,7.14% 11.95%,10.10% 9.75%,12.37% 6.90%,13.80% 3.57%,14.29% 0.00%,85.71% 0.00%,86.20% 3.57%,87.63% 6.90%,89.90% 9.75%,92.86% 11.95%,96.30% 13.32%,100.00% 13.79%,100.00% 86.21%,96.30% 86.68%,92.86% 88.05%,89.90% 90.25%,87.63% 93.10%,86.20% 96.43%,85.71% 100.00%,14.29% 100.00%,13.80% 96.43%,12.37% 93.10%,10.10% 90.25%,7.14% 88.05%,3.70% 86.68%,-0.00% 86.21%)}
+.c-numb .shp>u{font-size:6.6cqw}
+.c-fm{position:absolute;left:1.8cqw;top:23.6cqw;width:10.4cqw;text-align:center;z-index:3;font-size:3.6cqw;line-height:1.15}
 .c-form.up{color:#0b7a3f}.c-form.dn{color:#b3261e}
-.card.t4 .c-form.up{color:#4ade80}.card.t4 .c-form.dn{color:#fca5a5}
+.c-prov{font-size:2.6cqw;color:#000;opacity:.65;margin-top:.6cqw}
+.c-st{position:absolute;left:8cqw;right:8cqw;top:96.4cqw;display:flex;z-index:3}
+.c-st div{flex:1;display:flex;flex-direction:column;align-items:center;gap:.7cqw;position:relative}
+.c-st div+div:before{content:"";position:absolute;left:0;top:10%;bottom:10%;width:.2cqw;background:rgba(0,0,0,.28)}
+.c-st span{font-size:3.5cqw;letter-spacing:.12em;opacity:.7;font-family:system-ui,'Arial Narrow',sans-serif;font-weight:700}
+.c-st b{font-size:7.2cqw;font-weight:400;font-variant-numeric:tabular-nums;line-height:1}
+.c-meta{position:absolute;left:14cqw;right:14cqw;top:113.2cqw;text-align:center;font-size:3.5cqw;letter-spacing:.1em;opacity:.65;z-index:3;font-family:system-ui,'Arial Narrow',sans-serif;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-ok{position:absolute;left:3cqw;top:114cqw;font-size:8cqw;color:rgba(22,163,74,.9);z-index:5;font-family:system-ui,sans-serif;font-weight:900}
+
 .formb{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:800}
 .formb.up{background:#2b3512;color:#34d399}.formb.dn{background:#3b1519;color:#fca5a5}.formb.z{background:var(--bg2);color:var(--mut)}
 .chart{width:100%;height:auto;display:block}
@@ -303,6 +318,7 @@ span.rcvb{opacity:.85;cursor:default}
 .cl-h{font-size:12px;font-weight:800;letter-spacing:.5px;margin:10px 0 2px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="shim.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
 </head>
 <body>
 <header><h1>MIS<span>TER</span> <small id="ver" style="font-size:10px;font-weight:400;letter-spacing:1px;color:#555;vertical-align:middle"></small></h1><div class="hb"><button class="bell" data-act="bell" aria-label="Notifiche">🔔<i id="bdg"></i></button><button class="btn sec sm" data-act="menu">Impostazioni</button></div></header>
@@ -408,12 +424,15 @@ const GROUPS=[
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
-const VERSION='1.4.0';
+const VERSION='1.5.0';
 /* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra.
    Voce = [tipo, testo, soloAdmin?]  ·  tipo: 'new' novità · 'imp' miglioramento · 'bug' correzione.
    Le voci soloAdmin (3° elemento true) NON compaiono mai nelle notifiche né ai giocatori. */
 const CLT={new:['✨','Novità','novità'],imp:['🔧','Miglioramenti','miglioramenti'],bug:['🐞','Correzioni','bug risolti']};
 const CHANGELOG=[
+ {v:'1.5.0',d:'6 ott 2026',items:[
+  ['imp','Nuova grafica della card: sagoma a scudo, cornice foto, ruoli e numero di maglia accanto al nome']
+ ]},
  {v:'1.4.0',d:'6 ott 2026',items:[
   ['new','Profilo diviso in due schede: Card e Bacheca (premi, traguardi e i tuoi obiettivi, tipo «fai 15 gol»)'],
   ['new','Pulsante Chimica accanto a Confronta: vedi con chi rende meglio ogni giocatore'],
@@ -665,8 +684,20 @@ const metaOf=p=>[p.age?p.age+' anni':'',p.h?p.h+' cm':'',p.w?p.w+' kg':''].filte
 function ratedByMe(pid){const me=myPid();return !!me&&me!==pid&&S.ratings.some(r=>r.id===pid+'_'+me&&r.r!==r.t&&!r.open)}
 function cardName(n){n=String(n||'').trim();const t=n.split(/\s+/);if(n.length<=11||t.length<2)return n;return t[0]+'.'+t.slice(1).map(x=>x[0].toUpperCase()).join('.')}
 function card(p){
- const f=face(p),o=ovr(p),m=metaOf(p),sec=(p.roles||[]).slice(1,4);
- return`<div class="cardw" data-act="openP" data-id="${p.id}"><div class="card ${tierOf(o)}"><div class="c-left"><div class="c-ovr">${o}</div><div class="c-role">${p.roles[0]}</div>${p._f?`<div class="c-form ${p._f>0?'up':'dn'}">${p._f>0?'▲':'▼'}${Math.abs(p._f)}</div>`:''}${p._prov?'<div class="c-prov">PROV.</div>':''}</div>${sec.length?`<div class="c-right">${sec.map(r=>`<i>${r}</i>`).join('')}</div>`:''}<div class="c-ph">${p.photo?`<img src="${p.photo}">`:`<span>${ini(p.name)}</span>`}</div><div class="c-name">${esc(cardName(p.name))}</div><div class="c-meta">${m||'&nbsp;'}</div><div class="c-st">${f.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>${p.num!==''&&p.num!=null?`<div class="c-num">${esc(p.num)}</div>`:''}${ratedByMe(p.id)?'<div class="c-ok">✓</div>':''}</div></div>`;
+ const f=face(p),o=ovr(p),m=metaOf(p),rl=(p.roles||[]).slice(0,4),nm0=cardName(p.name),L=nm0.length,sz=L>14?' s3':L>10?' s2':'';
+ const shp=(c,x)=>`<div class="shp"><u>${x}</u></div>`;
+ const hasN=p.num!==''&&p.num!=null;
+ return`<div class="cardw" data-act="openP" data-id="${p.id}"><div class="card ${tierOf(o)}"><div class="c-in"></div>
+<div class="c-fr"><div class="c-ph">${p.photo?`<img src="${p.photo}" alt="">`:`<span>${ini(p.name)}</span>`}</div></div>
+
+<div class="shw c-ovrb gold">${shp('',o)}</div>
+<div class="c-fm">${p._f?`<div class="c-form ${p._f>0?'up':'dn'}">${p._f>0?'▲':'▼'}${Math.abs(p._f)}</div>`:''}${p._prov?'<div class="c-prov">PROV.</div>':''}</div>
+<div class="c-rg">${rl.map((r,i)=>`<div class="shw ${i?'lite':'gold'}">${shp('',r)}</div>`).join('')}</div>
+${hasN?`<div class="shw c-numb gold">${shp('',esc(p.num))}</div>`:``}
+<div class="shw c-nameb gold${sz}${hasN?'':' nn'}">${shp('',esc(nm0))}</div>
+
+<div class="c-st">${f.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
+<div class="c-meta">${m||'&nbsp;'}</div>${ratedByMe(p.id)?'<div class="c-ok">✓</div>':''}</div></div>`;
 }
 function radar(f){
  const c=100,R=68,n=5,pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[c+r*Math.cos(a),c+r*Math.sin(a)]};
@@ -1733,7 +1764,7 @@ const TSTEPS=[
  {sec:'🏠 Home',t:'Prossima partita',sel:['[data-tour=next]'],x:'Data, formato e luogo. Rispondi <b>✅ Ci sono</b>, <b>❔ Forse</b> o <b>❌ No</b>: serve a organizzare le squadre e il contatore mostra quanti hanno confermato. Puoi cambiare risposta quando vuoi.'},
  {sec:'🏠 Home',t:'Ultima partita e Podio',sel:['[data-tour=last]','[data-tour=pod]'],x:'Risultato dell\'ultima partita con <b>MVP</b>, marcatori e il <b>tuo voto</b> (provvisorio finché la votazione è aperta). Sotto, il <b>Podio</b>: primi 3 per Marcatori, MVP e Voto medio (tocca per la classifica completa). In fondo l\'<b>Attività recente</b>.'},
  {sec:'👤 Giocatori',t:'Tutta la rosa',sel:['#view > .row.sp','#q','[data-cb=players]'],go:{tab:'players',sub:{players:'all'}},x:'Tutti i giocatori ordinati per <b>overall</b>. Cerca per nome e scorri lateralmente per filtrare per ruolo (Por, Dif, Cen, Att). Il tasto <b>📋 Rose</b> apre le formazioni salvate.'},
- {sec:'👤 Giocatori',t:'La card',sel:['[data-car=players] .cardw'],pos:'bottom',x:'Il numero grande è l\'<b>overall</b>, sotto il ruolo e il numero di maglia; il colore (bronzo → oro → speciale) dipende dal valore. <b>▲▼</b> è la forma delle ultime partite, <b>PROV.</b> = valutazione ancora provvisoria, <b>✓ verde</b> = hai già valutato quel giocatore. Tocca una card per aprirla.'},
+ {sec:'👤 Giocatori',t:'La card',sel:['[data-car=players] .cardw'],pos:'bottom',x:'Il numero in alto a sinistra è l\'<b>overall</b>, a destra i ruoli (il primo è quello principale), accanto al nome il numero di maglia; il colore (bronzo → oro → speciale) dipende dal valore. <b>▲▼</b> è la forma delle ultime partite, <b>PROV.</b> = valutazione ancora provvisoria, <b>✓ verde</b> = hai già valutato quel giocatore. Tocca una card per aprirla.'},
  {sec:'👤 Scheda giocatore',t:'Card e radar',sel:['.pp-top'],go:{tab:'players',pid:'other'},when:()=>!!tourOther(),x:'La card e il <b>radar</b> delle 6 aree (ritmo, tiro, passaggio, dribbling, difesa, fisico). Sotto trovi forma, numero di votanti e la crescita dell\'overall.'},
  {sec:'👤 Scheda giocatore',t:'Valuta, Confronta, Chimica',sel:['[data-tour=rate]'],when:()=>!!tourOther(),x:'<b>✍ Valuta</b>: dai un voto alle singole statistiche del compagno. Si fa <b>una volta sola per giocatore</b> e non puoi valutare te stesso; solo l\'admin può riaprire una valutazione. Dai <b>6 votanti</b> in su l\'overall nasce dalla <b>media dei voti dei compagni</b>. <b>⚖ Confronta</b> mette due giocatori a confronto su overall, macro categorie e singole stat, più stagione e partite giocate insieme. <b>🧪 Chimica</b>: con chi rende meglio quel giocatore e i risultati giocando insieme.'},
  {sec:'👤 Scheda giocatore',t:'Stagione',sel:['.tiles5'],when:()=>!!tourOther(),x:'Presenze, gol, assist, MVP e voto medio della stagione (per i portieri: clean sheet e gol subiti). <b>Altre statistiche</b> apre il dettaglio: cartellini, rigori, vittorie/pareggi/sconfitte.'},
