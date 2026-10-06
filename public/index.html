@@ -322,6 +322,12 @@ span.rcvb{opacity:.85;cursor:default}
 .dtp select{padding:9px 6px;min-width:0}
 .dtp .r b{flex:none}
 .cl-h{font-size:12px;font-weight:800;letter-spacing:.5px;margin:10px 0 2px}
+
+.evcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.evc{min-width:0}
+.evh{font-size:12px;font-weight:800;color:var(--mut);padding-bottom:4px;border-bottom:1px solid var(--line);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev2{display:flex;gap:6px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.25}.ev2 .m{width:26px;flex:none;color:var(--mut);font-size:11px;padding-top:1px}.ev2.ed{cursor:pointer}.ev2.ed:active{background:var(--bg2)}
+.macc{animation:macc .22s ease;overflow:hidden;padding-bottom:12px}@keyframes macc{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.mchev{flex:none;transition:transform .2s}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="shim.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
@@ -342,7 +348,8 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 const ini=n=>(n||'?').trim().split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
-const avg=a=>{if(!a.length)return 0;if(a.length<7)return a.reduce((x,y)=>x+y,0)/a.length;const sorted=[...a].sort((x,y)=>x-y);const trimmed=sorted.slice(1,-1);return trimmed.reduce((x,y)=>x+y,0)/trimmed.length};
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const tmean=a=>{if(a.length<7)return avg(a);const t=[...a].sort((x,y)=>x-y).slice(1,-1);return avg(t)};
 function toast(m,ms=1800){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',ms)}
 
 /* ===== stato ===== */
@@ -355,6 +362,14 @@ try{S.ui=Object.assign(freshUI(),JSON.parse(localStorage.getItem(UIKEY))||S.ui||
 S.ui.sub=Object.assign({players:'all',calcio:'match',rank:'goals'},S.ui.sub||{});
 if(S.ui.tab==='match'){S.ui.tab='calcio';S.ui.sub.calcio='match'}else if(S.ui.tab==='res'){S.ui.tab='calcio';S.ui.sub.calcio='res'}
 const clone=v=>JSON.parse(JSON.stringify(v));
+
+/* ===== configurazione partite (bonus/malus e premi): admin ===== */
+const CFGD={bonus:{goal:1,ast:.5,cs:1,psave:1,pmiss:-1,pcon:-.5,yellow:-.3,red:-1.2,og:-.8,win:0,loss:0},awards:[{k:'mvp',i:'⭐',l:'MVP',on:1},{k:'bomber',i:'⚽',l:'Bomber',on:1},{k:'assist',i:'🅰️',l:'Assistman',on:1},{k:'muro',i:'🧱',l:'Muro',on:1},{k:'rev',i:'✨',l:'Rivelazione',on:1}]};
+const BLBL={goal:['⚽','Gol (anche rigore segnato)'],ast:['🅰️','Assist'],cs:['🧤','Porta inviolata (portiere)'],psave:['🧤','Rigore parato'],pmiss:['❌','Rigore sbagliato'],pcon:['🚫','Rigore concesso (chi lo ha causato)'],yellow:['🟨','Giallo'],red:['🟥','Rosso'],og:['🙈','Autogol'],win:['🏆','Vittoria (a tutta la squadra)'],loss:['📉','Sconfitta (a tutta la squadra)']};
+const cfgB=()=>Object.assign({},CFGD.bonus,(S.setup&&S.setup.cfg&&S.setup.cfg.bonus)||{});
+let AWARDS=[];
+function applyCfg(){const l=S.setup&&S.setup.cfg&&S.setup.cfg.awards&&S.setup.cfg.awards.length?S.setup.cfg.awards:CFGD.awards;AWARDS=l.map(a=>[a.k,a.i,a.l,a.on?1:0])}
+applyCfg();
 /* --- normalizzazione: il db può omettere array/oggetti vuoti --- */
 const nTeam=t=>t?Object.assign(t,{pids:t.pids||[],played:t.played}):t;
 function normSetup(x){x=Object.assign(freshSetup(),x||{});x.pool=x.pool||[];nTeam(x.A);nTeam(x.B);return x}
@@ -363,7 +378,7 @@ const NORM={
  players:p=>{p.roles=p.roles&&p.roles.length?p.roles:['CM'];p.s=p.s||{};p.name=p.name||'';return p},
  rosters:r=>{r.pids=r.pids||[];const l=r.lineup||[];r.lineup=Array.from({length:r.format||7},(_,i)=>l[i]||null);return r},
  matches:m=>{m.events=m.events||[];m.ratings=m.ratings||{};m.evo=m.evo||{};m.ovrs=m.ovrs||{};m.awards=m.awards||{};nTeam(m.A);nTeam(m.B);return m},
- events:e=>e,rsvps:r=>r,links:l=>l,pairs:x=>x,mvotes:x=>{x.v=x.v||{};return x},notifs:n=>n,feedback:f=>f,fbvotes:f=>f,seasons:x=>{x.champs=x.champs||{};return x},
+ events:e=>e,rsvps:r=>r,links:l=>l,pairs:x=>x,mvotes:x=>{x.v=x.v||{};x.aw=x.aw||{};return x},notifs:n=>n,feedback:f=>f,fbvotes:f=>f,seasons:x=>{x.champs=x.champs||{};return x},
  ratings:r=>{r.s=r.s||{};r.log=r.log||[];return r}
 };
 const ALLCOLS=['players','rosters','matches','events','rsvps','ratings','links','pairs','mvotes','notifs','feedback','fbvotes','seasons'];
@@ -371,7 +386,7 @@ let ADM=!window.claude,UID=null,USER=null;
 const canWrite=path=>ADM||/^(ratings|rsvps|links|rosters|mvotes|notifs|feedback|fbvotes)\//.test(path)||(!!myPid()&&path==='players/'+myPid());
 const VA=()=>ADM&&!S.ui.previewPlayer;
 const RE=()=>ADM||!!UID;
-S.setup=normSetup(S.setup);S.live=normLive(S.live);
+S.setup=normSetup(S.setup);S.live=normLive(S.live);applyCfg();
 /* --- sync db condiviso --- */
 let DB=null,ready=false,inflight=0,pending={},chain=Promise.resolve(),stale=false;
 const shadow=new Map();
@@ -402,7 +417,7 @@ async function initDB(){
  const err=e=>toast('Sync non disponibile'+(e&&e.code?' ('+e.code+')':''));
  const applyCol=(name,snap)=>{for(const k of [...shadow.keys()])if(k.startsWith(name+'/'))shadow.delete(k);
    S[name]=snap.docs.map(d=>{const v=NORM[name](clone(d.data()));shadow.set(name+'/'+d.id,stab(v));return v})};
- const applyDoc=(k,snap)=>{const v=snap.exists?clone(snap.data()):null;if(v)shadow.set('state/'+k,stab(v));else shadow.delete('state/'+k);const x=v&&v.data;if(k==='setup')S.setup=normSetup(x);else S.live=normLive(x)};
+ const applyDoc=(k,snap)=>{const v=snap.exists?clone(snap.data()):null;if(v)shadow.set('state/'+k,stab(v));else shadow.delete('state/'+k);const x=v&&v.data;if(k==='setup'){S.setup=normSetup(x);applyCfg()}else S.live=normLive(x)};
  const handle=(key,snap,get,apply)=>{
   if(inflight&&ready){pending[key]=()=>get().then(sn=>{apply(sn);afterRemote()}).catch(()=>{});return}
   apply(snap);if(ready)afterRemote()};
@@ -430,12 +445,22 @@ const GROUPS=[
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
-const VERSION='1.5.0';
+const VERSION='1.6.0';
 /* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra.
    Voce = [tipo, testo, soloAdmin?]  ·  tipo: 'new' novità · 'imp' miglioramento · 'bug' correzione.
    Le voci soloAdmin (3° elemento true) NON compaiono mai nelle notifiche né ai giocatori. */
 const CLT={new:['✨','Novità','novità'],imp:['🔧','Miglioramenti','miglioramenti'],bug:['🐞','Correzioni','bug risolti']};
 const CHANGELOG=[
+ {v:'1.6.0',d:'6 ott 2026',items:[
+  ['new','Risultati: tocca una partita e si apre sotto, con le azioni salienti divise per squadra (gol, assist, rigori, cartellini). Ne resta aperta una alla volta'],
+  ['new','Dopo aver votato i compagni puoi assegnare i premi (MVP, Bomber, Assistman, Muro, Rivelazione): vince chi riceve più voti. Non puoi votare te stesso'],
+  ['new','Nuovi bonus e malus nel voto finale: rigore parato, rigore sbagliato, rigore concesso e porta inviolata per il portiere'],
+  ['imp','Voti partita: serve un minimo di 6 votanti e, da 7 in su, vengono scartati il voto più alto e il più basso'],
+  ['imp','Bonus rivisti: un gol vale +1 e un assist +0,5, così i voti restano realistici'],
+  ['imp','Statistiche: da 7 valutazioni in su si scartano il valore più alto e il più basso'],
+  ['new','Admin: azioni salienti modificabili una per una e menu per cambiare bonus, malus e premi','adm'],
+  ['bug','Corretta la media dei risultati e della forma, che con troppe partite scartava valori per errore']
+ ].map(x=>x[2]?[x[0],x[1],true]:x)},
  {v:'1.5.0',d:'6 ott 2026',items:[
   ['imp','Nuova grafica della card: sagoma a scudo, cornice foto, ruoli e numero di maglia accanto al nome']
  ]},
@@ -523,14 +548,13 @@ function formOf(p){
 /* ===== voto partita: finestra 48h, media dei compagni (senza autovoto, senza estremi) + bonus ===== */
 const H48=48*3600e3,MINV=6,EVO_HI=7,EVO_MIN=6.5;
 const mOpen=m=>!!(m.vote&&Date.now()<m.vote.until);
-const rawBonus=(m,id,T)=>suggestRating(m,id,T,true)-6;
+const rawBonus=(m,id,T)=>bonusOf(m,id,T);
 function mr(m,id){
  const base=m.ratings[id];if(base==null||!m.vote||mOpen(m))return base;
  const T=playedIn(m,id);if(!T)return base;
  let a=S.mvotes.filter(v=>v.m===m.id&&v.r!==id&&v.v&&v.v[id]!=null).map(v=>v.v[id]).sort((x,y)=>x-y);
- if(a.length<3)return base;
- if(a.length>=5)a=a.slice(1,-1);
- return clamp(Math.round((avg(a)+rawBonus(m,id,T))*10)/10,1,10);
+ if(a.length<MINV)return base;
+ return clamp(Math.round((tmean(a)+rawBonus(m,id,T))*10)/10,1,10);
 }
 const mVotes=m=>S.mvotes.filter(v=>v.m===m.id).length;
 /* +1 dinamici: 3 partite di fila in crescita, oppure 4 su 5 sopra soglia */
@@ -549,7 +573,7 @@ function computeEff(){
  const by={};S.ratings.forEach(r=>{if(r.r!==r.t)(by[r.t]=by[r.t]||[]).push(r)});
  S.players.forEach(p=>{const R=by[p.id]||[],e={},n=evoCount(p),tk=n?evoKeys(p):[],ok=R.length>=MINV;
   KEYS.forEach(k=>{const b=clamp((p.s[k]??DEF[k])+(tk.includes(k)?n:0),1,99);let v=b;
-   if(ok)v=R.reduce((t,r)=>t+(r.s&&r.s[k]!=null?r.s[k]:b),0)/R.length
+   if(ok)v=tmean(R.map(r=>r.s&&r.s[k]!=null?r.s[k]:b))
    e[k]=Math.round(softCap(v,capOf(p,k)))});
   setHid(p,'_e',e);setHid(p,'_n',R.length);setHid(p,'_prov',!ok);setHid(p,'_ev',n);setHid(p,'_f',formOf(p))});
 }
@@ -712,6 +736,16 @@ function radar(f){
  return`<svg viewBox="0 0 200 200" width="100%">${[1,.66,.33].map(k=>`<polygon points="${poly(k)}" fill="none" stroke="#35353b" stroke-width="1"/>`).join('')}${f.map((_,i)=>`<line x1="${c}" y1="${c}" x2="${pt(i,R)[0]}" y2="${pt(i,R)[1]}" stroke="#35353b"/>`).join('')}<polygon points="${data}" fill="rgba(209,255,66,.35)" stroke="#d1ff42" stroke-width="2"/>${f.map((x,i)=>{const[a,b]=pt(i,R+17);return`<text x="${a}" y="${b}" fill="#f2f4f7" font-size="10" font-weight="700" text-anchor="middle" dominant-baseline="middle">${x[0]} ${x[1]}</text>`}).join('')}</svg>`;
 }
 const back=(act,t)=>`<button class="btn sec sm" data-act="${act}" style="margin-bottom:12px">← ${t}</button>`;
+let CF=null;
+function cfgSync(){if(!CF)return;document.querySelectorAll('[data-cb]').forEach(i=>{const x=parseFloat(String(i.value).replace(',','.'));CF.b[i.dataset.cb]=isNaN(x)?0:x});
+ document.querySelectorAll('[data-ca]').forEach(i=>{const a=CF.aw[+i.dataset.i];if(!a)return;if(i.dataset.ca==='on')a.on=i.checked?1:0;else a[i.dataset.ca]=i.value})}
+function cfgModal(){
+ openModal(`<h2>⚙ Bonus/malus e premi</h2>
+ <div class="small mut" style="margin-bottom:8px">I bonus si sommano alla media dei voti dei compagni. Valgono anche per le partite già giocate.</div>
+ <h3>Bonus / malus</h3><div class="panel">${Object.entries(BLBL).map(([k,[i,l]])=>`<div class="row sp" style="padding:4px 0;gap:8px"><span>${i} ${l}</span><input type="number" step="0.1" inputmode="decimal" data-cb="${k}" value="${CF.b[k]}" style="width:78px;flex:none;text-align:center"></div>`).join('')}</div>
+ <h3>Premi</h3><div class="panel">${CF.aw.map((a,i)=>`<div class="row" style="gap:6px;padding:4px 0"><input type="text" data-ca="i" data-i="${i}" value="${esc(a.i)}" maxlength="4" style="width:54px;flex:none;text-align:center"><input type="text" data-ca="l" data-i="${i}" value="${esc(a.l)}" maxlength="20" class="grow" style="min-width:0"><label style="margin:0;flex:none;display:flex;gap:4px;align-items:center;font-size:12px"><input type="checkbox" data-ca="on" data-i="${i}" ${a.on?'checked':''}>attivo</label></div>`).join('')}<button class="btn sec sm" data-act="cfgAw" style="margin-top:8px">+ Nuovo premio</button><div class="small mut" style="margin-top:6px">Un premio disattivato non si può più votare, ma resta nella bacheca di chi lo ha vinto.</div></div>`,
+ `<div class="row"><button class="btn grow" data-act="cfgSave">Salva</button><button class="btn sec" data-act="cfgReset">Ripristina</button><button class="btn sec" data-act="closeM">Annulla</button></div>`,{save:'cfgSave'});
+}
 let MO={save:null,dirty:null,edited:false},ED0='';
 function openModal(h,foot,o){const m=$('#modal');o=o||{};MO={save:o.save||null,dirty:o.dirty||null,edited:false};
  m.innerHTML=`<div class="sheet${foot?' fx':''}"><div class="grab" aria-hidden="true"><i></i></div>${foot?`<div class="sbody">${h}</div><div class="sfoot">${foot}</div>`:h}</div>`;m.classList.add('on')}
@@ -846,29 +880,35 @@ function viewSetup(){
 }
 function fmtClock(ms){const s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
 const elapsed=()=>{const L=S.live;return L.acc+(L.since?Date.now()-L.since:0)};
-const EVN={goal:['⚽','Gol'],pen:['🎯','Rigore segnato'],penmiss:['❌','Rigore sbagliato'],yellow:['🟨','Giallo'],red:['🟥','Rosso'],og:['🙈','Autogol']};
+const EVN={goal:['⚽','Gol'],pen:['🎯','Rigore segnato'],penmiss:['❌','Rigore sbagliato'],psave:['🧤','Rigore parato'],yellow:['🟨','Giallo'],red:['🟥','Rosso'],og:['🙈','Autogol']};
 function viewLive(){
  const L=S.live,[a,b]=scoreOf(L.events);
  return`<div class="panel"><div class="score"><div class="t">${esc(L.A.name)}</div><div class="n">${a} - ${b}</div><div class="t">${esc(L.B.name)}</div></div>
  <div class="row sp" style="margin-top:10px;justify-content:center"><span id="clock" style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums">${fmtClock(elapsed())}</span>${VA()?`<button class="btn sec sm" data-act="clk">${L.since?'Pausa':'Avvia'}</button>`:`<span class="tag">${L.since?'in corso':'in pausa'}</span>`}</div></div>
  ${VA()?`<div class="evgrid">${Object.entries(EVN).map(([k,[i,l]])=>`<button data-act="ev" data-k="${k}"><i>${i}</i>${l}</button>`).join('')}</div>`:''}
- <h3>Cronaca</h3>${L.events.length?L.events.slice().reverse().map(e=>{const p=getP(e.pid),as=e.ass&&getP(e.ass);return`<div class="ev"><span class="m">${e.min}'</span><span>${EVN[e.type][0]}</span><span class="grow"><b>${esc(p?.name)}</b> <span class="mut small">${e.team==='A'?esc(L.A.name):esc(L.B.name)}${as?` · assist ${esc(as.name)}`:''}</span></span>${VA()?`<span class="mut" data-act="evDel" data-id="${e.id}" style="cursor:pointer;padding:4px 8px">✕</span>`:''}</div>`}).join(''):'<div class="mut small">Nessun episodio.</div>'}
+ <h3>Cronaca</h3>${L.events.length?L.events.slice().reverse().map(e=>{const p=getP(e.pid),as=e.ass&&getP(e.ass);return`<div class="ev"><span class="m">${e.min}'</span><span>${EVN[e.type][0]}</span><span class="grow"><b>${esc(p?.name)}</b> <span class="mut small">${e.team==='A'?esc(L.A.name):esc(L.B.name)}${evTxt(e)}</span></span>${VA()?`<span class="mut" data-act="evDel" data-id="${e.id}" style="cursor:pointer;padding:4px 8px">✕</span>`:''}</div>`}).join(''):'<div class="mut small">Nessun episodio.</div>'}
  ${VA()?`<div class="row" style="margin-top:18px"><button class="btn dan" data-act="abort">Annulla partita</button><button class="btn grow" data-act="endM">🏁 Termina e vota</button></div>`:''}`;
 }
 let EV=null;
 function evModal(){
- const L=S.live,T=EV.team,pids=L[T].pids.map(getP).filter(Boolean);
+ const L=S.live,T=EV.team,O=T==='A'?'B':'A',pids=L[T].pids.map(getP).filter(Boolean),opp=L[O].pids.map(getP).filter(Boolean),pn=['pen','penmiss','psave'].includes(EV.type);
  openModal(`<h2>${EVN[EV.type][0]} ${EVN[EV.type][1]}</h2>
  <div class="row" style="margin-bottom:10px">${['A','B'].map(t=>`<span class="chip ${T===t?'on':''}" data-act="evTeam" data-t="${t}" style="flex:1;justify-content:center;padding:9px">${esc(L[t].name)}</span>`).join('')}</div>
  <label>${EV.type==='og'?'Autore (della squadra selezionata)':'Giocatore'}</label><div class="row wrap">${pids.map(p=>`<span class="chip ${EV.pid===p.id?'on':''}" data-act="evPl" data-id="${p.id}">${esc(p.name)}</span>`).join('')}</div>
  ${EV.type==='goal'?`<label>Assist</label><div class="row wrap"><span class="chip ${!EV.ass?'on':''}" data-act="evAs" data-id="">Nessuno</span>${pids.filter(p=>p.id!==EV.pid).map(p=>`<span class="chip ${EV.ass===p.id?'on':''}" data-act="evAs" data-id="${p.id}">${esc(p.name)}</span>`).join('')}</div>`:''}
+ ${pn?`<label>Rigore causato da (avversari, opzionale)</label><div class="row wrap"><span class="chip ${!EV.cs?'on':''}" data-act="evCs" data-id="">Nessuno</span>${opp.map(p=>`<span class="chip ${EV.cs===p.id?'on':''}" data-act="evCs" data-id="${p.id}">${esc(p.name)}</span>`).join('')}</div>`:''}
+ ${EV.type==='psave'?`<label>Rigore tirato da (avversari, opzionale)</label><div class="row wrap"><span class="chip ${!EV.sh?'on':''}" data-act="evSh" data-id="">Nessuno</span>${opp.map(p=>`<span class="chip ${EV.sh===p.id?'on':''}" data-act="evSh" data-id="${p.id}">${esc(p.name)}</span>`).join('')}</div>`:''}
  <div class="row" style="margin-top:16px"><button class="btn grow" data-act="evOk" ${EV.pid?'':'disabled style="opacity:.5"'}>Aggiungi</button><button class="btn sec" data-act="closeM">Annulla</button></div>`);
 }
-function suggestRating(L,id,T,raw){
- let r=6;const[a,b]=scoreOf(L.events),own=T==='A'?a:b,opp=T==='A'?b:a;r+=own>opp?.3:own<opp?-.2:0;
- L.events.forEach(e=>{if(e.pid===id){if(e.type==='goal'||e.type==='pen')r+=.6;if(e.type==='penmiss')r-=.3;if(e.type==='yellow')r-=.3;if(e.type==='red')r-=1.2;if(e.type==='og')r-=.8}if(e.ass===id)r+=.4});
- return raw?r:clamp(Math.round(r*2)/2,3,10);
+function bonusOf(m,id,T){
+ const B=cfgB(),[a,b]=scoreOf(m.events),own=T==='A'?a:b,opp=T==='A'?b:a;let r=own>opp?B.win:own<opp?B.loss:0;
+ m.events.forEach(e=>{if(e.pid===id){if(e.type==='goal'||e.type==='pen')r+=B.goal;else if(e.type==='penmiss')r+=B.pmiss;else if(e.type==='psave')r+=B.psave;else if(e.type==='yellow')r+=B.yellow;else if(e.type==='red')r+=B.red;else if(e.type==='og')r+=B.og}
+  if(e.ass===id)r+=B.ast;if(e.cs===id)r+=B.pcon;if(e.sh===id)r+=B.pmiss});
+ if(m.gk&&m.gk[T]===id&&opp===0)r+=B.cs;
+ return r;
 }
+function suggestRating(L,id,T,raw){const r=6+bonusOf(L,id,T);return raw?r:clamp(Math.round(r*2)/2,3,10)}
+const evTxt=e=>{const as=e.ass&&getP(e.ass),cs=e.cs&&getP(e.cs),sh=e.sh&&getP(e.sh);return(as?` · assist ${esc(as.name)}`:'')+(sh?` · tirava ${esc(sh.name)}`:'')+(cs?` · rigore causato da ${esc(cs.name)}`:'')};
 function viewRate(){
  const L=S.live,[a,b]=scoreOf(L.events);
  const list=T=>(L[T].played||L[T].pids).map(getP).filter(Boolean).map(p=>`<div class="sl" style="grid-template-columns:100px 1fr 34px"><span>${esc(p.name)}</span><input type="range" min="3" max="10" step="0.5" value="${L.ratings[p.id]}" data-rt="${p.id}"><b id="rt_${p.id}">${L.ratings[p.id]}</b></div>`).join('');
@@ -891,15 +931,21 @@ function dtPick(id,ts){
 }
 function dtVal(id){const g=p=>{const e=document.querySelector(`[data-dt="${id}"][data-p="${p}"]`);return e?+e.value:null};const y=g('y'),m=g('m');if(y==null)return null;return new Date(y,m,Math.min(g('d'),new Date(y,m+1,0).getDate()),g('h'),g('i'))}
 const dl=t=>{const d=new Date(t);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
-function viewMatchDet(m){
+let OPENM=null,EE=null;
+function evCols(m,edit){
+ const col=T=>{const L=m.events.map((e,i)=>[e,i]).filter(([e])=>e.team===T);
+  return`<div class="evc"><div class="evh">${esc(m[T].name)}</div>${L.length?L.map(([e,i])=>`<div class="ev2${edit?' ed':''}" ${edit?`data-act="meEvEdit" data-i="${i}"`:''}><span class="m">${e.min!=null&&e.min!==''?e.min+"'":''}</span><span>${EVN[e.type]?EVN[e.type][0]:'•'}</span><span class="grow" style="min-width:0"><b>${esc(nm(e.pid))}</b><span class="mut small">${evTxt(e)}</span></span></div>`).join(''):'<div class="mut small" style="padding:6px 0">—</div>'}${edit?`<button class="btn sec sm" data-act="meEvNew" data-t="${T}" style="margin-top:8px;width:100%">+ Aggiungi</button>`:''}</div>`};
+ return`<div class="evcols">${col('A')}${col('B')}</div>`;
+}
+function matchBody(m){
  const[l,c]=balLbl(Math.abs(m.sa-m.sb)),mv=m.motm&&getP(m.motm);
  const rt=T=>(m[T].played||m[T].pids).map(getP).filter(Boolean).sort((a,b)=>(mr(m,b.id)||0)-(mr(m,a.id)||0)).map(p=>`<div class="row sp small" style="padding:3px 0"><span>${esc(p.name)}${m.evo&&m.evo[p.id]?` <b style="color:${m.evo[p.id]>0?'#34d399':'#f87171'}">${m.evo[p.id]>0?'▲':'▼'}</b>`:''}</span><b>${mr(m,p.id)}</b></div>`).join('');
- return`<div class="row sp">${back('backM','Risultati')}<span class="row" style="margin-bottom:12px"><button class="btn sm" data-act="shareMatch" data-id="${m.id}">📤 Condividi</button>${VA()?`<button class="btn sec sm" data-act="meStart" data-id="${m.id}" style="margin-left:6px">✎ Modifica</button><button class="btn dan sm" data-act="delM" data-id="${m.id}" style="margin-left:6px">Elimina</button>`:''}</span></div>
+ const aw=AWARDS.filter(([k])=>m.awards&&m.awards[k]&&getP(m.awards[k])).map(([k,i,l])=>`<div style="text-align:center;font-size:13px;margin-top:3px">${i} ${l}: <b>${esc(nm(m.awards[k]))}</b></div>`).join('');
+ return`<div class="row" style="gap:6px;justify-content:flex-end;margin-bottom:8px"><button class="btn sm" data-act="shareMatch" data-id="${m.id}">📤 Condividi</button>${VA()?`<button class="btn sec sm" data-act="meStart" data-id="${m.id}">✎ Modifica</button><button class="btn dan sm" data-act="delM" data-id="${m.id}">Elimina</button>`:''}</div>
  <div class="panel"><div class="small mut" style="text-align:center">${new Date(m.date).toLocaleString('it-IT')} · ${m.format} vs ${m.format}</div><div class="score"><div class="t">${esc(m.A.name)}</div><div class="n">${m.sa} - ${m.sb}</div><div class="t">${esc(m.B.name)}</div></div>
- <div style="text-align:center;margin-top:6px"><span class="bdg ${c}">${l}</span> <span class="small mut">Forza prevista ${m.predA.toFixed(0)} vs ${m.predB.toFixed(0)}</span></div>${mv?`<div style="text-align:center;margin-top:8px">⭐ MVP: <b>${esc(mv.name)}</b> (${mr(m,mv.id)})</div>`:''}
- ${AWARDS.filter(([k])=>k!=='mvp'&&m.awards&&m.awards[k]&&getP(m.awards[k])).map(([k,i,l])=>`<div style="text-align:center;font-size:13px;margin-top:3px">${i} ${l}: <b>${esc(nm(m.awards[k]))}</b></div>`).join('')}</div>
-${voteBox(m)}
- <h3>Cronaca</h3>${m.events.length?m.events.map(e=>{const p=getP(e.pid),as=e.ass&&getP(e.ass);return`<div class="ev"><span class="m">${e.min}'</span><span>${EVN[e.type][0]}</span><span class="grow"><b>${esc(p?.name||'?')}</b> <span class="mut small">${esc(m[e.team].name)}${as?` · assist ${esc(as.name)}`:''}</span></span></div>`}).join(''):'<div class="mut small">Nessun episodio.</div>'}
+ <div style="text-align:center;margin-top:6px"><span class="bdg ${c}">${l}</span> <span class="small mut">Forza prevista ${m.predA.toFixed(0)} vs ${m.predB.toFixed(0)}</span></div>${mv&&!(m.awards&&m.awards.mvp)?`<div style="text-align:center;margin-top:8px">⭐ MVP: <b>${esc(mv.name)}</b> (${mr(m,mv.id)})</div>`:''}${aw}</div>
+ ${voteBox(m)}
+ <h3>Azioni salienti</h3>${m.events.length?evCols(m,false):'<div class="mut small">Nessun episodio.</div>'}
  <h3>Voti</h3><div class="teams"><div class="panel"><b class="small">${esc(m.A.name)}</b>${rt('A')}</div><div class="panel"><b class="small">${esc(m.B.name)}</b>${rt('B')}</div></div>`;
 }
 
@@ -912,15 +958,24 @@ function viewMatchEdit(){
  <div class="row" style="gap:8px"><div class="grow"><label>Squadra A</label><input type="text" id="meA" value="${esc(m.A.name)}"></div><div class="grow"><label>Squadra B</label><input type="text" id="meB" value="${esc(m.B.name)}"></div></div>
  <label>Risultato</label><div class="row" style="gap:8px"><input type="number" id="meSa" value="${m.sa}" min="0" style="text-align:center;font-size:20px;font-weight:800"><b>–</b><input type="number" id="meSb" value="${m.sb}" min="0" style="text-align:center;font-size:20px;font-weight:800"></div>
  <div class="small mut" style="margin-top:4px">Si aggiorna in automatico se aggiungi o togli gol nella cronaca.</div></div>
- <h3>Cronaca</h3><div class="panel">${m.events.length?m.events.map((e,i)=>{const as=e.ass&&getP(e.ass);return`<div class="ev"><span class="m">${e.min??''}'</span><span>${EVN[e.type][0]}</span><span class="grow"><b>${esc(nm(e.pid))}</b> <span class="mut small">${esc(m[e.team].name)}${as?` · assist ${esc(as.name)}`:''}</span></span><span class="mut" data-act="meEvDel" data-i="${i}" style="cursor:pointer;padding:4px 8px">✕</span></div>`}).join(''):'<div class="mut small">Nessun episodio.</div>'}
- <div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px"><div class="small mut" style="margin-bottom:6px">Aggiungi episodio</div>
- <div class="row" style="gap:6px"><select id="meT" class="grow">${Object.entries(EVN).map(([k,[i,l]])=>`<option value="${k}">${i} ${l}</option>`).join('')}</select><input type="number" id="meMin" placeholder="min" min="0" max="130" style="width:72px;flex:none"></div>
- <select id="meP" style="margin-top:6px"><option value="">Giocatore…</option>${opt()}</select>
- <select id="meAs" style="margin-top:6px"><option value="">Assist (solo per gol, opzionale)</option>${opt()}</select>
- <button class="btn sec sm" data-act="meEvAdd" style="margin-top:8px">+ Aggiungi episodio</button></div></div>
+ <h3>Azioni salienti</h3><div class="small mut" style="margin:-4px 0 8px">Tocca un'azione per modificarla: giocatore, assist, rigore, minuto.</div><div class="panel">${evCols(m,true)}</div>
  <h3>Voti</h3><div class="teams"><div class="panel"><b class="small">${esc(m.A.name)}</b>${rt('A')}</div><div class="panel"><b class="small">${esc(m.B.name)}</b>${rt('B')}</div></div>
- <h3>Premi</h3><div class="panel">${AWARDS.map(([k,i,l])=>`<div class="row sp" style="padding:4px 0"><span>${i} ${l}</span><select data-maw="${k}" style="width:150px"><option value="">—</option>${all.map(([id])=>`<option value="${id}" ${(m.awards||{})[k]===id?'selected':''}>${esc(nm(id))}</option>`).join('')}</select></div>`).join('')}</div>
+ <h3>Premi</h3><div class="panel">${AWARDS.map(([k,i,l])=>`<div class="row sp" style="padding:4px 0"><span>${i} ${l}${AWARDS.find(a=>a[0]===k)[3]?'':' <span class="small mut">(disattivo)</span>'}</span><select data-maw="${k}" style="width:150px"><option value="">—</option>${all.map(([id])=>`<option value="${id}" ${(m.awards||{})[k]===id?'selected':''}>${esc(nm(id))}</option>`).join('')}</select></div>`).join('')}</div>
  <div class="row" style="margin-top:14px;gap:8px"><button class="btn sec" data-act="meCancel">Annulla</button><button class="btn grow" data-act="meSave">💾 Salva modifiche</button></div>`;
+}
+function eeSync(){const v=$('#eeMin');if(v&&EE)EE.min=v.value}
+function eeModal(){
+ const m=MEDIT,e=EE,T=e.team,O=T==='A'?'B':'A',pl=t=>(m[t].played||m[t].pids).filter(getP),pen=['pen','penmiss','psave'].includes(e.type);
+ const chips=(ids,act,sel,none)=>`<div class="row wrap">${none?`<span class="chip ${!sel?'on':''}" data-act="${act}" data-id="">Nessuno</span>`:''}${ids.map(id=>`<span class="chip ${sel===id?'on':''}" data-act="${act}" data-id="${id}">${esc(nm(id))}</span>`).join('')}</div>`;
+ openModal(`<h2>${e.i<0?'Nuova azione':'Modifica azione'}</h2>
+ <label>Azione</label><div class="row wrap">${Object.entries(EVN).map(([k,[i,l]])=>`<span class="chip ${e.type===k?'on':''}" data-act="eeType" data-k="${k}">${i} ${l}</span>`).join('')}</div>
+ <label>Squadra</label><div class="row">${['A','B'].map(t=>`<span class="chip ${T===t?'on':''}" data-act="eeTeam" data-t="${t}" style="flex:1;justify-content:center;padding:9px">${esc(m[t].name)}</span>`).join('')}</div>
+ <label>${e.type==='psave'?'Portiere':e.type==='og'?'Autore (autogol)':'Giocatore'}</label>${chips(pl(T),'eePl',e.pid)}
+ ${e.type==='goal'?`<label>Assist</label>${chips(pl(T).filter(x=>x!==e.pid),'eeAs',e.ass,1)}`:''}
+ ${pen?`<label>Rigore causato da (avversari)</label>${chips(pl(O),'eeCs',e.cs,1)}`:''}
+ ${e.type==='psave'?`<label>Rigore tirato da (avversari)</label>${chips(pl(O),'eeSh',e.sh,1)}`:''}
+ <label>Minuto</label><input type="number" id="eeMin" min="0" max="130" inputmode="numeric" value="${e.min??''}">`,
+ `<div class="row">${e.i>=0?'<button class="btn dan" data-act="eeDel">🗑</button>':''}<button class="btn grow" data-act="eeOk">Salva</button><button class="btn sec" data-act="closeM">Annulla</button></div>`);
 }
 function meSync(){if(!MEDIT)return;const v=id=>$('#'+id);
  {const dt=dtVal('meD');if(dt&&dt.getTime())MEDIT.date=dt.getTime()}
@@ -951,26 +1006,38 @@ const myVote=(m,me)=>S.mvotes.find(v=>v.id===m.id+'_'+me);
 const hLeft=m=>{const h=Math.max(0,m.vote.until-Date.now())/3600e3;return h>=1?Math.round(h)+' ore':Math.max(1,Math.round(h*60))+' min'};
 function voteModal(mid){
  const m=S.matches.find(x=>x.id===mid),me=myPid();if(!m||!me||!mOpen(m)||!playedIn(m,me))return;
- const ex=myVote(m,me);MV={m:mid,v:Object.assign({},ex?ex.v:{})};const V0=JSON.stringify(MV.v);
+ const ex=myVote(m,me);MV={m:mid,v:Object.assign({},ex?ex.v:{}),aw:Object.assign({},ex&&ex.aw?ex.aw:{})};const V0=JSON.stringify([MV.v,MV.aw]);
  const row=T=>(m[T].played||m[T].pids).filter(id=>id!==me&&getP(id)).map(id=>{const v=MV.v[id]??6;return`<div class="sl" style="grid-template-columns:100px 1fr 38px"><span>${esc(nm(id))}</span><input type="range" min="1" max="10" step="0.5" value="${v}" data-mv="${id}"><b id="mv_${id}">${v}</b></div>`}).join('');
  openModal(`<h2>🗳️ Vota la partita</h2><p class="small mut" style="margin-top:0">${esc(m.A.name)} ${m.sa}-${m.sb} ${esc(m.B.name)} · chiude tra ${hLeft(m)}</p>
- <div class="panel" style="border-color:#f59e0b;font-size:13px">⚠️ Dai il voto alla <b>prestazione in campo</b> (da 1 a 10). <b>Non contare gol, assist e cartellini</b>: i bonus vengono aggiunti in automatico, altrimenti verrebbero contati due volte.</div>
- ${row('A')?`<h3>${esc(m.A.name)}</h3>${row('A')}`:''}${row('B')?`<h3>${esc(m.B.name)}</h3>${row('B')}`:''}`,
+ <div class="panel" style="border-color:#f59e0b;font-size:13px">⚠️ Dai il voto alla <b>prestazione in campo</b> (da 1 a 10). <b>Non contare gol, assist, rigori e cartellini</b>: i bonus vengono aggiunti in automatico, altrimenti verrebbero contati due volte.</div>
+ ${row('A')?`<h3>${esc(m.A.name)}</h3>${row('A')}`:''}${row('B')?`<h3>${esc(m.B.name)}</h3>${row('B')}`:''}${awBox(m,me)}`,
  `<div class="row"><button class="btn grow" data-act="voteSave">Invia voti</button><button class="btn sec" data-act="closeM">Annulla</button></div>`,
- {save:'voteSave',dirty:()=>!!MV&&JSON.stringify(MV.v)!==V0});
+ {save:'voteSave',dirty:()=>!!MV&&JSON.stringify([MV.v,MV.aw])!==V0});
+}
+function awBox(m,me){
+ const aw=AWARDS.filter(a=>a[3]);if(!aw.length)return'';
+ const all=[...(m.A.played||m.A.pids),...(m.B.played||m.B.pids)].filter(id=>id!==me&&getP(id));
+ return`<h3>🏆 Premi</h3><div class="small mut" style="margin:-4px 0 8px">Facoltativo: scegli chi se lo merita di più. Non puoi votare te stesso. Vince chi riceve più voti (parità: voto partita più alto, poi più bonus).</div><div class="panel">${aw.map(([k,i,l])=>`<div class="row sp" style="padding:4px 0"><span>${i} ${l}</span><select data-mvaw="${k}" style="width:150px"><option value="">—</option>${all.map(id=>`<option value="${id}" ${MV.aw[k]===id?'selected':''}>${esc(nm(id))}</option>`).join('')}</select></div>`).join('')}</div>`;
 }
 function voteBox(m){
  if(!m.vote)return'';const me=myPid(),n=mVotes(m);
  if(mOpen(m)){const can=me&&playedIn(m,me),mine=can&&myVote(m,me);
   return`<div class="panel" style="border-color:var(--ac)"><b>🗳️ Votazione aperta</b><div class="small mut" style="margin:3px 0 8px">Chiude tra ${hLeft(m)} · ${n} ${n===1?'ha votato':'hanno votato'}. I voti sotto sono provvisori: dopo la chiusura contano le medie dei compagni + bonus.</div>
   <div class="row wrap" style="gap:8px">${can?`<button class="btn sm" data-act="voteOpen" data-id="${m.id}">${mine?'✎ Modifica i miei voti':'Vota i compagni'}</button>`:''}${VA()?`<button class="btn sec sm" data-act="voteClose" data-id="${m.id}">Chiudi ora</button>`:''}</div></div>`}
- return`<div class="panel small mut">🗳️ Votazione chiusa · ${n} votanti${n<3?' (troppo pochi: restano i voti base)':''}. Voto finale = media dei compagni (senza autovoto, scartati il più alto e il più basso) + bonus gol/assist/cartellini.</div>`;
+ return`<div class="panel small mut">🗳️ Votazione chiusa · ${n} votanti${n<MINV?` (servono almeno ${MINV} votanti: per ora restano i voti base)`:''}. Voto finale = media dei compagni (senza autovoto; da 7 voti scartati il più alto e il più basso) + bonus/malus delle azioni.</div>`;
+}
+function awardsClose(m){
+ const V=S.mvotes.filter(v=>v.m===m.id&&v.aw);m.awards=m.awards||{};
+ AWARDS.filter(a=>a[3]).forEach(([k])=>{const t={};V.forEach(v=>{const x=v.aw[k];if(x&&x!==v.r&&getP(x)&&playedIn(m,x))t[x]=(t[x]||0)+1});
+  const ids=Object.keys(t);if(!ids.length)return;const mx=Math.max(...ids.map(i=>t[i])),c=ids.filter(i=>t[i]===mx);
+  c.sort((a,b)=>((mr(m,b)||0)-(mr(m,a)||0))||(bonusOf(m,b,playedIn(m,b))-bonusOf(m,a,playedIn(m,a))));m.awards[k]=c[0]});
+ if(m.awards.mvp)m.motm=m.awards.mvp;
 }
 function checkClose(){
  if(!ADM||!ready)return;
  if(S.ratings.some(r=>r.r===r.t)){S.ratings=S.ratings.filter(r=>r.r!==r.t);save()}
  {const lim=Date.now()-30*864e5;if(S.notifs.some(n=>n.at<lim)){S.notifs=S.notifs.filter(n=>n.at>=lim);save()}}
- S.matches.forEach(m=>{if(m.vote&&!mOpen(m)&&!m.vote.done){m.vote.done=true;save();
+ S.matches.forEach(m=>{if(m.vote&&!mOpen(m)&&!m.vote.done){awardsClose(m);m.vote.done=true;save();
   const pl=[...(m.A.played||m.A.pids),...(m.B.played||m.B.pids)].filter(id=>getP(id)),t=`${m.A.name} ${m.sa}-${m.sb} ${m.B.name}`;
   NT('match_result','⭐ Sono usciti i voti!',t+' · scopri quanto hai preso','./?mid='+m.id,pl);
   Object.entries(m.awards||{}).forEach(([k,pid])=>{const a=AWARDS.find(x=>x[0]===k);if(pid&&a&&getP(pid))NT('award',`🏆 Hai vinto il premio ${a[2]}!`,t,'./?tab=prof',[pid])})}})}
@@ -1080,7 +1147,6 @@ function teamsText(su,fm){
  const a=teamLines(su.A,fm),b=teamLines(su.B,fm),d=Math.abs(a.str-b.str);
  return`⚽ CALCIO A ${fm} — SQUADRE\n\n🔵 ${su.A.name} · ${su.A.formation} · forza ${Math.round(a.str)}\n${a.lines.join('\n')}${a.bench.length?'\nPanchina: '+a.bench.join(', '):''}\n\n🟢 ${su.B.name} · ${su.B.formation} · forza ${Math.round(b.str)}\n${b.lines.join('\n')}${b.bench.length?'\nPanchina: '+b.bench.join(', '):''}\n\n⚖️ Differenza di livello: ${d.toFixed(1)} → ${gapLbl(d)}`;
 }
-const AWARDS=[['mvp','⭐','MVP'],['bomber','⚽','Bomber'],['assist','🅰️','Assistman'],['muro','🧱','Muro'],['rev','✨','Rivelazione']];
 function matchText(m){
  const cnt={A:{},B:{}};m.events.forEach(e=>{if(e.type==='goal'||e.type==='pen'||e.type==='og'){const k=e.pid;cnt[e.team][k]=(cnt[e.team][k]||0)+1}});
  const sc=T=>Object.entries(cnt[T]).map(([id,n])=>nm(id)+(n>1?' x'+n:'')).join(', ')||'—';
@@ -1220,7 +1286,7 @@ function goUrl(u){
  try{
   const q=new URL(u,location.href).searchParams,tb=q.get('tab'),mid=q.get('mid'),ev=q.get('ev'),fb=q.get('fb'),upd=q.get('update');
   S.ui.pid=null;S.ui.mid=null;MEDIT=null;
-  if(mid){S.ui.tab='calcio';S.ui.sub.calcio='res';S.ui.mid=mid}
+  if(mid){S.ui.tab='calcio';S.ui.sub.calcio='res';OPENM=mid}
   else if(ev){S.ui.tab='calcio';S.ui.sub.calcio='match'}
   else if(tb){const m={match:['calcio','match'],res:['calcio','res'],calcio:['calcio'],players:['players'],home:['home'],rosa:['rosa'],rank:['rank'],prof:['prof']}[tb];if(m){S.ui.tab=m[0];if(m[1])S.ui.sub.calcio=m[1]}}
   if(fb)setTimeout(()=>fbOpenId(fb),700);
@@ -1534,11 +1600,11 @@ function viewResultsList(){
  if(!M.length)return`<div class="empty">Nessuna partita giocata.</div>`;
  const bal=M.filter(m=>Math.abs(m.sa-m.sb)<=1).length,ad=avg(M.map(m=>Math.abs(m.sa-m.sb)));
  return`<div class="tiles"><div class="tile"><b>${M.length}</b><span>Partite</span></div><div class="tile"><b>${Math.round(bal/M.length*100)}%</b><span>Equilibrate</span></div><div class="tile"><b>${ad.toFixed(1)}</b><span>Diff. reti media</span></div></div>
- <h3>Partite</h3><div class="panel" style="padding:4px 12px">${M.map((m,i)=>`<div class="row sp" data-act="openM" data-id="${m.id}" style="cursor:pointer;padding:10px 0;${i?'border-top:1px solid var(--line);':''}"><div style="min-width:0"><div style="font-weight:700">${new Date(m.date).toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short',year:'2-digit'})}${mOpen(m)?' <span class="tag" style="color:#f59e0b">🗳️ voti aperti</span>':''}</div><div class="small mut">Calcio a ${m.format} · ${esc(m.A.name)} vs ${esc(m.B.name)}</div></div><div class="row" style="gap:8px;flex:none"><b style="font-size:20px;font-variant-numeric:tabular-nums">${m.sa} - ${m.sb}</b><span class="mut">›</span></div></div>`).join('')}</div>`;
+ <h3>Partite</h3><div class="panel" style="padding:4px 12px">${M.map((m,i)=>`<div id="m_${m.id}" style="${i?'border-top:1px solid var(--line);':''}"><div class="row sp" data-act="togM" data-id="${m.id}" style="cursor:pointer;padding:10px 0"><div style="min-width:0"><div style="font-weight:700">${new Date(m.date).toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short',year:'2-digit'})}${mOpen(m)?' <span class="tag" style="color:#f59e0b">🗳️ voti aperti</span>':''}</div><div class="small mut">Calcio a ${m.format} · ${esc(m.A.name)} vs ${esc(m.B.name)}</div></div><div class="row" style="gap:8px;flex:none"><b style="font-size:20px;font-variant-numeric:tabular-nums">${m.sa} - ${m.sb}</b><span class="mut mchev" style="transform:rotate(${OPENM===m.id?90:0}deg)">›</span></div></div>${OPENM===m.id?`<div class="macc">${matchBody(m)}</div>`:''}</div>`).join('')}</div>`;
 }
 function viewCalcio(){
  if(MEDIT&&S.ui.mid===MEDIT.id)return viewMatchEdit();
- if(S.ui.mid){const m=S.matches.find(x=>x.id===S.ui.mid);if(m)return viewMatchDet(m);S.ui.mid=null}
+ S.ui.mid=null;
  return carousel('calcio',[['match','⚽ Partita',viewMatchTab()],['res','🏆 Risultati',viewResultsList()]],!!S.live);
 }
 
@@ -1604,7 +1670,7 @@ const A={
  slotTap:d=>{if(!canEditR(curR()))return;if(SEL)dropSlot(SEL,+d.i)},
  benchTap:()=>{if(!canEditR(curR()))return;if(SEL&&curR().lineup.includes(SEL))toBench(SEL)},
  /* partita */
- fmt:d=>{S.setup={format:+d.n,A:null,B:null,pool:S.setup.pool};SEL2=null;save();render()},
+ fmt:d=>{S.setup={format:+d.n,A:null,B:null,pool:S.setup.pool,cfg:S.setup.cfg};SEL2=null;save();render()},
  poolT:d=>{const p=S.setup.pool,i=p.indexOf(d.id);i>=0?p.splice(i,1):p.push(d.id);save();render()},
  poolAll:()=>{S.setup.pool=S.players.map(p=>p.id);save();render()},
  poolNone:()=>{S.setup.pool=[];S.setup.A=S.setup.B=null;save();render()},
@@ -1619,11 +1685,13 @@ const A={
   S.live={stage:'live',format:su.format,A:JSON.parse(JSON.stringify(su.A)),B:JSON.parse(JSON.stringify(su.B)),events:[],acc:0,since:Date.now(),ratings:{},ev:su.ev||null};
   ['A','B'].forEach(T=>{const t=S.live[T];t.played=assign(t.pids,slotsOf(su.format,t.formation)).filter(Boolean)});save();render()},
  clk:()=>{const L=S.live;if(L.since){L.acc+=Date.now()-L.since;L.since=null}else L.since=Date.now();save();render()},
- ev:d=>{const L=S.live;EV={type:d.k,team:'A',pid:null,ass:null};evModal()},
- evTeam:d=>{EV.team=d.t;EV.pid=null;EV.ass=null;evModal()},
+ ev:d=>{const L=S.live;EV={type:d.k,team:'A',pid:null,ass:null,cs:null,sh:null};evModal()},
+ evTeam:d=>{EV.team=d.t;EV.pid=null;EV.ass=null;EV.cs=null;EV.sh=null;evModal()},
+ evCs:d=>{EV.cs=d.id||null;evModal()},
+ evSh:d=>{EV.sh=d.id||null;evModal()},
  evPl:d=>{EV.pid=d.id;if(EV.ass===d.id)EV.ass=null;evModal()},
  evAs:d=>{EV.ass=d.id||null;evModal()},
- evOk:()=>{const L=S.live;L.events.push({id:uid(),type:EV.type,team:EV.team,pid:EV.pid,ass:EV.type==='goal'?EV.ass:null,min:Math.floor(elapsed()/60000)+1});EV=null;save();closeModal();render()},
+ evOk:()=>{const L=S.live;{const e={id:uid(),type:EV.type,team:EV.team,pid:EV.pid,ass:EV.type==='goal'?EV.ass:null,min:Math.floor(elapsed()/60000)+1};if(EV.cs&&['pen','penmiss','psave'].includes(EV.type))e.cs=EV.cs;if(EV.sh&&EV.type==='psave')e.sh=EV.sh;L.events.push(e)}EV=null;save();closeModal();render()},
  evDel:d=>{S.live.events=S.live.events.filter(e=>e.id!==d.id);save();render()},
  abort:()=>ASK('Annullare la partita in corso?',()=>{S.live=null;save();render()}),
  endM:()=>{const L=S.live;if(L.since){L.acc+=Date.now()-L.since;L.since=null}L.stage='rate';
@@ -1645,20 +1713,30 @@ const A={
   m.vote={until:Date.now()+H48};
   computeEff();S.players.forEach(p=>{m.ovrs[p.id]=ovr(p)});
   {const dt=e=>Math.abs(new Date(e.when).getTime()-m.date),ev=(L.ev&&S.events.find(e=>e.id===L.ev))||S.events.filter(e=>e.status!=='closed'&&dt(e)<18*3600e3).sort((a,b)=>dt(a)-dt(b))[0];if(ev){ev.status='closed';ev.match=m.id;m.ev=ev.id}}
-  S.matches.push(m);S.live=null;S.setup.A=S.setup.B=null;S.ui.tab='calcio';S.ui.sub.calcio='res';S.ui.mid=m.id;save();render();window.scrollTo(0,0);
+  S.matches.push(m);S.live=null;S.setup.A=S.setup.B=null;S.ui.tab='calcio';S.ui.sub.calcio='res';S.ui.mid=null;OPENM=m.id;save();render();window.scrollTo(0,0);
   NT('rate_request','🗳️ Vota la partita!',`${m.A.name} ${sa}-${sb} ${m.B.name} · hai 48 ore per votare i compagni`,'./?mid='+m.id,[...m.A.played,...m.B.played].filter(id=>getP(id)))},
  /* risultati */
  
- meStart:d=>{const m=S.matches.find(x=>x.id===d.id);if(!m)return;MEDIT=JSON.parse(JSON.stringify(m));MEDIT.ratings=MEDIT.ratings||{};MEDIT.events=MEDIT.events||[];render();window.scrollTo(0,0)},
- meCancel:()=>{MEDIT=null;render();window.scrollTo(0,0)},
+ meStart:d=>{const m=S.matches.find(x=>x.id===d.id);if(!m)return;MEDIT=JSON.parse(JSON.stringify(m));MEDIT.ratings=MEDIT.ratings||{};MEDIT.events=MEDIT.events||[];S.ui.mid=m.id;render();window.scrollTo(0,0)},
+ meCancel:()=>{MEDIT=null;S.ui.mid=null;render();window.scrollTo(0,0)},
  meEvDel:d=>{meSync();MEDIT.events.splice(+d.i,1);const sc=scoreOf(MEDIT.events);[MEDIT.sa,MEDIT.sb]=sc;const y=window.scrollY;render();window.scrollTo(0,y)},
- meEvAdd:()=>{meSync();const pid=$('#meP').value,type=$('#meT').value;if(!pid){toast('Scegli il giocatore');return}
-  const team=(MEDIT.A.played||MEDIT.A.pids).includes(pid)?'A':'B',as=$('#meAs').value,tp=MEDIT[team].played||MEDIT[team].pids;
-  MEDIT.events.push({id:uid(),type,team,pid,ass:type==='goal'&&as&&as!==pid&&tp.includes(as)?as:null,min:clamp(+$('#meMin').value||0,0,130)});
-  MEDIT.events.sort((a,b)=>(a.min||0)-(b.min||0));[MEDIT.sa,MEDIT.sb]=scoreOf(MEDIT.events);const y=window.scrollY;render();window.scrollTo(0,y)},
+ meEvEdit:d=>{meSync();const e=MEDIT.events[+d.i];if(!e)return;EE={i:+d.i,type:e.type,team:e.team,pid:e.pid,ass:e.ass||null,cs:e.cs||null,sh:e.sh||null,min:e.min};eeModal()},
+ meEvNew:d=>{meSync();EE={i:-1,type:'goal',team:d.t,pid:null,ass:null,cs:null,sh:null,min:''};eeModal()},
+ eeType:d=>{eeSync();EE.type=d.k;if(d.k!=='goal')EE.ass=null;if(!['pen','penmiss','psave'].includes(d.k))EE.cs=null;if(d.k!=='psave')EE.sh=null;eeModal()},
+ eeTeam:d=>{eeSync();EE.team=d.t;EE.pid=null;EE.ass=null;EE.cs=null;EE.sh=null;eeModal()},
+ eePl:d=>{eeSync();EE.pid=d.id;if(EE.ass===d.id)EE.ass=null;eeModal()},
+ eeAs:d=>{eeSync();EE.ass=d.id||null;eeModal()},
+ eeCs:d=>{eeSync();EE.cs=d.id||null;eeModal()},
+ eeSh:d=>{eeSync();EE.sh=d.id||null;eeModal()},
+ eeDel:()=>{if(!EE||EE.i<0)return;MEDIT.events.splice(EE.i,1);[MEDIT.sa,MEDIT.sb]=scoreOf(MEDIT.events);EE=null;closeModal();render()},
+ eeOk:()=>{eeSync();if(!EE||!EE.pid){toast('Scegli il giocatore');return}
+  const pen=['pen','penmiss','psave'].includes(EE.type),ev={id:(MEDIT.events[EE.i]&&MEDIT.events[EE.i].id)||uid(),type:EE.type,team:EE.team,pid:EE.pid,ass:EE.type==='goal'&&EE.ass&&EE.ass!==EE.pid?EE.ass:null,min:clamp(+EE.min||0,0,130)};
+  if(pen&&EE.cs)ev.cs=EE.cs;if(EE.type==='psave'&&EE.sh)ev.sh=EE.sh;
+  if(EE.i>=0)MEDIT.events[EE.i]=ev;else MEDIT.events.push(ev);
+  MEDIT.events.sort((a,b)=>(a.min||0)-(b.min||0));[MEDIT.sa,MEDIT.sb]=scoreOf(MEDIT.events);EE=null;closeModal();const y=window.scrollY;render();window.scrollTo(0,y)},
  meSave:()=>{meSync();const i=S.matches.findIndex(x=>x.id===MEDIT.id);if(i<0){MEDIT=null;render();return}
   let motm=MEDIT.awards.mvp||null;if(!motm){let b=-1;Object.entries(MEDIT.ratings).forEach(([id,v])=>{if(v>b){b=v;motm=id}})}MEDIT.motm=motm;
-  S.matches[i]=MEDIT;MEDIT=null;save();render();window.scrollTo(0,0);toast('Partita aggiornata ✓')},
+  S.matches[i]=MEDIT;OPENM=MEDIT.id;MEDIT=null;S.ui.mid=null;save();render();window.scrollTo(0,0);toast('Partita aggiornata ✓')},
  backM:()=>{S.ui.mid=null;MEDIT=null;render()},
  
  /* menu */
@@ -1683,8 +1761,8 @@ const A={
  voteOpen:d=>voteModal(d.id),
  voteClose:d=>ASK('Chiudere ora la votazione e pubblicare i voti finali?',()=>{const m=S.matches.find(x=>x.id===d.id);if(!m||!m.vote)return;m.vote.until=Date.now()-1;save();render()}),
  voteSave:()=>{const me=myPid();if(!MV||!me)return;const m=S.matches.find(x=>x.id===MV.m);if(!m||!mOpen(m)){toast('Votazione chiusa');closeModal();return}
-  const ids=[...(m.A.played||m.A.pids),...(m.B.played||m.B.pids)].filter(id=>id!==me&&getP(id));const v={};ids.forEach(id=>v[id]=clamp(MV.v[id]??6,1,10));
-  const id=m.id+'_'+me;let r=S.mvotes.find(x=>x.id===id);if(!r){r={id,m:m.id,r:me,v:{}};S.mvotes.push(r)}r.v=v;r.at=Date.now();MV=null;save();closeModal();render();toast('Voti inviati ✓')},
+  const ids=[...(m.A.played||m.A.pids),...(m.B.played||m.B.pids)].filter(id=>id!==me&&getP(id));const v={};ids.forEach(id=>v[id]=clamp(MV.v[id]??6,1,10));const aw={};AWARDS.filter(a=>a[3]).forEach(([k])=>{const x=MV.aw[k];if(x&&x!==me&&ids.includes(x))aw[k]=x});
+  const id=m.id+'_'+me;let r=S.mvotes.find(x=>x.id===id);if(!r){r={id,m:m.id,r:me,v:{}};S.mvotes.push(r)}r.v=v;r.aw=aw;r.at=Date.now();MV=null;save();closeModal();render();toast('Voti inviati ✓')},
  rateSave:()=>{const me=myPid();if(!RT||!me)return;if(RT.t===me||ratedByMe(RT.t)){toast('Valutazione non consentita');closeModal();return}const ks=Object.keys(RT.touched);if(!ks.length){toast('Nessuna modifica');return}
   const id=RT.t+'_'+me;let r=S.ratings.find(x=>x.id===id);if(!r){r={id,t:RT.t,r:me,s:{},log:[]};S.ratings.push(r)}
   const ch={};ks.forEach(k=>{r.s[k]=RT.touched[k];ch[k]=RT.touched[k]});r.log=(r.log||[]).concat([{at:Date.now(),s:ch}]).slice(-15);r.at=Date.now();r.open=false;
@@ -1722,7 +1800,7 @@ const A={
  evManage:d=>{const e=S.events.find(x=>x.id===d.e);if(!e)return;EM=e.id;
   openModal(`<h2>Risposte · ${fdate(e.when)}</h2>${S.players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>{const v=rsvpOf(e.id,p.id);return`<div class="row sp" style="padding:4px 0"><span>${esc(p.name)}${S.links.some(l=>l.p===p.id)?'':' <span class="tag">no account</span>'}</span><span class="row">${RV.map(([k,i])=>`<span class="chip ${v===k?'on':''}" data-act="evSet" data-p="${p.id}" data-v="${k}">${i}</span>`).join('')}</span></div>`}).join('')}<div class="row" style="margin-top:14px"><button class="btn grow" data-act="closeM">Fatto</button></div>`)},
  evSet:d=>{setRsvp(EM,d.p,d.v);const y=$('.sheet').scrollTop;A.evManage({e:EM});$('.sheet').scrollTop=y},
- evUse:d=>{const e=S.events.find(x=>x.id===d.e);if(!e)return;const c=confirmed(e.id);S.setup={format:e.format,A:null,B:null,pool:c,ev:e.id};save();render();toast(c.length+' convocati caricati')},
+ evUse:d=>{const e=S.events.find(x=>x.id===d.e);if(!e)return;const c=confirmed(e.id);S.setup={format:e.format,A:null,B:null,pool:c,ev:e.id,cfg:S.setup.cfg};save();render();toast(c.length+' convocati caricati')},
  eventDel:d=>ASK('Eliminare la partita proposta?',()=>{const ev=S.events.find(x=>x.id===d.e);if(ev&&ev.status!=='closed'){const to=S.rsvps.filter(r=>r.e===ev.id&&(r.v==='y'||r.v==='m')).map(r=>r.p).filter(id=>getP(id));NT('proposal','❌ Partita annullata',fdate(ev.when)+(ev.place?' · '+ev.place:''),'./?tab=calcio',to)}S.events=S.events.filter(x=>x.id!==d.e);S.rsvps=S.rsvps.filter(r=>r.e!==d.e);save();render()}),
  /* menu */
  
@@ -1780,7 +1858,7 @@ const TSTEPS=[
  {sec:'⚽ Calcio',t:'Partita e Risultati',sel:['[data-cb=calcio]'],go:{tab:'calcio',pid:null,mid:null,sub:{calcio:'match'}},x:'Due schede: <b>Partita</b> (la prossima, le squadre, la diretta) e <b>Risultati</b> (storico). Scorri lateralmente per passare dall\'una all\'altra.'},
  {sec:'⚽ Calcio',t:'Partite in programma',sel:['[data-car=calcio] .ev-card'],x:'Rispondi alla convocazione (<b>✅ ❔ ❌</b>), guarda chi ha confermato e quanti ne mancano, e condividi l\'<b>invito su WhatsApp</b>.'},
  {sec:'⚽ Calcio',t:'Squadre e diretta',sel:['[data-car=calcio] .teams'],x:'Quando l\'admin prepara le formazioni compaiono qui: squadre, modulo, <b>forza</b> e differenza di livello. Durante la partita c\'è la <b>diretta</b> con risultato, cronometro e marcatori.'},
- {sec:'⚽ Calcio',t:'Risultati',sel:['[data-car=calcio] > :nth-child(2)'],go:{sub:{calcio:'res'}},x:'Lo storico di tutte le partite. Tocca una partita per vedere formazioni, marcatori, cartellini, MVP e i <b>voti</b> di ognuno.'},
+ {sec:'⚽ Calcio',t:'Risultati',sel:['[data-car=calcio] > :nth-child(2)'],go:{sub:{calcio:'res'}},x:'Lo storico di tutte le partite. Tocca una partita: si apre sotto con le <b>azioni salienti</b> divise per squadra, i premi e i <b>voti</b> di ognuno. Ne resta aperta una alla volta.'},
  {sec:'⚽ Calcio',t:'🗳️ Dopo la partita: i voti',pos:'center',x:'Appena finita la partita si apre la <b>votazione per 48 ore</b>: dai un voto da <b>1 a 10</b> a ogni compagno che ha giocato (non a te stesso). La trovi in <b>Home → Da fare</b>. Allo scadere i voti diventano definitivi e decidono <b>voto medio, MVP e premi</b>. Più gente vota, più le classifiche sono giuste.'},
  {sec:'🏆 Classifiche',t:'Le classifiche',sel:['#view > .row.sp','[data-cb=rank]'],go:{tab:'rank',sub:{rank:'goals'}},x:'Scorri tra <b>Marcatori, Assist, MVP, Voto medio</b> (minimo 3 presenze votate), <b>Forma</b> (ultime 5 partite), <b>Overall, Premi</b> e <b>Albo d\'oro</b>. La chip <b>🏁 Stagione / 📅 Sempre</b> cambia il periodo. Tocca un giocatore per aprirne la scheda.'},
  {sec:'🙂 Profilo',t:'Il tuo profilo',sel:['.pp-top'],go:{tab:'prof',pid:null},when:()=>!!myPid(),x:'Due schede: <b>Card</b> (stagione, andamento, ultime partite, attributi) e <b>Bacheca</b> (premi, traguardi e i tuoi obiettivi). Con <b>📷 Foto</b> cambi l\'immagine della card.'},
@@ -1868,7 +1946,8 @@ Object.assign(A,{
  tab:d=>{S.ui.tab=d.k;S.ui.pid=null;S.ui.cmp=null;S.ui.mid=null;S.ui.from=null;MEDIT=null;if(d.k==='rosa')S.ui.rid=null;SEL=null;save();render();window.scrollTo(0,0)},
  openP:d=>{S.ui.from=d.from||null;S.ui.tab='players';S.ui.pid=d.id;S.ui.cmp=null;render();window.scrollTo(0,0)},
  backP:()=>{const f=S.ui.from;S.ui.pid=null;S.ui.cmp=null;S.ui.from=null;if(f)S.ui.tab=f;render();window.scrollTo(0,0)},
- openM:d=>{S.ui.tab='calcio';S.ui.sub.calcio='res';S.ui.mid=d.id;MEDIT=null;saveUI();render();window.scrollTo(0,0)},
+ openM:d=>{S.ui.tab='calcio';S.ui.sub.calcio='res';S.ui.mid=null;OPENM=d.id;MEDIT=null;saveUI();render();setTimeout(()=>{const e=document.getElementById('m_'+d.id);if(e)e.scrollIntoView({block:'start'})},60)},
+ togM:d=>{OPENM=OPENM===d.id?null:d.id;render();if(OPENM)setTimeout(()=>{const e=document.getElementById('m_'+d.id);if(e)e.scrollIntoView({block:'nearest',behavior:'smooth'})},40)},
  openMe:()=>{S.ui.tab='prof';S.ui.pid=null;save();render();window.scrollTo(0,0)},
  rankGo:d=>{S.ui.tab='rank';S.ui.sub.rank=d.k;saveUI();render();window.scrollTo(0,0)},
  allTime:()=>{S.ui.allTime=!S.ui.allTime;saveUI();render()},
@@ -1888,8 +1967,13 @@ Object.assign(A,{
   <div class="row wrap" style="gap:8px;margin-bottom:10px"><button class="btn sec" data-act="notifSettings">🔔 Notifiche</button><button class="btn sec" data-act="fbTip">💡 Consigli${nt?` <span class="tag">${nt}</span>`:''}</button><button class="btn sec" data-act="fbBug">🐞 Bug${nb?` <span class="tag">${nb}</span>`:''}</button><button class="btn sec" data-act="tourStart">📖 Guida</button><button class="btn sec" data-act="changelog">🆕 Novità</button></div>
   ${VA()?`<h3>Admin</h3><div class="row wrap" style="gap:8px"><button class="btn sec" data-act="tokensPanel">🔑 Token giocatori</button><button class="btn sec" data-act="rateReq">📣 Chiedi valutazioni</button><button class="btn sec" data-act="matchesAdmin">🗑 Gestisci partite</button><button class="btn sec" data-act="exp">⬇ Backup</button><button class="btn sec" data-act="imp">⬆ Importa</button></div><input type="file" id="impF" accept=".json" style="display:none">`:''}
   <div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)},
+ cfgOpen:()=>{if(!ADM)return;CF={b:Object.assign({},cfgB()),aw:AWARDS.map(a=>({k:a[0],i:a[1],l:a[2],on:a[3]}))};cfgModal()},
+ cfgAw:()=>{cfgSync();CF.aw.push({k:'x'+uid(),i:'🏅',l:'Nuovo premio',on:1});cfgModal()},
+ cfgReset:()=>{CF={b:Object.assign({},CFGD.bonus),aw:CFGD.awards.map(a=>Object.assign({},a))};cfgModal()},
+ cfgSave:()=>{if(!ADM||!CF)return;cfgSync();if(CF.aw.some(a=>!String(a.l).trim())){toast('Dai un nome a ogni premio');return}
+  S.setup.cfg={bonus:CF.b,awards:CF.aw.map(a=>({k:a.k,i:String(a.i).trim()||'🏅',l:String(a.l).trim(),on:a.on?1:0}))};applyCfg();CF=null;save();closeModal();render();toast('Configurazione salvata ✓')},
  matchesAdmin:()=>{const M=S.matches.slice().sort((a,b)=>b.date-a.date);
-  openModal(`<h2>Gestisci partite</h2><div class="small mut" style="margin-bottom:10px">Elimina le partite di prova: classifiche, voti e statistiche si ricalcolano da sole.</div>
+  openModal(`<h2>Gestisci partite</h2><button class="btn blk" data-act="cfgOpen" style="margin-bottom:12px">⚙ Configura bonus/malus e premi</button><div class="small mut" style="margin-bottom:10px">Elimina le partite di prova: classifiche, voti e statistiche si ricalcolano da sole.</div>
   ${M.length?M.map(m=>`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="min-width:0"><b>${esc(m.A.name)} ${m.sa}–${m.sb} ${esc(m.B.name)}</b><div class="small mut">${fdate(m.date,{weekday:'short',day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div><button class="btn dan sm" data-act="delM" data-id="${m.id}">🗑</button></div>`).join(''):'<div class="empty">Nessuna partita.</div>'}
   <div class="row" style="margin-top:12px"><button class="btn sec grow" data-act="menu">← Impostazioni</button></div>`)},
  delM:d=>ASK('Eliminare la partita? Statistiche, voti e classifiche verranno ricalcolati.',()=>{
@@ -1945,6 +2029,7 @@ document.addEventListener('change',e=>{
  else if(c==='tload'&&t.value){const r=S.rosters.find(x=>x.id===t.value);su[t.dataset.t].pids=r.pids.slice();su[t.dataset.t].formation=r.formation;SEL2=null;save();render()}
  else if(c==='poolR'&&t.value){const r=S.rosters.find(x=>x.id===t.value);su.pool=r.pids.filter(id=>getP(id));save();render()}
 });
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.mvaw&&MV)MV.aw[t.dataset.mvaw]=t.value});
 document.addEventListener('input',e=>{
  const t=e.target;
  if(t.id==='q'){S.ui.q=t.value;const pos=t.selectionStart;render();const q=$('#q');q.focus();q.setSelectionRange(pos,pos);return}
