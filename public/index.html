@@ -1925,19 +1925,20 @@ const TSTEPS=[
 ];
 function tourOther(){const me=myPid();const l=S.players.slice().sort((a,b)=>ovr(b)-ovr(a));return l.find(x=>x.id!==me)||l[0]||null}
 function tourDOM(){let t=$('#tour');if(!t){t=document.createElement('div');t.id='tour';document.body.appendChild(t)}return t}
+function tourDirty(){const t=$('#tour');if(t)delete t.dataset.sig}
 function tourIntro(){
- TOUR.intro=true;const t=tourDOM();t.className='on intro';
+ TOUR.intro=true;tourDirty();const t=tourDOM();t.className='on intro';
  t.innerHTML=`<div class="tbox mid"><div style="font-size:42px;text-align:center">⚽</div><h2 style="text-align:center;margin:6px 0 8px">Benvenuto!</h2><div style="text-align:center;font-size:15px;line-height:1.45">Ormai sei un giocatore di Mister! Preferisci imparare da solo o vieni con me per un breve tour tra le funzioni dell'app?</div><div class="row" style="margin-top:16px;gap:8px"><button class="btn sec grow" data-act="tourSkip">Imparo da solo</button><button class="btn grow" data-act="tourBegin">Guidami grazie!</button></div></div>`;
 }
 function tourStart(){
  const m=$('#modal');if(m.classList.contains('on'))closeModal();
  const u=S.ui;TOUR.save={tab:u.tab,pid:u.pid,mid:u.mid,cmp:u.cmp,rid:u.rid,sub:Object.assign({},u.sub)};
- TOUR.steps=TSTEPS.filter(s=>!s.when||s.when());TOUR.i=0;TOUR.on=true;TOUR.intro=false;
+ tourDirty();TOUR.steps=TSTEPS.filter(s=>!s.when||s.when());TOUR.i=0;TOUR.on=true;TOUR.intro=false;
  tourMark();tourShow();
 }
 function tourEnd(){
  const t=$('#tour');if(t){t.className='';t.innerHTML=''}
- TOUR.intro=false;if(!TOUR.on)return;TOUR.on=false;
+ tourDirty();TOUR.intro=false;if(!TOUR.on)return;TOUR.on=false;
  const s=TOUR.save;if(s){Object.assign(S.ui,{tab:s.tab,pid:s.pid,mid:s.mid,cmp:s.cmp,rid:s.rid});S.ui.sub=Object.assign(S.ui.sub||{},s.sub);saveUI();render();window.scrollTo(0,0)}
  TOUR.save=null;
 }
@@ -1967,11 +1968,13 @@ function tourPlace(){
  const fixed=els.length&&els.every(e=>e.closest('header,nav'));
  const body=`<div class="tp"><i style="width:${Math.round((i+1)/n*100)}%"></i></div><div class="tsec">${st.sec} · ${i+1}/${n}</div><h3>${st.t}</h3><div class="tx">${miss?'<div class="small mut" style="margin-bottom:6px">(Ora non c\'è nulla da mostrare qui, ma funziona così)</div>':''}${st.x}</div><div class="row tb"><button class="btn sec sm" data-act="tourEnd">Salta</button><span class="grow"></span>${i?`<button class="btn sec sm" data-act="tourPrev">‹ Indietro</button>`:''}<button class="btn sm" data-act="tourNext">${i===n-1?'Fine ✓':'Avanti ›'}</button></div>`;
  t.className='on';
+ const sig=i+'|'+(mid?'m':'s')+'|'+(miss?1:0);
  if(mid){t.className='on intro';
-  t.innerHTML=`<div class="tbox mid">${body}</div>`;return;
+  if(t.dataset.sig!==sig){t.dataset.sig=sig;t.innerHTML=`<div class="tbox mid">${body}</div>`}return;
  }
  const top=st.pos==='top'||(fixed&&els[0].closest('nav'));
- t.innerHTML=`<div class="tspot"></div><div class="tbox ${top?'tt':'tbt'}" ${top?`style="top:${hh+8}px"`:''}>${body}</div>`;
+ const sig2=sig+'|'+(top?1:0)+'|'+(top?hh:0);
+ if(t.dataset.sig!==sig2||!t.querySelector('.tspot')){t.dataset.sig=sig2;t.innerHTML=`<div class="tspot"></div><div class="tbox ${top?'tt':'tbt'}" ${top?`style="top:${hh+8}px"`:''}>${body}</div>`}
  const box=t.querySelector('.tbox'),th=box.offsetHeight,navH=($('#nav')||{offsetHeight:70}).offsetHeight;
  const lo=top?hh+th+24:hh+10,hi=top?vh-navH-14:vh-th-24;
  if(!fixed){
