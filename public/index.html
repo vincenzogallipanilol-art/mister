@@ -440,15 +440,25 @@ const PRES_MS=150e3,ONLINE_MS=210e3;
 let TKBY={},quietLinks=false;
 const linkSig=()=>JSON.stringify(S.links.map(l=>[l.id,l.p]).sort());
 const colSig=n=>n==='links'?linkSig():[...shadow].filter(([k])=>k.startsWith(n+'/')).sort((a,b)=>a[0]<b[0]?-1:1).map(x=>x[0]+x[1]).join('|');
-function beat(){if(!ready||!UID||document.hidden)return;const l=S.links.find(x=>x.id===UID);if(!l)return;l.seen=Date.now();save()}
+function beat(){
+ if(!ready||!UID||document.hidden)return;
+ let l=S.links.find(x=>x.id===UID);const pid=(window.MISTER_ME&&window.MISTER_ME.pid)||(l&&l.p)||null;
+ if(!pid||!getP(pid))return;
+ if(!l){l={id:UID,p:pid};S.links.push(l)}
+ l.seen=Date.now();
+ save();
+}
+function actOf(pid){let t=0,n=0;S.ratings.forEach(r=>{if(r.r===pid){n++;t=Math.max(t,r.at||0)}});S.mvotes.forEach(v=>{if(v.r===pid){n++;t=Math.max(t,v.at||0)}});S.rsvps.forEach(v=>{if(v.p===pid){n++;t=Math.max(t,v.at||0)}});return{n,t}}
 function agoLbl(ts){const d=Date.now()-ts;if(d<90e3)return'adesso';if(d<36e5)return Math.round(d/6e4)+' min fa';
  const a=new Date(ts),n=new Date(),hm=a.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}),y=new Date(n);y.setDate(n.getDate()-1);
  if(a.toDateString()===n.toDateString())return'oggi alle '+hm;if(a.toDateString()===y.toDateString())return'ieri alle '+hm;
  return a.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' alle '+hm}
 function accessOf(p){const lk=S.links.find(l=>l.p===p.id);
  if(lk&&lk.seen&&Date.now()-lk.seen<ONLINE_MS)return{k:'on',t:'🟢 Online ora'};
- if(lk&&lk.seen)return{k:'ok',t:'✅ Ultimo accesso '+agoLbl(lk.seen)};
- if(lk)return{k:'ok',t:'✅ Ha effettuato l\'accesso'};
+ const ac=actOf(p.id);
+ if(lk&&lk.seen&&(!ac.t||lk.seen>=ac.t))return{k:'ok',t:'✅ Ultimo accesso '+agoLbl(lk.seen)};
+ if(ac.t)return{k:'ok',t:'✅ Ultima attività '+agoLbl(ac.t)};
+ if(ac.n||lk)return{k:'ok',t:'✅ Ha già usato l\'app'};
  return{k:'no',t:'⏳ Non ha ancora effettuato l\'accesso'}}
 function tkRender(){
  const el=document.getElementById('tkList');if(!el)return;
