@@ -445,12 +445,16 @@ const GROUPS=[
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
-const VERSION='1.6.0';
+const VERSION='1.6.1';
 /* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra.
    Voce = [tipo, testo, soloAdmin?]  ·  tipo: 'new' novità · 'imp' miglioramento · 'bug' correzione.
    Le voci soloAdmin (3° elemento true) NON compaiono mai nelle notifiche né ai giocatori. */
 const CLT={new:['✨','Novità','novità'],imp:['🔧','Miglioramenti','miglioramenti'],bug:['🐞','Correzioni','bug risolti']};
 const CHANGELOG=[
+ {v:'1.6.1',d:'6 ott 2026',items:[
+  ['bug','Panchinari e sostituti ora contano come tutti gli altri: votano, vengono votati, ricevono premi e hanno la presenza segnata'],
+  ['imp','Modifica partita: nuova sezione «Presenti» per togliere o rimettere un giocatore','adm']
+ ].map(x=>x[2]?[x[0],x[1],true]:x)},
  {v:'1.6.0',d:'6 ott 2026',items:[
   ['new','Risultati: tocca una partita e si apre sotto, con le azioni salienti divise per squadra (gol, assist, rigori, cartellini). Ne resta aperta una alla volta'],
   ['new','Dopo aver votato i compagni puoi assegnare i premi (MVP, Bomber, Assistman, Muro, Rivelazione): vince chi riceve più voti. Non puoi votare te stesso'],
@@ -960,6 +964,7 @@ function viewMatchEdit(){
  <div class="small mut" style="margin-top:4px">Si aggiorna in automatico se aggiungi o togli gol nella cronaca.</div></div>
  <h3>Azioni salienti</h3><div class="small mut" style="margin:-4px 0 8px">Tocca un'azione per modificarla: giocatore, assist, rigore, minuto.</div><div class="panel">${evCols(m,true)}</div>
  <h3>Voti</h3><div class="teams"><div class="panel"><b class="small">${esc(m.A.name)}</b>${rt('A')}</div><div class="panel"><b class="small">${esc(m.B.name)}</b>${rt('B')}</div></div>
+ <h3>Presenti (${pl('A').length+pl('B').length})</h3><div class="panel"><div class="small mut" style="margin-bottom:8px">Titolari e panchinari: chi è attivo vota, viene votato e conta le presenze. Tocca per togliere o rimettere.</div>${['A','B'].map(T=>`<div class="small" style="font-weight:700;margin:6px 0 4px">${esc(m[T].name)}</div><div class="row wrap">${m[T].pids.filter(getP).map(id=>`<span class="chip ${(m[T].played||m[T].pids).includes(id)?'on':''}" data-act="meTog" data-t="${T}" data-id="${id}">${esc(nm(id))}</span>`).join('')}</div>`).join('')}</div>
  <h3>Premi</h3><div class="panel">${AWARDS.map(([k,i,l])=>`<div class="row sp" style="padding:4px 0"><span>${i} ${l}${AWARDS.find(a=>a[0]===k)[3]?'':' <span class="small mut">(disattivo)</span>'}</span><select data-maw="${k}" style="width:150px"><option value="">—</option>${all.map(([id])=>`<option value="${id}" ${(m.awards||{})[k]===id?'selected':''}>${esc(nm(id))}</option>`).join('')}</select></div>`).join('')}</div>
  <div class="row" style="margin-top:14px;gap:8px"><button class="btn sec" data-act="meCancel">Annulla</button><button class="btn grow" data-act="meSave">💾 Salva modifiche</button></div>`;
 }
@@ -1033,8 +1038,19 @@ function awardsClose(m){
   c.sort((a,b)=>((mr(m,b)||0)-(mr(m,a)||0))||(bonusOf(m,b,playedIn(m,b))-bonusOf(m,a,playedIn(m,a))));m.awards[k]=c[0]});
  if(m.awards.mvp)m.motm=m.awards.mvp;
 }
+function allInFix(){
+ const m=S.matches.slice().sort((a,b)=>b.date-a.date)[0];if(!m||m.allIn)return;
+ const add=T=>m[T].pids.filter(id=>getP(id)&&!(m[T].played||m[T].pids).includes(id));
+ const nA=add('A'),nB=add('B');m.allIn=true;
+ if(!nA.length&&!nB.length){save();return}
+ m.A.played=[...(m.A.played||m.A.pids),...nA];m.B.played=[...(m.B.played||m.B.pids),...nB];
+ [['A',nA],['B',nB]].forEach(([T,l])=>l.forEach(id=>{if(m.ratings[id]==null)m.ratings[id]=clamp(Math.round((6+bonusOf(m,id,T))*2)/2,3,10)}));
+ if(m.vote&&!mOpen(m)){m.vote.until=Date.now()+24*3600e3;m.vote.done=false}
+ save();NT('rate_request','🗳️ Vota la partita!',`${m.A.name} ${m.sa}-${m.sb} ${m.B.name} · ora votano anche i panchinari`,'./?mid='+m.id,[...nA,...nB]);
+}
 function checkClose(){
  if(!ADM||!ready)return;
+ allInFix();
  if(S.ratings.some(r=>r.r===r.t)){S.ratings=S.ratings.filter(r=>r.r!==r.t);save()}
  {const lim=Date.now()-30*864e5;if(S.notifs.some(n=>n.at<lim)){S.notifs=S.notifs.filter(n=>n.at>=lim);save()}}
  S.matches.forEach(m=>{if(m.vote&&!mOpen(m)&&!m.vote.done){awardsClose(m);m.vote.done=true;save();
@@ -1683,7 +1699,7 @@ const A={
  tmove:d=>{const su=S.setup;if(!SEL2)return;const from=su[SEL2.t].pids,id=from.splice(SEL2.i,1)[0];su[d.t].pids.push(id);SEL2=null;save();render()},
  start:()=>{const su=S.setup;if(!su.A.pids.length||!su.B.pids.length){toast('Squadre vuote');return}
   S.live={stage:'live',format:su.format,A:JSON.parse(JSON.stringify(su.A)),B:JSON.parse(JSON.stringify(su.B)),events:[],acc:0,since:Date.now(),ratings:{},ev:su.ev||null};
-  ['A','B'].forEach(T=>{const t=S.live[T];t.played=assign(t.pids,slotsOf(su.format,t.formation)).filter(Boolean)});save();render()},
+  ['A','B'].forEach(T=>{const t=S.live[T];t.played=t.pids.filter(getP)});save();render()},
  clk:()=>{const L=S.live;if(L.since){L.acc+=Date.now()-L.since;L.since=null}else L.since=Date.now();save();render()},
  ev:d=>{const L=S.live;EV={type:d.k,team:'A',pid:null,ass:null,cs:null,sh:null};evModal()},
  evTeam:d=>{EV.team=d.t;EV.pid=null;EV.ass=null;EV.cs=null;EV.sh=null;evModal()},
@@ -1697,7 +1713,7 @@ const A={
  endM:()=>{const L=S.live;if(L.since){L.acc+=Date.now()-L.since;L.since=null}L.stage='rate';
   ['A','B'].forEach(T=>{const t=L[T],pl=new Set(t.played||[]);
    L.events.forEach(e=>{const own=e.team===T;if(own){if(e.pid&&t.pids.includes(e.pid))pl.add(e.pid);if(e.ass&&t.pids.includes(e.ass))pl.add(e.ass)}});
-   t.played=t.pids.filter(id=>pl.has(id));t.played.forEach(id=>{if(L.ratings[id]==null)L.ratings[id]=suggestRating(L,id,T)})});
+   t.played=t.pids.filter(getP);t.played.forEach(id=>{if(L.ratings[id]==null)L.ratings[id]=suggestRating(L,id,T)})});
   {const aw=L.awards=L.awards||{},all=[...L.A.played,...L.B.played];
    const best=fn=>{let b=null,bv=0;all.forEach(id=>{const v=fn(id);if(v>bv){bv=v;b=id}});return b};
    if(!aw.mvp)aw.mvp=best(id=>L.ratings[id]||0)||'';
@@ -1720,6 +1736,7 @@ const A={
  meStart:d=>{const m=S.matches.find(x=>x.id===d.id);if(!m)return;MEDIT=JSON.parse(JSON.stringify(m));MEDIT.ratings=MEDIT.ratings||{};MEDIT.events=MEDIT.events||[];S.ui.mid=m.id;render();window.scrollTo(0,0)},
  meCancel:()=>{MEDIT=null;S.ui.mid=null;render();window.scrollTo(0,0)},
  meEvDel:d=>{meSync();MEDIT.events.splice(+d.i,1);const sc=scoreOf(MEDIT.events);[MEDIT.sa,MEDIT.sb]=sc;const y=window.scrollY;render();window.scrollTo(0,y)},
+ meTog:d=>{meSync();const t=MEDIT[d.t],pl=(t.played||t.pids).slice(),i=pl.indexOf(d.id);if(i>=0)pl.splice(i,1);else{pl.push(d.id);if(MEDIT.ratings[d.id]==null)MEDIT.ratings[d.id]=clamp(Math.round((6+bonusOf(MEDIT,d.id,d.t))*2)/2,3,10)}t.played=pl;const y=window.scrollY;render();window.scrollTo(0,y)},
  meEvEdit:d=>{meSync();const e=MEDIT.events[+d.i];if(!e)return;EE={i:+d.i,type:e.type,team:e.team,pid:e.pid,ass:e.ass||null,cs:e.cs||null,sh:e.sh||null,min:e.min};eeModal()},
  meEvNew:d=>{meSync();EE={i:-1,type:'goal',team:d.t,pid:null,ass:null,cs:null,sh:null,min:''};eeModal()},
  eeType:d=>{eeSync();EE.type=d.k;if(d.k!=='goal')EE.ass=null;if(!['pen','penmiss','psave'].includes(d.k))EE.cs=null;if(d.k!=='psave')EE.sh=null;eeModal()},
