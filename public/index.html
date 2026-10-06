@@ -448,7 +448,7 @@ function beat(){
  l.seen=Date.now();
  save();
 }
-function actOf(pid){let t=0,n=0;S.ratings.forEach(r=>{if(r.r===pid){n++;t=Math.max(t,r.at||0)}});S.mvotes.forEach(v=>{if(v.r===pid){n++;t=Math.max(t,v.at||0)}});S.rsvps.forEach(v=>{if(v.p===pid){n++;t=Math.max(t,v.at||0)}});return{n,t}}
+function actOf(pid){let t=0,n=0;S.ratings.forEach(r=>{if(r.r===pid){n++;t=Math.max(t,r.at||0)}});S.mvotes.forEach(v=>{if(v.r===pid){n++;t=Math.max(t,v.at||0)}});S.rsvps.forEach(v=>{if(v.p===pid&&v.s===1){n++;t=Math.max(t,v.at||0)}});return{n,t}}
 function agoLbl(ts){const d=Date.now()-ts;if(d<90e3)return'adesso';if(d<36e5)return Math.round(d/6e4)+' min fa';
  const a=new Date(ts),n=new Date(),hm=a.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}),y=new Date(n);y.setDate(n.getDate()-1);
  if(a.toDateString()===n.toDateString())return'oggi alle '+hm;if(a.toDateString()===y.toDateString())return'ieri alle '+hm;
@@ -1219,7 +1219,7 @@ function matchText(m){
 
 /* proposte di partita e conferme */
 function rsvpOf(eid,pid){const r=S.rsvps.find(x=>x.id===eid+'_'+pid);return r?r.v:null}
-function setRsvp(eid,pid,v){const id=eid+'_'+pid,r=S.rsvps.find(x=>x.id===id);if(r){r.v=v;r.at=Date.now()}else S.rsvps.push({id,e:eid,p:pid,v,at:Date.now()});save()}
+function setRsvp(eid,pid,v){const id=eid+'_'+pid,r=S.rsvps.find(x=>x.id===id);const sf=pid===myPid()?1:0;if(r){r.v=v;r.at=Date.now();r.s=sf}else S.rsvps.push({id,e:eid,p:pid,v,at:Date.now(),s:sf});save()}
 const RV=[['y','✅','Ci sono'],['m','❔','Forse'],['n','❌','No']];
 function confirmed(eid){return S.rsvps.filter(r=>r.e===eid&&r.v==='y'&&getP(r.p)).map(r=>r.p)}
 function inviteText(e){
