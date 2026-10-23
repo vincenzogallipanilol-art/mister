@@ -504,12 +504,22 @@ const GROUPS=[
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
-const VERSION='1.6.2';
+const VERSION='1.7.0';
 /* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra.
    Voce = [tipo, testo, soloAdmin?]  ·  tipo: 'new' novità · 'imp' miglioramento · 'bug' correzione.
    Le voci soloAdmin (3° elemento true) NON compaiono mai nelle notifiche né ai giocatori. */
 const CLT={new:['✨','Novità','novità'],imp:['🔧','Miglioramenti','miglioramenti'],bug:['🐞','Correzioni','bug risolti']};
 const CHANGELOG=[
+ {v:'1.7.0',d:'23 ott 2026',items:[
+  ['new','Voti non più anonimi: nel tuo profilo, «Come ti vedono i compagni», vedi chi ti ha valutato e quale valore ha dato a ogni attributo'],
+  ['new','Valutare un compagno: ogni macro mostra il suo overall, il «?» spiega quanto pesa ogni statistica, «Salva» apre l\'anteprima della card prima e dopo il tuo voto, e la bozza non si perde se chiudi l\'app'],
+  ['new','Forma e Crescita: tocca il badge per vedere da cosa derivano i punti e su quali statistiche sono stati aggiunti'],
+  ['bug','La guida: «Avanti» ora risponde al primo tocco'],
+  ['bug','Confronta giocatori: le sezioni aperte non si richiudono più da sole e chi è avanti è sempre in verde'],
+  ['bug','Genera squadre: nessun errore con giocatori senza ruoli o statistiche complete'],
+  ['bug','Convocazioni impostate dall\'admin non contano più come «accesso» di un giocatore','adm'],
+  ['new','Token giocatori: pallino verde online, grigio offline con ultimo accesso, rosso se non è mai entrato','adm']
+ ].map(x=>x[2]?[x[0],x[1],true]:x)},
  {v:'1.6.2',d:'6 ott 2026',items:[
   ['new','Token giocatori: ora si vede chi ha effettuato l\'accesso, chi è online in questo momento e l\'ultimo accesso di ognuno','adm']
  ].map(x=>x[2]?[x[0],x[1],true]:x)},
@@ -600,17 +610,18 @@ function cappedStats(p){const o={};KEYS.forEach(k=>{o[k]=Math.round(softCap(p.s[
 function setHid(o,k,v){Object.defineProperty(o,k,{value:v,writable:true,configurable:true,enumerable:false})}
 /* forma recente: solo fattori oggettivi (voti, gol/assist, risultati, cartellini) sulle ultime 5 partite giocate */
 const playedIn=(m,id)=>(m.A.played||m.A.pids).includes(id)?'A':(m.B.played||m.B.pids).includes(id)?'B':null;
-function formOf(p){
+function formParts(p){
  const ms=S.matches.filter(m=>playedIn(m,p.id)).sort((a,b)=>b.date-a.date).slice(0,5);
- if(ms.length<2)return 0;
- const rt=[];let ga=0,w=0,y=0,r=0;
+ if(ms.length<2)return null;
+ const rt=[];let ga=0,w=0,y=0,r=0,V=0,N=0,P=0;
  ms.forEach(m=>{const T=playedIn(m,p.id),own=T==='A'?m.sa:m.sb,opp=T==='A'?m.sb:m.sa;
   if(m.ratings&&m.ratings[p.id]!=null)rt.push(mr(m,p.id));
-  w+=own>opp?1:own===opp?.5:0;
+  w+=own>opp?1:own===opp?.5:0;own>opp?V++:own===opp?N++:P++;
   m.events.forEach(e=>{if(e.pid===p.id){if(e.type==='goal'||e.type==='pen')ga++;if(e.type==='yellow')y++;if(e.type==='red')r++}if(e.ass===p.id)ga++})});
- const n=ms.length,sc=((rt.length?avg(rt):6.3)-6.3)*1.6+Math.min(ga/n,2)*.9+(w/n-.5)*1.2-(y*.3+r*1.5)/n;
- return clamp(Math.round(sc),-5,5);
+ const n=ms.length,av=rt.length?avg(rt):null,vP=((av==null?6.3:av)-6.3)*1.6,gP=Math.min(ga/n,2)*.9,wP=(w/n-.5)*1.2,cP=-(y*.3+r*1.5)/n;
+ return{n,av,vP,ga,gP,V,N,P,wP,y,r,cP,tot:clamp(Math.round(vP+gP+wP+cP),-5,5)};
 }
+function formOf(p){const f=formParts(p);return f?f.tot:0}
 /* ===== voto partita: finestra 48h, media dei compagni (senza autovoto, senza estremi) + bonus ===== */
 const H48=48*3600e3,MINV=6,EVO_HI=7,EVO_MIN=6.5;
 const mOpen=m=>!!(m.vote&&Date.now()<m.vote.until);
@@ -1182,28 +1193,29 @@ function ratePrev(){
  `<div class="row"><button class="btn grow" data-act="rateSend">Invia valutazione</button><button class="btn sec" data-act="rateEdit">Modifica</button></div>`);
 }
 function ratingsSelfHTML(p){
- const R=S.ratings.filter(r=>r.t===p.id&&r.r!==r.t&&getP(r.r)),n=R.length,adm=VA()?ratingsRecvHTML(p):'';
- if(n<MINV)return`<h3>Come ti vedono i compagni</h3><div class="panel small"><div class="row sp"><span>Valutazioni ricevute</span><b>${n}/${MINV}</b></div><div class="mut" style="margin-top:6px">Il dettaglio compare da ${MINV} valutazioni, in forma anonima. Finché non ci sono, la card mostra i valori base.</div></div>${adm}`;
- const gk=isGK(p),gs=GROUPS.filter(g=>gk||g.id!=='por'),base=k=>clamp(p.s[k]??DEF[k],1,99);
+ const R=S.ratings.filter(r=>r.t===p.id&&r.r!==r.t&&getP(r.r)).sort((a,b)=>(b.at||0)-(a.at||0)),n=R.length;
+ if(!n)return`<h3>Come ti vedono i compagni</h3><div class="panel small mut">Nessuna valutazione ricevuta.</div>`;
+ const gk=isGK(p),gs=GROUPS.filter(g=>gk||g.id!=='por'),base=k=>clamp(p.s[k]??DEF[k],1,99),evk=p._ev?evoKeys(p):[];
  const dl=d=>d>0?`<b style="color:#34d399">▲${d}</b>`:d<0?`<b style="color:#f87171">▼${-d}</b>`:'<span class="mut">=</span>';
  const blocks=gs.map(g=>{
   const b=Math.round(avg(g.stats.map(([k])=>base(k)))),e=Math.round(avg(g.stats.map(([k])=>sv(p,k))));
-  const rows=g.stats.map(([k,l])=>{const bk=base(k),ek=sv(p,k),ch=R.filter(r=>r.s&&r.s[k]!=null&&r.s[k]!==bk).length;
-   return`<div style="display:grid;grid-template-columns:1fr auto 44px;gap:8px;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line);font-size:13px"><span>${l}<span class="mut small"> · ${ch}/${n} l'hanno cambiato</span></span><span class="mut">${bk} → <b style="color:var(--fg)">${ek}</b></span><span style="text-align:right">${dl(ek-bk)}</span></div>`}).join('');
+  const rows=g.stats.map(([k,l])=>{const bk=base(k),ek=sv(p,k),vs=R.filter(r=>r.s&&r.s[k]!=null&&r.s[k]!==bk).sort((x,y)=>y.s[k]-x.s[k]);
+   return`<div style="padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><div style="display:grid;grid-template-columns:1fr auto 44px;gap:8px;align-items:baseline"><span>${l}${evk.includes(k)?` <span style="color:#34d399;font-size:11px">🌱 +${p._ev} crescita</span>`:''}</span><span class="mut">${bk} → <b style="color:var(--fg)">${ek}</b></span><span style="text-align:right">${dl(ek-bk)}</span></div>${vs.length?`<div class="mut" style="font-size:12px;margin-top:2px">${vs.map(r=>`${esc(nm(r.r))} <b style="color:var(--fg)">${r.s[k]}</b>`).join(' · ')}</div>`:''}</div>`}).join('');
   return`<details class="panel" data-ck="rs_${g.id}" ${CMPO.has('rs_'+g.id)?'open':''} style="margin:0 0 6px;padding:6px 12px"><summary style="cursor:pointer;list-style:none;display:grid;grid-template-columns:1fr auto 44px;gap:8px;align-items:baseline;font-size:13.5px"><b>${g.name}</b><span class="mut">${b} → <b style="color:var(--fg)">${e}</b></span><span style="text-align:right">${dl(e-b)}</span></summary><div style="margin-top:4px">${rows}</div></details>`}).join('');
- return`<h3>Come ti vedono i compagni <span class="small mut" style="font-weight:400">· ${n} valutazioni</span></h3>${blocks}<div class="small mut" style="margin-top:4px">Anonimo. Il valore finale scarta il voto più alto e il più basso (da 7 voti in su); chi non cambia un attributo lo conferma.</div>${adm}`;
+ const rcv=n<MINV?`<div class="small mut" style="margin-bottom:6px">⏳ ${n}/${MINV} valutazioni: la card usa i valori base finché non arrivano ${MINV} voti.</div>`:'';
+ return`<h3>Come ti vedono i compagni <span class="small mut" style="font-weight:400">· ${n} valutazioni</span></h3>${rcv}${blocks}<div class="small mut" style="margin:4px 0 8px">Sotto ogni attributo c'è chi l'ha cambiato e il valore dato. Chi non lo cambia lo conferma. Il valore finale scarta il voto più alto e il più basso (da 7 voti in su).</div>${ratingsRecvHTML(p)}`;
 }
 function ratingsRecvHTML(p){
  const rs=S.ratings.filter(r=>r.t===p.id&&r.r!==r.t&&getP(r.r)).sort((a,b)=>(b.at||0)-(a.at||0));
  if(!rs.length)return'<h3>Valutazioni ricevute</h3><div class="mut small">Nessuna valutazione ricevuta.</div>';
- return`<h3>Valutazioni ricevute <span class="small mut" style="font-weight:400">· ${rs.length}</span></h3><div class="rcv">${rs.map(r=>VA()?`<button class="rcvb" data-act="rateView" data-id="${r.id}">${esc(nm(r.r))}</button>`:`<span class="rcvb">${esc(nm(r.r))}</span>`).join('')}</div>`;
+ return`<h3>Valutazioni ricevute <span class="small mut" style="font-weight:400">· ${rs.length}</span></h3><div class="rcv">${rs.map(r=>(VA()||p.id===myPid())?`<button class="rcvb" data-act="rateView" data-id="${r.id}">${esc(nm(r.r))}</button>`:`<span class="rcvb">${esc(nm(r.r))}</span>`).join('')}</div>`;
 }
 function rateViewModal(id){
- const r=S.ratings.find(x=>x.id===id);if(!r||!VA())return;const p=getP(r.t);if(!p)return;
+ const r=S.ratings.find(x=>x.id===id);if(!r||!(VA()||r.t===myPid()))return;const p=getP(r.t);if(!p)return;
  const gs=GROUPS.slice();
  const full=gs.map(g=>`<div class="small mut" style="margin:8px 0 2px;font-weight:700">${g.name}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 14px">${g.stats.map(([k,l])=>{const t=r.s&&r.s[k]!=null,v=t?r.s[k]:clamp(p.s[k]??DEF[k],1,99);return`<div class="row sp" style="font-size:12.5px;${t?'':'opacity:.45'}"><span>${l}</span><b>${v}</b></div>`}).join('')}</div>`).join('');
  openModal(`<h2>${esc(nm(r.r))} → ${esc(p.name)}</h2><div class="small mut" style="margin-bottom:6px">${r.at?fdate(r.at,{day:'numeric',month:'short',year:'numeric'}):''}${r.open?' · riattivata':''}</div>${full}<div class="small mut" style="margin-top:8px">Grigio = non modificato (valore base).</div>`,
-  `<div class="row">${r.open?'<span class="tag grow" style="text-align:center">Riattivata</span>':`<button class="btn grow" data-act="rateReopen" data-id="${r.id}">🔓 Riattiva valutazione</button>`}<button class="btn sec" data-act="closeM">Chiudi</button></div>`);
+  `<div class="row">${!VA()?'':r.open?'<span class="tag grow" style="text-align:center">Riattivata</span>':`<button class="btn grow" data-act="rateReopen" data-id="${r.id}">🔓 Riattiva valutazione</button>`}<button class="btn sec" data-act="closeM">Chiudi</button></div>`);
 }
 
 /* storico overall partita per partita */
@@ -1683,7 +1695,7 @@ function playerPage(p,own){
  <div class="pp-top"><div class="pp-card">${card(p)}</div><div>${radar(f)}</div></div>
  <div style="margin:6px 0"><div style="font-size:20px;font-weight:800">${esc(p.name)} ${p.num!==''&&p.num!=null?`<span class="mut">#${esc(p.num)}</span>`:''}${own&&VA()?` <button class="btn sec sm" data-act="editP" data-id="${p.id}" style="vertical-align:middle">✎</button>`:''}</div>
  ${metaOf(p)?`<div class="mut small">${metaOf(p)}</div>`:''}
- <div class="row wrap" style="margin-top:6px"><span class="formb ${p._f>0?'up':p._f<0?'dn':'z'}">Forma ${p._f>0?'▲ +'+p._f:p._f<0?'▼ '+p._f:'stabile'}</span>${p._prov?`<span class="tag">⏳ Provvisoria · ${p._n}/${MINV} votanti</span>`:`<span class="tag">${p._n} votanti</span>`}${p._ev?`<span class="tag" style="color:#34d399">▲ +${p._ev} crescita</span>`:''}${isMe&&!own?'<span class="tag">Sei tu</span>':''}${p.roles.map((r,i)=>`<span class="chip ${i?'':'on'}" style="padding:2px 9px;font-size:12px">${r} · ${roleOvr(p,r)}</span>`).join('')}</div></div>
+ <div class="row wrap" style="margin-top:6px"><span class="formb ${p._f>0?'up':p._f<0?'dn':'z'}" data-act="formInfo" data-id="${p.id}" style="cursor:pointer">Forma ${p._f>0?'▲ +'+p._f:p._f<0?'▼ '+p._f:'stabile'}</span>${p._prov?`<span class="tag">⏳ Provvisoria · ${p._n}/${MINV} votanti</span>`:`<span class="tag">${p._n} votanti</span>`}${p._ev?`<span class="tag" data-act="formInfo" data-id="${p.id}" style="color:#34d399;cursor:pointer">▲ +${p._ev} crescita</span>`:''}${isMe&&!own?'<span class="tag">Sei tu</span>':''}${p.roles.map((r,i)=>`<span class="chip ${i?'':'on'}" style="padding:2px 9px;font-size:12px">${r} · ${roleOvr(p,r)}</span>`).join('')}</div></div>
  <div data-tour="rate">${rateB}<div class="row wrap" style="margin:8px 0"><button class="btn sec grow" data-act="cmpOpen" data-id="${p.id}">⚔ Confronta</button><button class="btn sec grow" data-tour="chem" data-act="chemOpen" data-id="${p.id}">🧪 Chimica</button>${isMe?`<button class="btn sec grow" data-act="myPhoto">📷 Foto</button>`:''}${VA()&&lk&&!own?`<button class="btn dan sm" data-act="unlink" data-id="${lk.id}">Scollega account</button>`:''}</div></div>
  <h3>Stagione</h3><div class="tiles5">${tiles.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
  <details class="panel" style="margin-top:8px;padding:8px 12px"><summary class="small mut" style="cursor:pointer">Altre statistiche</summary><div class="tiles" style="margin-top:8px">${more.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div></details>
@@ -1880,6 +1892,18 @@ const A={
  voteSave:()=>{const me=myPid();if(!MV||!me)return;const m=S.matches.find(x=>x.id===MV.m);if(!m||!mOpen(m)){toast('Votazione chiusa');closeModal();return}
   const ids=[...(m.A.played||m.A.pids),...(m.B.played||m.B.pids)].filter(id=>id!==me&&getP(id));const v={};ids.forEach(id=>v[id]=clamp(MV.v[id]??6,1,10));const aw={};AWARDS.filter(a=>a[3]).forEach(([k])=>{const x=MV.aw[k];if(x&&x!==me&&ids.includes(x))aw[k]=x});
   const id=m.id+'_'+me;let r=S.mvotes.find(x=>x.id===id);if(!r){r={id,m:m.id,r:me,v:{}};S.mvotes.push(r)}r.v=v;r.aw=aw;r.at=Date.now();MV=null;save();closeModal();render();toast('Voti inviati ✓')},
+ formInfo:d=>{const p=getP(d.id);if(!p)return;const f=formParts(p),sg=x=>(x>0?'+':x<0?'−':'')+Math.abs(Math.round(x*10)/10);
+  const row=(l,sub,v)=>`<div class="row sp small" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${l}<br><span class="mut" style="font-size:12px">${sub}</span></span><b style="color:${v>0?'#34d399':v<0?'#f87171':'var(--mut)'}">${sg(v)}</b></div>`;
+  let h=`<h2>Forma ${p._f>0?'▲ +'+p._f:p._f<0?'▼ '+p._f:'stabile'}</h2>`;
+  if(!f)h+='<p class="small mut">Servono almeno 2 partite giocate per calcolare la forma.</p>';
+  else h+=`<p class="small mut" style="margin-bottom:8px">Ultime ${f.n} partite giocate. I punti si sommano all'<b>overall</b> (${ovr(p)} → ${ovr(p)+p._f}), usato per bilanciare le squadre e comporre le formazioni. <b>Non</b> modificano le singole statistiche.</p>`
+   +row('Voti',f.av==null?'nessun voto ancora (base 6,3)':'media '+(Math.round(f.av*10)/10)+' · 6,3 è neutro',f.vP)
+   +row('Gol e assist',f.ga+' in '+f.n+' partite',f.gP)
+   +row('Risultati',f.V+'V '+f.N+'N '+f.P+'P',f.wP)
+   +row('Cartellini',f.y+' gialli · '+f.r+' rossi',f.cP)
+   +`<div class="row sp" style="padding:8px 0;font-weight:800"><span>Totale (arrotondato, max ±5)</span><span>${sg(f.tot)}</span></div>`;
+  if(p._ev){const ks=evoKeys(p);h+=`<h3>▲ Crescita +${p._ev}</h3><p class="small mut" style="margin:0 0 6px">Si guadagna +1 con ${EVO_MIN>0?'4 partite di fila in crescita (voto ≥ '+EVO_MIN+')':''} oppure 4 voti su 5 ≥ ${EVO_HI}. Viene aggiunto alle 4 statistiche più importanti per il ruolo:</p><div class="row wrap" style="gap:6px">${ks.map(k=>`<span class="tag">${LBL[k]} +${p._ev}</span>`).join('')}</div>`}
+  openModal(h,'<div class="row"><button class="btn grow" data-act="closeM">Chiudi</button></div>')},
  ratePrev:()=>ratePrev(),
  rateEdit:()=>{if(!RT)return;const t=RT.t;RT.prev=false;rtUpd();rateModal(t)},
  rateW:d=>{if(!RT)return;const p=getP(RT.t),g=GROUPS.find(x=>x.id===d.g);if(!g)return;const ws=gWeights(p,g),pc=pctsOf(ws);const o=document.getElementById('wtip');if(o)o.remove();const x=document.createElement('div');x.id='wtip';
@@ -1889,7 +1913,7 @@ const A={
   const id=RT.t+'_'+me;let r=S.ratings.find(x=>x.id===id);if(!r){r={id,t:RT.t,r:me,s:{},log:[]};S.ratings.push(r)}
   const ch={};ks.forEach(k=>{r.s[k]=RT.touched[k];ch[k]=RT.touched[k]});r.log=(r.log||[]).concat([{at:Date.now(),s:ch}]).slice(-15);r.at=Date.now();r.open=false;
   const tg=RT.t;try{localStorage.removeItem(rdKey(tg))}catch(e){}RT=null;save();closeModal();render();toast('Valutazione inviata');
-  if(!S.notifs.some(n=>n.to&&n.to[0]===tg&&n.title.startsWith('✍️')&&Date.now()-n.at<36e5))NT('rate_request','✍️ Un compagno ha valutato la tua card','Guarda come cambiano le tue statistiche','./?tab=prof',[tg])},
+  const ttl='✍️ '+nm(me)+' ha valutato la tua card';if(!S.notifs.some(n=>n.to&&n.to[0]===tg&&n.title===ttl&&Date.now()-n.at<36e5))NT('rate_request',ttl,'Guarda cosa ti ha dato su ogni attributo','./?tab=prof',[tg])},
  /* chimica */
  goalNew:()=>goalModal(),
  goalType:d=>{const k=$('#glK');if(k)k.value=d.k;document.querySelectorAll('[data-act=goalType]').forEach(c=>c.classList.toggle('on',c.dataset.k===d.k));MO.edited=true},
