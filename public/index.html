@@ -1181,6 +1181,18 @@ function ratePrev(){
  <p class="small mut" style="margin:12px 0 0;text-align:center">Dopo l'invio non potrai modificarla finché l'admin non la riattiva.</p>`,
  `<div class="row"><button class="btn grow" data-act="rateSend">Invia valutazione</button><button class="btn sec" data-act="rateEdit">Modifica</button></div>`);
 }
+function ratingsSelfHTML(p){
+ const R=S.ratings.filter(r=>r.t===p.id&&r.r!==r.t&&getP(r.r)),n=R.length,adm=VA()?ratingsRecvHTML(p):'';
+ if(n<MINV)return`<h3>Come ti vedono i compagni</h3><div class="panel small"><div class="row sp"><span>Valutazioni ricevute</span><b>${n}/${MINV}</b></div><div class="mut" style="margin-top:6px">Il dettaglio compare da ${MINV} valutazioni, in forma anonima. Finché non ci sono, la card mostra i valori base.</div></div>${adm}`;
+ const gk=isGK(p),gs=GROUPS.filter(g=>gk||g.id!=='por'),base=k=>clamp(p.s[k]??DEF[k],1,99);
+ const dl=d=>d>0?`<b style="color:#34d399">▲${d}</b>`:d<0?`<b style="color:#f87171">▼${-d}</b>`:'<span class="mut">=</span>';
+ const blocks=gs.map(g=>{
+  const b=Math.round(avg(g.stats.map(([k])=>base(k)))),e=Math.round(avg(g.stats.map(([k])=>sv(p,k))));
+  const rows=g.stats.map(([k,l])=>{const bk=base(k),ek=sv(p,k),ch=R.filter(r=>r.s&&r.s[k]!=null&&r.s[k]!==bk).length;
+   return`<div style="display:grid;grid-template-columns:1fr auto 44px;gap:8px;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line);font-size:13px"><span>${l}<span class="mut small"> · ${ch}/${n} l'hanno cambiato</span></span><span class="mut">${bk} → <b style="color:var(--fg)">${ek}</b></span><span style="text-align:right">${dl(ek-bk)}</span></div>`}).join('');
+  return`<details class="panel" data-ck="rs_${g.id}" ${CMPO.has('rs_'+g.id)?'open':''} style="margin:0 0 6px;padding:6px 12px"><summary style="cursor:pointer;list-style:none;display:grid;grid-template-columns:1fr auto 44px;gap:8px;align-items:baseline;font-size:13.5px"><b>${g.name}</b><span class="mut">${b} → <b style="color:var(--fg)">${e}</b></span><span style="text-align:right">${dl(e-b)}</span></summary><div style="margin-top:4px">${rows}</div></details>`}).join('');
+ return`<h3>Come ti vedono i compagni <span class="small mut" style="font-weight:400">· ${n} valutazioni</span></h3>${blocks}<div class="small mut" style="margin-top:4px">Anonimo. Il valore finale scarta il voto più alto e il più basso (da 7 voti in su); chi non cambia un attributo lo conferma.</div>${adm}`;
+}
 function ratingsRecvHTML(p){
  const rs=S.ratings.filter(r=>r.t===p.id&&r.r!==r.t&&getP(r.r)).sort((a,b)=>(b.at||0)-(a.at||0));
  if(!rs.length)return'<h3>Valutazioni ricevute</h3><div class="mut small">Nessuna valutazione ricevuta.</div>';
@@ -1677,7 +1689,7 @@ function playerPage(p,own){
  <details class="panel" style="margin-top:8px;padding:8px 12px"><summary class="small mut" style="cursor:pointer">Altre statistiche</summary><div class="tiles" style="margin-top:8px">${more.map(([l,v])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('')}</div></details>
  <div data-tour="ovr" class="ovrgrid${ms.length?'':' one'}"><div><h3>Andamento overall</h3><div class="panel">${ovrChart(p,ms.length?250:340)}</div></div>${ms.length?`<div><h3>Ultime</h3><div class="panel lms">${ms.map(m=>resChip(m,p)).join('')}</div></div>`:''}</div>
  ${own?'':`<div data-tour="bach">${premiHTML(p)}</div>`}
- <div data-tour="ratings">${ratingsRecvHTML(p)}</div>
+ <div data-tour="ratings">${isMe?ratingsSelfHTML(p):ratingsRecvHTML(p)}</div>
  <h3>Attributi</h3>${(()=>{const gs=GROUPS.slice(),half=Math.ceil(gs.length/2),lft=gs.slice(0,half),rgt=gs.slice(half),
   col=arr=>arr.map(g=>`<div class="agrp${g.id==='por'&&!gk?' dim':''}"><div class="ahd"><span>${g.name.toUpperCase()}</span><span class="v ${vcls(gval(p,g.id))}">${gval(p,g.id)}</span></div>${g.stats.map(([k,l])=>`<div class="arow"><span>${l}</span><span class="v ${vcls(sv(p,k))}">${sv(p,k)}</span></div>`).join('')}</div>`).join('');
   return`<div class="attr2"><div class="acol">${col(lft)}</div><div class="acol">${col(rgt)}</div></div>`})()}${gk?'':'<div class="small mut" style="margin-top:6px">Le statistiche da portiere non incidono sull\'overall di chi gioca in campo.</div>'}`;
