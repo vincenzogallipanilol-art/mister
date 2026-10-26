@@ -52,7 +52,12 @@ function ensureAuth(){return authP||(authP=(async()=>{
  let sess=getSession();
  if(sess){
   // Rivalida il token al boot (in background, non blocca)
-  sb.rpc('validate_token',{p_token:sess.token}).then(({data,error})=>{if(!error&&data&&data.valid===false){localStorage.removeItem(AUTH_KEY);location.reload()}}).catch(()=>{});
+  sb.rpc('validate_token',{p_token:sess.token}).then(({data,error})=>{
+   if(error||!data)return;
+   if(data.valid===false){localStorage.removeItem(AUTH_KEY);location.reload();return;}
+   // Aggiorna ruolo se cambiato server-side (previene role-escalation via localStorage)
+   if(data.role&&data.role!==sess.role){sess.role=data.role;setSession(sess);ME.role=data.role;}
+  }).catch(()=>{});
  } else {
   sess=await tokenUI();
   setSession(sess);
@@ -89,7 +94,10 @@ const db={
 /* ---- Admin: token per giocatori ---- */
 window.MisterTokenAdmin={
  async listTokens(){
-  const {data}=await sb.from('invites').select('code,role,pid').eq('role','player');
+  // Validazione client-side (doppio check: la RPC valida anche server-side)
+  if(!ME||ME.role!=='admin')throw new Error('non autorizzato');
+  const {data,error}=await sb.rpc('list_player_tokens',{p_admin_token:ME.id});
+  if(error)throw new Error(error.message);
   return data||[];
  },
  async createToken(adminToken,pid){
@@ -120,7 +128,7 @@ window.MisterPush={
   const perm=await Notification.requestPermission();if(perm!=='granted')throw new Error('Permesso negato');
   const reg=await navigator.serviceWorker.ready;
   const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(C.vapid)});
-  const {error}=await sb.from('push_subs').upsert({endpoint:sub.endpoint,user_id:ME.id,sub:sub.toJSON()});
+  const {error}=await sb.from('push_subs').upsert({endpoint:sub.endpoint,user_id:ME.pid||ME.id,pid:ME.pid,sub:sub.toJSON()});
   if(error)throw error;return true},
  async endpoint(){if(!this.supported())return null;const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();return sub?sub.endpoint:null},
  async getPrefs(){const ep=await this.endpoint();if(!ep)return{};const {data,error}=await sb.from('push_subs').select('prefs').eq('endpoint',ep).maybeSingle();if(error)throw error;return(data&&data.prefs)||{}},
