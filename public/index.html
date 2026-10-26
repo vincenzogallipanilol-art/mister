@@ -2113,9 +2113,44 @@ Object.assign(A,{
   ${me?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Sei collegato come</div><b>${esc(nm(me))}</b></div>${ADM?`<button class="btn sec sm" data-act="claim">Cambia</button>`:''}</div>`:ADM?`<div class="panel" style="margin-bottom:10px"><div class="small mut" style="margin-bottom:6px">Non sei collegato a nessun giocatore</div><button class="btn sm" data-act="claim">👤 Scegli chi sei</button></div>`:''}
   ${ADM?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Modalità</div><b>${S.ui.previewPlayer?'👁 Giocatore':'👑 Admin'}</b></div><button class="btn sec sm" data-act="togglePreview">${S.ui.previewPlayer?'Torna Admin':'Vedi come giocatore'}</button></div>`:''}
   <div class="row wrap" style="gap:8px;margin-bottom:10px"><button class="btn sec" data-act="notifSettings">🔔 Notifiche</button><button class="btn sec" data-act="fbTip">💡 Consigli${nt?` <span class="tag">${nt}</span>`:''}</button><button class="btn sec" data-act="fbBug">🐞 Bug${nb?` <span class="tag">${nb}</span>`:''}</button><button class="btn sec" data-act="tourStart">📖 Guida</button><button class="btn sec" data-act="changelog">🆕 Novità</button></div>
-  ${VA()?`<h3>Admin</h3><div class="row wrap" style="gap:8px"><button class="btn sec" data-act="tokensPanel">🔑 Token giocatori</button><button class="btn sec" data-act="rateReq">📣 Chiedi valutazioni</button><button class="btn sec" data-act="matchesAdmin">🗑 Gestisci partite</button><button class="btn sec" data-act="exp">⬇ Backup</button><button class="btn sec" data-act="imp">⬆ Importa</button></div><input type="file" id="impF" accept=".json" style="display:none">`:''}
+  ${VA()?`<h3>Admin</h3><div class="row wrap" style="gap:8px"><button class="btn sec" data-act="tokensPanel">🔑 Token giocatori</button><button class="btn sec" data-act="googleUsersPanel">👥 Utenti Google</button><button class="btn sec" data-act="rateReq">📣 Chiedi valutazioni</button><button class="btn sec" data-act="matchesAdmin">🗑 Gestisci partite</button><button class="btn sec" data-act="exp">⬇ Backup</button><button class="btn sec" data-act="imp">⬆ Importa</button></div><input type="file" id="impF" accept=".json" style="display:none">`:''}
   <div class="row" style="margin-top:14px;gap:8px"><button class="btn sec grow" data-act="closeM">Chiudi</button><button class="btn dan" data-act="logout">🚪 Esci</button></div>`)},
- logout:()=>ASK('Uscire dall\'app? Dovrai reinserire il token per accedere.',()=>{localStorage.removeItem('mister_session');location.reload()}),
+ logout:()=>ASK('Uscire dall\'app?',()=>window.MisterAuth?.signOut()),
+ googleUsersPanel:async()=>{
+  openModal('<h2>👥 Utenti Google</h2><p class="small mut">Carico…</p>');
+  try{
+   const users=await window.MisterGoogleAdmin.listPending();
+   const players=S.players.slice().sort((a,b)=>nm(a.id).localeCompare(nm(b.id)));
+   openModal(`<h2>👥 Utenti Google in attesa</h2><div class="small mut" style="margin-bottom:10px">Collega ogni account Google al giocatore corrispondente. Una volta collegato, l'utente accede direttamente con Google.</div>
+   ${users.length?users.map(u=>`<div class="panel" style="margin-bottom:10px">
+    <b>${esc(u.display_name||u.email)}</b>
+    <div class="small mut" style="margin-bottom:8px">${esc(u.email)}</div>
+    <div class="row" style="gap:8px">
+     <select class="pgLink grow" data-uid="${u.auth_uid}" style="min-width:0;background:var(--pnl);color:inherit;border:1px solid var(--line);border-radius:10px;padding:10px">
+      <option value="">— Scegli giocatore —</option>
+      ${players.map(p=>`<option value="${p.id}">${esc(nm(p.id))}</option>`).join('')}
+     </select>
+     <button class="btn sm" data-act="linkGoogleUser" data-uid="${u.auth_uid}">Collega</button>
+    </div></div>`).join(''):'<div class="empty">Nessun utente in attesa.</div>'}
+   <div class="row" style="margin-top:12px"><button class="btn sec grow" data-act="menu">← Impostazioni</button></div>`);
+  }catch(e){
+   openModal(`<h2>👥 Utenti Google</h2><p class="small mut">Errore: ${esc(e.message)}</p><div class="row"><button class="btn sec grow" data-act="menu">← Impostazioni</button></div>`);
+  }
+ },
+ linkGoogleUser:async d=>{
+  const sel=document.querySelector(`.pgLink[data-uid="${d.uid}"]`);
+  const pid=sel?sel.value:'';
+  if(!pid){toast('Scegli un giocatore');return}
+  const btn=d.el;if(btn){btn.textContent='…';btn.disabled=true}
+  try{
+   await window.MisterGoogleAdmin.link(d.uid,pid);
+   toast('Utente collegato ✓');
+   A.googleUsersPanel();
+  }catch(e){
+   toast('Errore: '+e.message);
+   if(btn){btn.textContent='Collega';btn.disabled=false}
+  }
+ },
  cfgOpen:()=>{if(!ADM)return;CF={b:Object.assign({},cfgB()),aw:AWARDS.map(a=>({k:a[0],i:a[1],l:a[2],on:a[3]}))};cfgModal()},
  cfgAw:()=>{cfgSync();CF.aw.push({k:'x'+uid(),i:'🏅',l:'Nuovo premio',on:1});cfgModal()},
  cfgReset:()=>{CF={b:Object.assign({},CFGD.bonus),aw:CFGD.awards.map(a=>Object.assign({},a))};cfgModal()},
