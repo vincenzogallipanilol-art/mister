@@ -1,8 +1,7 @@
-/* Adattatore Supabase per MISTER – auth Google OAuth (giocatori) + token (admin fallback) */
+/* Adattatore Supabase per MISTER – auth Google OAuth (unica via, admin incluso) */
 (()=>{
 const C=window.MISTER_CFG||{};
 const sb=window.supabase.createClient(C.url,C.anon,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-const AUTH_KEY='mister_session';
 let ME=null;
 
 const $=s=>document.querySelector(s);
@@ -13,13 +12,10 @@ const CSS=`#auth{position:fixed;inset:0;z-index:99999;background:#0e0e10;color:#
 #auth .box{width:100%;max-width:340px;text-align:center}
 #auth h1{letter-spacing:.25em;margin:0 0 4px;font-size:32px;font-weight:900}#auth h1 b{color:#d1ff42}
 #auth p{color:#9096a0;font-size:14px;margin:0 0 24px;line-height:1.5}
-#auth input{width:100%;box-sizing:border-box;background:#18181b;border:1px solid #2b2b30;color:#f2f4f7;border-radius:14px;padding:14px 16px;font-size:17px;margin-bottom:10px;text-align:center;letter-spacing:.08em;outline:none;-webkit-appearance:none}
-#auth input:focus{border-color:#d1ff42}
 #auth button{width:100%;border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:800;background:#d1ff42;color:#12160a;cursor:pointer;letter-spacing:.04em}
 #auth .err{color:#ff7b7b;font-size:13px;min-height:18px;margin-bottom:10px}
 #auth .gbtn{background:#fff;color:#3c4043;border:1px solid #dadce0;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:600;font-size:15px}
 #auth .gbtn:active{background:#f1f3f4}
-#auth .lnk{background:none;color:#9096a0;font-weight:500;font-size:13px;text-decoration:underline;padding:8px;margin-top:16px;width:auto}
 #auth .pen{font-size:46px;margin-bottom:10px}
 #auth .mail{color:#d1ff42;font-size:13px;margin:-14px 0 24px}
 #auth .sec{background:#18181b;color:#f2f4f7;border:1px solid #2b2b30;margin-top:8px}`;
@@ -34,34 +30,14 @@ async function signInWithGoogle(){
  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});
 }
 
-/* ---- Login screen: Google primario, token (admin) secondario ---- */
-function loginUI(){return new Promise(res=>{
- const drawToken=(err='')=>{overlay(`
-  <h1>MIS<b>TER</b></h1>
-  <p>Accesso amministratore</p>
-  <div class="err">${esc(err)}</div>
-  <input id="tk_in" type="text" placeholder="il tuo token" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-  <button id="tk_go">Entra →</button>
-  <button id="tk_back" class="sec">← Torna indietro</button>`);
-  const inp=$('#tk_in');if(inp)setTimeout(()=>inp.focus(),80);
-  $('#tk_go').onclick=async()=>{
-   const token=$('#tk_in').value.trim().toLowerCase();
-   if(!token)return drawToken('Inserisci il token');
-   $('#tk_go').textContent='...';$('#tk_go').disabled=true;
-   const {data,error}=await sb.rpc('validate_token',{p_token:token});
-   if(error||!data||!data.valid)return drawToken('Token non riconosciuto');
-   res({token,...data})
-  };
-  inp&&inp.addEventListener('keydown',e=>e.key==='Enter'&&$('#tk_go').click());
-  $('#tk_back').onclick=()=>drawGoogle()};
- const drawGoogle=()=>{overlay(`
+/* ---- Login screen: solo Google ---- */
+function loginUI(err=''){return new Promise(()=>{ // non risolve: il click reindirizza la pagina
+ overlay(`
   <h1>MIS<b>TER</b></h1>
   <p>Accedi con il tuo account Google<br>per entrare nell'app</p>
-  <button id="tk_g" class="gbtn">${GICON} Accedi con Google</button>
-  <button id="tk_tok" class="lnk">Sei l'admin? Accedi con token</button>`);
-  $('#tk_g').onclick=async()=>{$('#tk_g').textContent='...';await signInWithGoogle()};
-  $('#tk_tok').onclick=()=>drawToken()};
- drawGoogle()})}
+  <div class="err">${esc(err)}</div>
+  <button id="tk_g" class="gbtn">${GICON} Accedi con Google</button>`);
+ $('#tk_g').onclick=async()=>{$('#tk_g').textContent='...';await signInWithGoogle()}})}
 
 /* ---- Schermata "in attesa di approvazione" (blocca l'app) ---- */
 function pendingUI(email,name){return new Promise(()=>{
@@ -74,10 +50,6 @@ function pendingUI(email,name){return new Promise(()=>{
  $('#pen_refresh').onclick=()=>location.reload();
  $('#pen_out').onclick=async()=>{await sb.auth.signOut();location.reload()}})}
 
-/* ---- Sessione token ---- */
-function getSession(){try{return JSON.parse(localStorage.getItem(AUTH_KEY))}catch(e){return null}}
-function setSession(s){try{localStorage.setItem(AUTH_KEY,JSON.stringify(s))}catch(e){}}
-
 function linkDoc(id,pid){
  sb.from('docs').select('id').eq('path','links/'+id).maybeSingle().then(({data})=>{
   if(!data)sb.from('docs').upsert({path:'links/'+id,col:'links',id,data:{id,p:pid}});
@@ -86,50 +58,39 @@ function linkDoc(id,pid){
 
 let authP=null;
 function ensureAuth(){return authP||(authP=(async()=>{
- /* 1) Sessione Google (Supabase Auth) */
  const {data:{session}}=await sb.auth.getSession();
- if(session){
+
+ if(!session){
+  // sb.auth.getSession() può risolvere prima che l'SDK consumi il codice
+  // OAuth presente nell'URL di ritorno: ridà un'occhiata una volta sola.
+  if(/[?&]code=|access_token=/.test(window.location.href)){
+   await new Promise(r=>setTimeout(r,400));
+   const retry=await sb.auth.getSession();
+   if(retry.data.session)return handleSession(retry.data.session);
+  }
+  return loginUI();
+ }
+ return handleSession(session);
+
+ async function handleSession(session){
   const {data,error}=await sb.rpc('register_google_user',{
    p_email:session.user.email||'',
    p_display_name:session.user.user_metadata?.full_name||session.user.user_metadata?.name||''
   });
-  if(!error&&data){
-   if(data.status==='linked'){
-    ME={id:data.pid,type:'google',uid:session.user.id,role:data.role||'player',pid:data.pid,name:data.name};
-    window.MISTER_ME=ME;
-    if(ME.pid)linkDoc(session.user.id,ME.pid);
-    return ME;
-   }
-   if(data.status==='pending'||data.status==='new'){
-    await pendingUI(session.user.email||'',session.user.user_metadata?.full_name||session.user.user_metadata?.name||'');
-    return new Promise(()=>{}); // mai raggiunto: pendingUI blocca con reload/logout
-   }
+  if(error){
+   await sb.auth.signOut().catch(()=>{});
+   return loginUI('Errore di accesso: '+error.message);
   }
-  // errore RPC: esci dalla sessione Google e passa al login token
-  await sb.auth.signOut().catch(()=>{});
- }
-
- /* 2) Fallback token (admin) */
- let sess=getSession();
- if(sess){
-  sb.rpc('validate_token',{p_token:sess.token}).then(({data,error})=>{
-   if(error||!data)return;
-   if(data.valid===false){localStorage.removeItem(AUTH_KEY);location.reload();return;}
-   if(data.role&&data.role!==sess.role){sess.role=data.role;setSession(sess);ME.role=data.role;}
-  }).catch(()=>{});
- } else {
-  sess=await loginUI();
-  if(sess.token===undefined){
-   // ramo Google innescato da loginUI: la pagina sta per reindirizzare
-   return new Promise(()=>{});
+  if(data.status==='linked'){
+   ME={id:session.user.id,type:'google',uid:session.user.id,role:data.role||'player',pid:data.pid||null,name:data.name,email:session.user.email};
+   window.MISTER_ME=ME;
+   if(ME.pid)linkDoc(session.user.id,ME.pid);
+   return ME;
   }
-  setSession(sess);
-  closeOv();
+  // pending o new: blocca l'app finché l'admin non collega l'utente
+  return pendingUI(session.user.email||'',session.user.user_metadata?.full_name||session.user.user_metadata?.name||'');
  }
- ME={id:sess.token,type:'token',role:sess.role||'player',pid:sess.pid||null,name:sess.name||null};
- window.MISTER_ME=ME;
- if(ME.pid)linkDoc(ME.id,ME.pid);
- return ME})())}
+})())}
 
 /* ---- DB ---- */
 const listeners=new Set();let chan=null,tm=null;
@@ -149,53 +110,32 @@ const db={
   onSnapshot(cb,err){const f=()=>this.get().then(cb).catch(err||(()=>{}));listeners.add(f);startRT();f();return()=>listeners.delete(f)}})
 };
 
-/* ---- Admin: token per giocatori ---- */
-window.MisterTokenAdmin={
- async listTokens(){
-  if(!ME||ME.role!=='admin')throw new Error('non autorizzato');
-  const {data,error}=await sb.rpc('list_player_tokens',{p_admin_token:ME.id});
-  if(error)throw new Error(error.message);
-  return data||[];
- },
- async createToken(adminToken,pid){
-  const {data,error}=await sb.rpc('create_player_token',{p_admin_token:adminToken,p_pid:pid});
-  if(error)throw new Error(error.message);
-  return data;
- },
- async revokeToken(adminToken,pid){
-  const {data,error}=await sb.rpc('revoke_player_token',{p_admin_token:adminToken,p_pid:pid});
-  if(error)throw new Error(error.message);
-  return data;
- }
-};
-
 /* ---- Admin: utenti Google in attesa ---- */
 window.MisterGoogleAdmin={
  async listPending(){
   if(!ME||ME.role!=='admin')throw new Error('non autorizzato');
-  const {data,error}=await sb.rpc('list_pending_google_users',{p_admin_token:ME.id});
+  const {data,error}=await sb.rpc('list_pending_google_users');
   if(error)throw new Error(error.message);
   return data||[];
  },
  async link(authUid,pid){
   if(!ME||ME.role!=='admin')throw new Error('non autorizzato');
-  const {data,error}=await sb.rpc('link_google_user',{p_admin_token:ME.id,p_auth_uid:authUid,p_pid:pid});
+  const {data,error}=await sb.rpc('link_google_user',{p_auth_uid:authUid,p_pid:pid});
   if(error)throw new Error(error.message);
   return data;
  },
  async unlink(authUid){
   if(!ME||ME.role!=='admin')throw new Error('non autorizzato');
-  const {data,error}=await sb.rpc('unlink_google_user',{p_admin_token:ME.id,p_auth_uid:authUid});
+  const {data,error}=await sb.rpc('unlink_google_user',{p_auth_uid:authUid});
   if(error)throw new Error(error.message);
   return data;
  }
 };
 
-/* ---- Auth: logout / login Google esposti all'app ---- */
+/* ---- Auth esposta all'app ---- */
 window.MisterAuth={
  async signOut(){
   try{await sb.auth.signOut()}catch(e){}
-  try{localStorage.removeItem(AUTH_KEY)}catch(e){}
   location.reload();
  },
  signInWithGoogle,

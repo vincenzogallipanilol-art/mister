@@ -457,7 +457,7 @@ async function initDB(){
 
 /* ===== presenza: chi ha effettuato l'accesso e chi è online ===== */
 const PRES_MS=150e3,ONLINE_MS=210e3;
-let TKBY={},quietLinks=false;
+let quietLinks=false;
 const linkSig=()=>JSON.stringify(S.links.map(l=>[l.id,l.p]).sort());
 const colSig=n=>n==='links'?linkSig():[...shadow].filter(([k])=>k.startsWith(n+'/')).sort((a,b)=>a[0]<b[0]?-1:1).map(x=>x[0]+x[1]).join('|');
 function beat(){
@@ -483,10 +483,9 @@ function tkRender(){
  const el=document.getElementById('tkList');if(!el)return;
  const P=S.players.slice().sort((a,b)=>a.name.localeCompare(b.name)),acc=P.map(p=>[p,accessOf(p)]);
  const on=acc.filter(x=>x[1].k==='on').length,ok=acc.filter(x=>x[1].k==='ok').length,no=acc.length-on-ok;
- const rows=acc.map(([p,a])=>{const tok=TKBY[p.id]||null;
+ const rows=acc.map(([p,a])=>{
   const dot=`<span style="flex:none;width:11px;height:11px;border-radius:50%;background:${DOT[a.k]};margin-right:10px;${a.k==='on'?'box-shadow:0 0 0 3px rgba(34,197,94,.25)':''}"></span>`;
-  const btn=tok?`<button class="btn sec sm" data-act="tkCopy" data-tok="${esc(tok)}" title="Copia">📋</button><button class="btn dan sm" data-act="tkRevoke" data-pid="${p.id}" style="margin-left:4px">✕</button>`:`<button class="btn sm" data-act="tkGen" data-pid="${p.id}">Genera token</button>`;
-  return`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line);align-items:center">${dot}<span class="grow small" style="min-width:0"><b>${esc(p.name)}</b><br><span class="${a.k==='no'?'':'mut'}" style="font-size:12px;${a.k==='no'?'color:#ef4444':''}">${a.t}</span>${tok?`<br><code style="font-size:12px;color:var(--ac)">${esc(tok)}</code>`:''}</span>${btn}</div>`}).join('');
+  return`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line);align-items:center">${dot}<span class="grow small" style="min-width:0"><b>${esc(p.name)}</b><br><span class="${a.k==='no'?'':'mut'}" style="font-size:12px;${a.k==='no'?'color:#ef4444':''}">${a.t}</span></span></div>`}).join('');
  el.innerHTML=P.length?`<div class="panel small" style="margin-bottom:8px;display:flex;gap:14px;flex-wrap:wrap"><span><span style="color:${DOT.on}">●</span> <b>${on}</b> online</span><span><span style="color:${DOT.ok}">●</span> <b>${ok}</b> offline</span><span><span style="color:${DOT.no}">●</span> <b>${no}</b> mai entrati</span></div>${rows}`:'<div class="mut small">Nessun giocatore.</div>';
 }
 setInterval(()=>{beat();tkRender()},PRES_MS);
@@ -1951,15 +1950,9 @@ const A={
  /* menu */
  
 
- tokensPanel:async()=>{
-  if(!window.MisterTokenAdmin){const rows=S.players.map(p=>`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="grow small"><b>${esc(p.name)}</b><br><span class="mut">—</span></span><span class="mut small">Solo su GitHub</span></div>`).join('');return openModal(`<h2>Token giocatori</h2><div class="mut small" style="margin-bottom:10px">I token si generano dall'app su GitHub (con Supabase).<br>Qui sotto i giocatori:</div><div style="max-height:55vh;overflow-y:auto">${rows}</div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)}
-  const myTok=window.MISTER_ME?.id||'';
-  openModal(`<h2>Token giocatori</h2><div class="mut small" style="margin-bottom:12px">Genera un token per ogni giocatore. Inviaglielo direttamente.</div><div id="tkList"><div class="mut small">Caricamento...</div></div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`);
-  const existing=await window.MisterTokenAdmin.listTokens().catch(()=>[]);
-  TKBY=Object.fromEntries(existing.map(t=>[t.pid,t.code]));tkRender()},
- tkGen:async d=>{if(!window.MisterTokenAdmin)return;const myTok=window.MISTER_ME?.id||'';const pName=esc((S.players.find(p=>p.id===d.pid)||{}).name||'');try{const r=await window.MisterTokenAdmin.createToken(myTok,d.pid);openModal(`<h2>Token generato ✓</h2><p class="small mut">Invia questo codice a <b>${pName}</b> via WhatsApp o SMS.</p><div style="background:#18181b;border:1.5px solid #d1ff42;border-radius:14px;padding:18px;text-align:center;margin:16px 0;letter-spacing:.12em;font-size:22px;font-family:monospace;color:#d1ff42">${esc(r.token)}</div><div class="row" style="gap:8px"><button class="btn grow" data-act="tkCopy" data-tok="${esc(r.token)}">📋 Copia token</button><button class="btn sec" data-act="tokensPanel">← Lista</button></div>`)}catch(e){toast('Errore: '+e.message)}},
- tkRevoke:d=>ASK('Revocare il token di questo giocatore? Non potrà più accedere.',async()=>{if(!window.MisterTokenAdmin)return;const myTok=window.MISTER_ME?.id||'';try{await window.MisterTokenAdmin.revokeToken(myTok,d.pid);A.tokensPanel()}catch(e){toast('Errore: '+e.message)}}),
- tkCopy:d=>{navigator.clipboard?.writeText(d.tok).then(()=>toast('Token copiato')).catch(()=>toast(d.tok))},
+ presenzaPanel:()=>{
+  openModal(`<h2>Presenza giocatori</h2><div class="mut small" style="margin-bottom:12px">Chi ha effettuato l'accesso e chi è online in questo momento.</div><div id="tkList"><div class="mut small">Caricamento...</div></div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`);
+  tkRender()},
  pushEnable:async()=>{try{await window.MisterPush.enable();toast('Notifiche attivate ✓');render();if($('#modal').classList.contains('on'))A.notifSettings()}catch(e){toast(e.message,4000)}},
  notifSettings:async()=>{const P=window.MisterPush,ok=window.MISTER_CFG?.vapid&&P?.supported(),st=ok?P.state():'unsupported';
   const head=!ok?`<div class="panel small mut">Notifiche non disponibili su questo dispositivo. Su iPhone: apri il sito in Safari → Condividi → "Aggiungi a Home", poi apri l'app dall'icona.</div>`
@@ -2113,7 +2106,7 @@ Object.assign(A,{
   ${me?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Sei collegato come</div><b>${esc(nm(me))}</b></div>${ADM?`<button class="btn sec sm" data-act="claim">Cambia</button>`:''}</div>`:ADM?`<div class="panel" style="margin-bottom:10px"><div class="small mut" style="margin-bottom:6px">Non sei collegato a nessun giocatore</div><button class="btn sm" data-act="claim">👤 Scegli chi sei</button></div>`:''}
   ${ADM?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Modalità</div><b>${S.ui.previewPlayer?'👁 Giocatore':'👑 Admin'}</b></div><button class="btn sec sm" data-act="togglePreview">${S.ui.previewPlayer?'Torna Admin':'Vedi come giocatore'}</button></div>`:''}
   <div class="row wrap" style="gap:8px;margin-bottom:10px"><button class="btn sec" data-act="notifSettings">🔔 Notifiche</button><button class="btn sec" data-act="fbTip">💡 Consigli${nt?` <span class="tag">${nt}</span>`:''}</button><button class="btn sec" data-act="fbBug">🐞 Bug${nb?` <span class="tag">${nb}</span>`:''}</button><button class="btn sec" data-act="tourStart">📖 Guida</button><button class="btn sec" data-act="changelog">🆕 Novità</button></div>
-  ${VA()?`<h3>Admin</h3><div class="row wrap" style="gap:8px"><button class="btn sec" data-act="tokensPanel">🔑 Token giocatori</button><button class="btn sec" data-act="googleUsersPanel">👥 Utenti Google</button><button class="btn sec" data-act="rateReq">📣 Chiedi valutazioni</button><button class="btn sec" data-act="matchesAdmin">🗑 Gestisci partite</button><button class="btn sec" data-act="exp">⬇ Backup</button><button class="btn sec" data-act="imp">⬆ Importa</button></div><input type="file" id="impF" accept=".json" style="display:none">`:''}
+  ${VA()?`<h3>Admin</h3><div class="row wrap" style="gap:8px"><button class="btn sec" data-act="presenzaPanel">🟢 Presenza</button><button class="btn sec" data-act="googleUsersPanel">👥 Utenti Google</button><button class="btn sec" data-act="rateReq">📣 Chiedi valutazioni</button><button class="btn sec" data-act="matchesAdmin">🗑 Gestisci partite</button><button class="btn sec" data-act="exp">⬇ Backup</button><button class="btn sec" data-act="imp">⬆ Importa</button></div><input type="file" id="impF" accept=".json" style="display:none">`:''}
   <div class="row" style="margin-top:14px;gap:8px"><button class="btn sec grow" data-act="closeM">Chiudi</button><button class="btn dan" data-act="logout">🚪 Esci</button></div>`)},
  logout:()=>ASK('Uscire dall\'app?',()=>window.MisterAuth?.signOut()),
  googleUsersPanel:async()=>{
