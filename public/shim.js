@@ -163,7 +163,10 @@ window.MisterPush={
  async endpoint(){if(!this.supported())return null;const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();return sub?sub.endpoint:null},
  async getPrefs(){const ep=await this.endpoint();if(!ep)return{};const {data,error}=await sb.from('push_subs').select('prefs').eq('endpoint',ep).maybeSingle();if(error)throw error;return(data&&data.prefs)||{}},
  async setPrefs(prefs){const ep=await this.endpoint();if(!ep)throw new Error('Attiva prima le notifiche');const {error}=await sb.from('push_subs').update({prefs}).eq('endpoint',ep);if(error)throw error;return true},
- async notify(title,body,url,type,users){const {data,error}=await sb.functions.invoke('notify',{body:{title,body,url,type:type||null,users:users||null}});if(error)throw error;return data}
+ async notify(title,body,url,type,users){
+  const {data:kill}=await sb.from('docs').select('data').eq('path','settings/notify_kill').maybeSingle();
+  if(kill&&kill.data&&kill.data.off)return{sent:0,skipped:'kill_switch'};
+  const {data,error}=await sb.functions.invoke('notify',{body:{title,body,url,type:type||null,users:users||null}});if(error)throw error;return data}
 };
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
