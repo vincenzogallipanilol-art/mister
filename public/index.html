@@ -13,26 +13,26 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>MISTER – Gestionale squadre</title>
 <style>
-:root{--bg:#0e0e10;--bg2:#151517;--card:#1c1c1f;--line:#2b2b30;--tx:#f2f4f7;--mut:#9096a0;--ac:#d1ff42;--ac2:#c7d1dd;--gold:#f5c542;--red:#ef4444;--yel:#facc15}
+:root{--bg:#0e0e10;--bg2:#151517;--card:#1c1c1f;--line:#33363a;--tx:#f2f4f7;--mut:#9096a0;--mut2:#bfc4cb;--ac:#d1ff42;--ac2:#c7d1dd;--gold:#f5c542;--red:#bc0003;--yel:#facc15}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.35 'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 body{padding-bottom:84px}
 header{position:sticky;top:0;z-index:20;background:rgba(14,14,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:10px 14px}
-header h1{margin:0;font-size:18px;letter-spacing:2px;font-weight:800}
+header h1{margin:0;font-size:18px;letter-spacing:2px;font-weight:800;font-family:'Oswald',system-ui,sans-serif}
 header h1 span{color:var(--ac)}
 main{max-width:760px;margin:0 auto;padding:14px}
 nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:#121214;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;background:none;border:0;color:var(--mut);padding:9px 0 8px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+nav button{flex:1;background:none;border:0;color:var(--mut);padding:9px 0 8px;font-size:11px;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
 nav button i{font-style:normal;font-size:20px}
-nav button.on{color:var(--ac)}
-h2{font-size:17px;margin:0 0 10px}
-h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:18px 0 8px}
+nav button.on{color:var(--ac);font-weight:700}
+h2{font-size:22px;margin:0 0 10px;font-family:'Oswald',system-ui,sans-serif;font-weight:600}
+h3{font-size:21px;letter-spacing:0;color:var(--tx);margin:18px 0 10px;font-family:'Oswald',system-ui,sans-serif;font-weight:600;text-transform:none}
 .row{display:flex;gap:8px;align-items:center}
 .sp{justify-content:space-between}
 .grow{flex:1}
 .wrap{flex-wrap:wrap}
 button,select,input[type=text],input[type=number]{font:inherit}
-.btn{background:var(--ac);color:#12160a;border:0;border-radius:10px;padding:9px 14px;font-weight:700;cursor:pointer}
+.btn{background:var(--ac);color:#10120b;border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer}
 .btn.sec{background:var(--card);color:var(--tx);border:1px solid var(--line)}
 .btn.dan{background:#3b1519;color:#fca5a5;border:1px solid #6b1f26}
 .btn.sm{padding:6px 10px;font-size:13px;border-radius:8px}
@@ -40,8 +40,8 @@ button,select,input[type=text],input[type=number]{font:inherit}
 input[type=text],input[type=number],input[type=date],input[type=time],input[type=datetime-local],select{background:var(--bg2);color:var(--tx);border:1px solid var(--line);border-radius:9px;padding:9px 10px;width:100%}
 label{font-size:12px;color:var(--mut);display:block;margin:10px 0 4px}
 .chip{display:inline-flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;color:var(--tx);cursor:pointer;user-select:none}
-.chip.on{background:var(--ac);color:#12160a;border-color:var(--ac);font-weight:700}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
+.chip.on{background:var(--ac);color:#10120b;border-color:var(--ac);font-weight:700}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px}
 .mut{color:var(--mut)}
 .small{font-size:12px}
 .empty{text-align:center;color:var(--mut);padding:36px 10px}
@@ -350,7 +350,7 @@ span.rcvb{opacity:.85;cursor:default}
 .mchev{flex:none;transition:transform .2s}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="shim.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <header><h1>MIS<span>TER</span> <small id="ver" style="font-size:10px;font-weight:400;letter-spacing:1px;color:#555;vertical-align:middle"></small></h1><div class="hb"><button class="bell" data-act="bell" aria-label="Notifiche">🔔<i id="bdg"></i></button><button class="btn sec sm" data-act="menu">Impostazioni</button></div></header>
@@ -503,12 +503,18 @@ const GROUPS=[
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
-const VERSION='1.7.0';
+const VERSION='1.8.0';
 /* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra.
    Voce = [tipo, testo, soloAdmin?]  ·  tipo: 'new' novità · 'imp' miglioramento · 'bug' correzione.
    Le voci soloAdmin (3° elemento true) NON compaiono mai nelle notifiche né ai giocatori. */
 const CLT={new:['✨','Novità','novità'],imp:['🔧','Miglioramenti','miglioramenti'],bug:['🐞','Correzioni','bug risolti']};
 const CHANGELOG=[
+ {v:'1.8.0',d:'27 ott 2026',items:[
+  ['new','Accesso solo con Google per tutti, admin incluso: niente più token da ricordare o perdere'],
+  ['imp','Grafica rinnovata: nuova tipografia (titoli e punteggi più leggibili) e palette più coerente in tutta l\'app'],
+  ['imp','Sicurezza rafforzata sul database: solo chi ha fatto accesso può leggere i dati della squadra'],
+  ['imp','Token giocatori sostituito dal pannello Presenza (chi è online, chi ha già fatto accesso)','adm']
+ ].map(x=>x[2]?[x[0],x[1],true]:x)},
  {v:'1.7.0',d:'23 ott 2026',items:[
   ['new','Voti non più anonimi: nel tuo profilo, «Come ti vedono i compagni», vedi chi ti ha valutato e quale valore ha dato a ogni attributo'],
   ['new','Valutare un compagno: ogni macro mostra il suo overall, il «?» spiega quanto pesa ogni statistica, «Salva» apre l\'anteprima della card prima e dopo il tuo voto, e la bozza non si perde se chiudi l\'app'],
