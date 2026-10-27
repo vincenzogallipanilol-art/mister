@@ -473,7 +473,12 @@ function agoLbl(ts){const d=Date.now()-ts;if(d<90e3)return'adesso';if(d<36e5)ret
  const a=new Date(ts),n=new Date(),hm=a.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}),y=new Date(n);y.setDate(n.getDate()-1);
  if(a.toDateString()===n.toDateString())return'oggi alle '+hm;if(a.toDateString()===y.toDateString())return'ieri alle '+hm;
  return a.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' alle '+hm}
-function accessOf(p){const lk=S.links.find(l=>l.p===p.id),ac=actOf(p.id),ts=Math.max(lk&&lk.seen||0,ac.t||0);
+/* più account Google possono restare collegati allo stesso pid dopo un re-link
+   (lo scollegamento non pulisce sempre il vecchio link): prendo sempre quello
+   con l'ultimo "seen" più recente, mai il primo trovato, altrimenti la presenza
+   può mostrare dati vecchi/sbagliati pur essendoci un accesso reale più recente */
+const linkOf=pid=>{const ms=S.links.filter(l=>l.p===pid);if(!ms.length)return null;return ms.reduce((a,b)=>(b.seen||0)>(a.seen||0)?b:a)};
+function accessOf(p){const lk=linkOf(p.id),ac=actOf(p.id),ts=Math.max(lk&&lk.seen||0,ac.t||0);
  if(lk&&lk.seen&&Date.now()-lk.seen<ONLINE_MS)return{k:'on',t:'Online ora'};
  if(ts)return{k:'ok',t:'Ultimo accesso '+agoLbl(ts)};
  if(ac.n||lk)return{k:'ok',t:'Ha già effettuato l\'accesso'};
@@ -1397,7 +1402,7 @@ function NT(type,title,body,url,to,fid){
  const n={id:fid||uid(),at:Date.now(),type,title,body:body||'',url:url||'./',to:to||null};
  S.notifs.push(n);if(NSEEN)NSEEN.add(n.id);save();
  if(window.MISTER_CFG?.vapid&&window.MisterPush){
-  const tk=to?[...new Set(to.map(pid=>(S.links.find(l=>l.p===pid)||{}).id).filter(Boolean))]:null;
+  const tk=to?[...new Set(to.flatMap(pid=>S.links.filter(l=>l.p===pid).map(l=>l.id)))]:null;
   if(!to||tk.length)window.MisterPush.notify(title,n.body,n.url,type,tk).catch(()=>{});
  }
 }
@@ -1690,7 +1695,7 @@ function viewPlayers(){
 }
 /* pagina giocatore (usata per Profilo e per le schede degli altri) */
 function playerPage(p,own){
- const st=pstats(p.id,SF()),f=face(p),gk=isGK(p),me=myPid(),isMe=me===p.id,lk=S.links.find(l=>l.p===p.id);
+ const st=pstats(p.id,SF()),f=face(p),gk=isGK(p),me=myPid(),isMe=me===p.id,lk=linkOf(p.id);
  const tiles=gk?[['Pres.',st.app],['Clean',st.cs],['Subiti',st.gc],['MVP',st.mv],['Voto',st.avg!=null?st.avg.toFixed(1):'–']]:[['Pres.',st.app],['Gol',st.g],['Assist',st.a],['MVP',st.mv],['Voto',st.avg!=null?st.avg.toFixed(1):'–']];
  const more=[['Gialli',st.y],['Rossi',st.r],['Rigori segn.',st.ps],['Rigori sbagl.',st.pm],['V / N / P',`${st.w}/${st.d}/${st.l}`],gk?['Autogol',st.og]:['Clean sheet',st.cs]];
  const ms=S.matches.filter(m=>playedIn(m,p.id)).sort((a,b)=>b.date-a.date).slice(0,6);
@@ -1881,7 +1886,13 @@ const A={
  phLater:()=>{try{localStorage.setItem('mister_ph_later',String(Date.now()))}catch(e){}closeModal()},
  myPhoto:()=>photoModal(false),
  claimSkip:()=>{try{localStorage.setItem('mister_noclaim','1')}catch(e){}closeModal()},
- unlink:d=>{S.links=S.links.filter(l=>l.id!==d.id);save();render()},
+ unlink:async d=>{
+  // rimuove il link locale (presenza) E lo scollega sul server (google_users/profiles),
+  // altrimenti al prossimo accesso dell'utente il link viene ricreato da solo e la
+  // "presenza" torna a mostrare un account già scollegato come se fosse ancora valido
+  S.links=S.links.filter(l=>l.id!==d.id);save();render();
+  try{if(window.MisterGoogleAdmin)await window.MisterGoogleAdmin.unlink(d.id)}catch(e){toast('Scollegato qui, ma errore server: '+e.message)}
+ },
  /* valutazioni */
  rateP:d=>{if(!myPid()){if(ADM)claimModal();else toast('Profilo non collegato: chiedi all\'admin');return}if(ratedByMe(d.id)){toast('Hai già valutato: chiedi all\'admin di riattivarla');return}rateModal(d.id)},
  rateStep:d=>{if(!RT)return;const p=getP(RT.t),k=d.k,cur=RT.touched[k]!=null?RT.touched[k]:(RT.s[k]??sv(p,k)),nv=Math.min(99,Math.max(1,cur+(+d.d)));RT.touched[k]=nv;const el=$('#rgv_'+k);if(el){el.textContent=nv;el.classList.add('touched')}rtUpd()},

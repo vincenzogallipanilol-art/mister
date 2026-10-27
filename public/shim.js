@@ -57,6 +57,22 @@ function linkDoc(id,pid){
  });
 }
 
+/* avvisa SOLO gli admin (via push) quando un nuovo account Google chiede accesso */
+async function notifyAdminsNewAccess(email,name){
+ try{
+  const {data:admins}=await sb.rpc('admin_push_targets');
+  const ids=(admins||[]).map(r=>r.auth_uid).filter(Boolean);
+  if(!ids.length)return;
+  await sb.functions.invoke('notify',{body:{
+   title:'👤 Nuovo accesso Google',
+   body:(name||email||'Un utente')+' ha richiesto l\'accesso a MISTER — collegalo a un giocatore',
+   url:'./?admin=google',
+   type:'new_google_user',
+   users:ids
+  }});
+ }catch(e){/* best-effort */}
+}
+
 function clearAuthHash(){
  if(/access_token=|refresh_token=|[?&]code=/.test(window.location.hash+window.location.search)){
   history.replaceState(null,'',window.location.pathname+window.location.search.replace(/[?&]?code=[^&]*/,'')||window.location.pathname);
@@ -89,6 +105,7 @@ function ensureAuth(){return authP||(authP=(async()=>{
    await sb.auth.signOut().catch(()=>{});
    return loginUI('Errore di accesso: '+error.message);
   }
+  if(data.is_new&&data.status==='pending')notifyAdminsNewAccess(session.user.email||'',session.user.user_metadata?.full_name||session.user.user_metadata?.name||'');
   if(data.status==='linked'){
    ME={id:session.user.id,type:'google',uid:session.user.id,role:data.role||'player',pid:data.pid||null,name:data.name,email:session.user.email};
    window.MISTER_ME=ME;
