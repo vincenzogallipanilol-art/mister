@@ -379,7 +379,7 @@ function toast(m,ms=1800){const t=$('#toast');t.textContent=m;t.style.display='b
 
 /* ===== stato ===== */
 const KEY='mister_v1',UIKEY='mister_ui';
-const freshUI=()=>({tab:'home',pid:null,rid:null,mid:null,fil:'all',q:'',previewPlayer:false,sub:{players:'all',calcio:'match',rank:'goals'},from:null,allTime:false});
+const freshUI=()=>({tab:'home',pid:null,rid:null,mid:null,fil:'all',q:'',previewPlayer:false,sub:{players:'all',calcio:'match',rank:'goals'},from:null,allTime:false,notifFil:'all'});
 const freshSetup=()=>({format:7,A:null,B:null,pool:[]});
 const fresh=()=>({players:[],rosters:[],matches:[],events:[],rsvps:[],ratings:[],links:[],pairs:[],mvotes:[],notifs:[],feedback:[],fbvotes:[],seasons:[],live:null,setup:freshSetup(),ui:freshUI()});
 let S;try{S=Object.assign(fresh(),JSON.parse(localStorage.getItem(KEY))||{})}catch(e){S=fresh()}
@@ -2128,10 +2128,16 @@ Object.assign(A,{
  allTime:()=>{S.ui.allTime=!S.ui.allTime;saveUI();render()},
  cgo:d=>{const c=document.querySelector(`[data-car="${d.c}"]`);if(!c)return;const i=c.dataset.keys.split(',').indexOf(d.k);if(i<0)return;S.ui.sub[d.c]=d.k;c.dataset.cur=d.k;c._lk=Date.now()+750;saveUI();document.querySelectorAll(`[data-cb="${d.c}"] .cchip`).forEach(ch=>ch.classList.toggle('on',ch.dataset.kk===d.k));c.scrollTo({left:i*c.clientWidth,behavior:'smooth'});const p=c.children[i];if(p)c.style.height=p.offsetHeight+'px'},
  /* notifiche */
- bell:()=>{const L=myNotifs(),r=readSet();
-  openModal(`<div class="row sp"><h2 style="margin:0">🔔 Notifiche</h2>${L.length?`<button class="btn sec sm" data-act="readAll">✓ Leggi tutto</button>`:''}</div><div class="small mut" style="margin:6px 0 8px">Ultimi 15 giorni</div>
-  ${L.length?L.map(n=>`<div class="nrow ${r.has(n.id)?'':'un'}" data-act="nOpen" data-id="${n.id}"><span class="ni">${NICON[n.type]||'🔔'}</span><div class="grow" style="min-width:0"><b>${esc(n.title)}</b><div class="small mut">${esc(n.body)}</div></div><span class="small mut" style="flex:none">${ago(n.at)}</span></div>`).join(''):'<div class="empty">Nessuna notifica.</div>'}
+ bell:()=>{const All=myNotifs(),r=readSet(),sel=NTYPES.some(t=>t[0]===S.ui.notifFil)?S.ui.notifFil:'all';
+  const L=sel==='all'?All:All.filter(n=>n.type===sel);
+  const chips=[['all','🔔','Tutte']].concat(NTYPES.map(t=>t.slice(0,3))).map(([k,i,l])=>{
+   const n=k==='all'?All.length:All.filter(x=>x.type===k).length;
+   return n||k==='all'||k===sel?`<span class="chip ${sel===k?'on':''}" data-act="notifFil" data-k="${k}" style="font-size:12px;padding:5px 10px;white-space:nowrap">${i} ${l}${k!=='all'?` <span class="mut">${n}</span>`:''}</span>`:''}).join('');
+  openModal(`<div class="row sp"><h2 style="margin:0">🔔 Notifiche</h2>${All.length?`<button class="btn sec sm" data-act="readAll">✓ Leggi tutto</button>`:''}</div><div class="small mut" style="margin:6px 0 8px">Ultimi 15 giorni</div>
+  ${All.length?`<div class="row wrap" style="gap:6px;margin-bottom:10px">${chips}</div>`:''}
+  ${L.length?L.map(n=>`<div class="nrow ${r.has(n.id)?'':'un'}" data-act="nOpen" data-id="${n.id}"><span class="ni">${NICON[n.type]||'🔔'}</span><div class="grow" style="min-width:0"><b>${esc(n.title)}</b><div class="small mut">${esc(n.body)}</div></div><span class="small mut" style="flex:none">${ago(n.at)}</span></div>`).join(''):`<div class="empty">Nessuna notifica${sel!=='all'?' in questa categoria':''}.</div>`}
   <div class="row" style="margin-top:12px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)},
+ notifFil:d=>{S.ui.notifFil=d.k;saveUI();A.bell()},
  readAll:()=>{markRead(myNotifs().map(n=>n.id));updBell();A.bell()},
  nOpen:d=>{const n=myNotifs().find(x=>x.id===d.id);if(!n)return;markRead([n.id]);closeModal();goUrl(n.url);render();window.scrollTo(0,0)},
  /* impostazioni */
