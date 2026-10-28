@@ -143,6 +143,14 @@ window.MisterGoogleAdmin={
   if(error)throw new Error(error.message);
   return data||[];
  },
+ /* pid già collegati ad un account Google (su un altro, già censito): da escludere
+    dalla scelta quando si collega un nuovo account, per non doppiare un giocatore */
+ async linkedPids(){
+  if(!ME||ME.role!=='admin')throw new Error('non autorizzato');
+  const {data,error}=await sb.rpc('linked_player_ids');
+  if(error)throw new Error(error.message);
+  return (data||[]).map(r=>r.pid).filter(Boolean);
+ },
  async link(authUid,pid){
   if(!ME||ME.role!=='admin')throw new Error('non autorizzato');
   const {data,error}=await sb.rpc('link_google_user',{p_auth_uid:authUid,p_pid:pid});

@@ -353,6 +353,11 @@ span.rcvb{opacity:.85;cursor:default}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+<div id="boot" style="position:fixed;inset:0;z-index:99998;background:var(--bg);color:var(--tx);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px">
+ <div style="font:900 30px/1 'Oswald',system-ui,sans-serif;letter-spacing:.2em">MIS<span style="color:var(--ac)">TER</span></div>
+ <div style="width:26px;height:26px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--ac);animation:bootspin .8s linear infinite"></div>
+</div>
+<style>@keyframes bootspin{to{transform:rotate(360deg)}}</style>
 <header><h1>MIS<span>TER</span> <small id="ver" style="font-size:10px;font-weight:400;letter-spacing:1px;color:#555;vertical-align:middle"></small></h1><div class="hb"><button class="bell" data-act="bell" aria-label="Notifiche">🔔<i id="bdg"></i></button><button class="btn sec sm" data-act="menu">Impostazioni</button></div></header>
 <main id="view"></main>
 <nav id="nav"></nav>
@@ -426,14 +431,15 @@ function afterRemote(){
  if($('#modal').classList.contains('on')||DR||MEDIT||(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))){stale=true;return}
  stale=false;render();
 }
+const hideBoot=()=>{const b=$('#boot');if(b)b.remove()};
 async function initDB(){
  try{DB=window.claude?await window.claude.use('db'):null}catch(e){DB=null}
- if(!DB){ADM=!window.claude;return}
+ if(!DB){ADM=!window.claude;hideBoot();render();return}
  try{USER=await window.claude.use('user');if(USER){UID=await USER.id();ADM=!!(USER.canEdit()||USER.isOwner())}else ADM=false}catch(e){ADM=false}
  const legacy=ADM&&S.players.length?JSON.parse(JSON.stringify(S)):null;
  let n=0;const first=()=>{if(++n<ALLCOLS.length+2)return;ready=true;setTimeout(beat,800);
   if(legacy&&!S.players.length&&!S.rosters.length&&!S.matches.length){S.players=legacy.players;S.rosters=legacy.rosters;S.matches=legacy.matches;save();toast('Dati locali caricati online')}
-  render()};
+  render();hideBoot()};
  let got={};
  const err=e=>toast('Sync non disponibile'+(e&&e.code?' ('+e.code+')':''));
  const applyCol=(name,snap)=>{const sg=colSig(name);for(const k of [...shadow.keys()])if(k.startsWith(name+'/'))shadow.delete(k);
@@ -1974,12 +1980,14 @@ const A={
   openModal(`<h2>Presenza giocatori</h2><div class="mut small" style="margin-bottom:12px">Chi ha effettuato l'accesso e chi è online in questo momento.</div><div id="tkList"><div class="mut small">Caricamento...</div></div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`);
   tkRender()},
  pushEnable:async()=>{try{await window.MisterPush.enable();toast('Notifiche attivate ✓');render();if($('#modal').classList.contains('on'))A.notifSettings()}catch(e){toast(e.message,4000)}},
+ pushTest:async()=>{try{if(!UID)throw new Error('non autenticato');await window.MisterPush.notify('🔔 Test MISTER','Se vedi questa notifica, le push funzionano su questo dispositivo.','./',null,[UID]);toast('Inviata: controlla le notifiche del dispositivo')}catch(e){toast('Errore: '+e.message,4000)}},
  notifSettings:async()=>{const P=window.MisterPush,ok=window.MISTER_CFG?.vapid&&P?.supported(),st=ok?P.state():'unsupported';
   const head=!ok?`<div class="panel small mut">Notifiche non disponibili su questo dispositivo. Su iPhone: apri il sito in Safari → Condividi → "Aggiungi a Home", poi apri l'app dall'icona.</div>`
    :st==='denied'?`<div class="panel small mut">Hai bloccato le notifiche. Riattivale dalle impostazioni del telefono/browser per questo sito.</div>`
    :st!=='granted'?`<div class="panel"><div class="small" style="margin-bottom:8px">Le notifiche non sono attive su questo dispositivo.</div><button class="btn blk" data-act="pushEnable">🔔 Attiva notifiche</button></div>`
    :`<div class="panel small" style="border-color:#34d399">✅ Notifiche attive su questo dispositivo</div>`;
-  openModal(`<h2>Notifiche</h2>${head}<div id="nfPrefs"></div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`);
+  const test=VA()&&st==='granted'?`<button class="btn sec sm" data-act="pushTest">🔔 Invia notifica di prova a me</button>`:'';
+  openModal(`<h2>Notifiche</h2>${head}<div id="nfPrefs"></div>${test?`<div style="margin-top:10px">${test}</div>`:''}<div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`);
   if(st!=='granted')return;const pr=await P.getPrefs().catch(()=>null)||{};
   const el=$('#nfPrefs');if(!el)return;
   el.innerHTML=`<h3>Cosa vuoi ricevere</h3>${NTYPES.map(([k,i,l,d])=>`<label class="panel row" style="gap:10px;cursor:pointer;margin:0 0 6px;color:var(--tx);font-size:14px"><input type="checkbox" data-nf="${k}" ${pr[k]!==false?'checked':''} style="width:auto"><span class="grow"><b>${i} ${l}</b><div class="small mut">${d}</div></span></label>`).join('')}`},
@@ -2132,9 +2140,12 @@ Object.assign(A,{
  googleUsersPanel:async()=>{
   openModal('<h2>👥 Utenti Google</h2><p class="small mut">Carico…</p>');
   try{
-   const users=await window.MisterGoogleAdmin.listPending();
-   const players=S.players.slice().sort((a,b)=>nm(a.id).localeCompare(nm(b.id)));
-   openModal(`<h2>👥 Utenti Google in attesa</h2><div class="small mut" style="margin-bottom:10px">Collega ogni account Google al giocatore corrispondente. Una volta collegato, l'utente accede direttamente con Google.</div>
+   const [users,taken]=await Promise.all([window.MisterGoogleAdmin.listPending(),window.MisterGoogleAdmin.linkedPids()]);
+   const takenS=new Set(taken);
+   /* un giocatore già censito sotto un altro account non compare: eviterebbe
+      di collegarne per sbaglio due diversi alla stessa persona */
+   const players=S.players.filter(p=>!takenS.has(p.id)).sort((a,b)=>nm(a.id).localeCompare(nm(b.id)));
+   openModal(`<h2>👥 Utenti Google in attesa</h2><div class="small mut" style="margin-bottom:10px">Collega ogni account Google al giocatore corrispondente. Una volta collegato, l'utente accede direttamente con Google. I giocatori già collegati ad un altro account non sono in lista.</div>
    ${users.length?users.map(u=>`<div class="panel" style="margin-bottom:10px">
     <b>${esc(u.display_name||u.email)}</b>
     <div class="small mut" style="margin-bottom:8px">${esc(u.email)}</div>
@@ -2240,6 +2251,7 @@ document.addEventListener('focusout',()=>setTimeout(()=>{if(stale)afterRemote()}
 try{if(location.search){goUrl(location.href);history.replaceState({},'',location.pathname)}}catch(e){}
 render();
 initDB();
+setTimeout(hideBoot,8000); /* non bloccare l'app per sempre se la sync non risponde */
 (function(){const v=document.getElementById('ver');if(v)v.textContent='v'+VERSION})();
 
 /* zoom card: tieni premuto su una card */
