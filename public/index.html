@@ -1084,7 +1084,9 @@ function meSync(){if(!MEDIT)return;const v=id=>$('#'+id);
 
 /* ===== identità, valutazioni, storico, chimica, condivisione, eventi ===== */
 const APP_URL=location.origin+location.pathname.replace(/[^/]*$/,'');
-const NTYPES=[['proposal','⚽','Partite','Nuove partite, partita al completo, posti liberi'],['reminder','⏰','Promemoria','Rispondi all\'invito, si gioca stasera, voti in scadenza'],['match_result','⭐','Risultati e voti','Quando escono i voti di una partita'],['rate_request','🗳️','Votazioni e valutazioni','Votazione aperta, un compagno ha valutato la tua card'],['award','🏆','Premi e traguardi','Premi vinti, nuove stagioni'],['feedback','💡','Consigli e bug','Nuove votazioni sui consigli e stato delle tue segnalazioni'],['update','🆕','Aggiornamenti app','Quando esce una nuova versione con le novità']];
+const TICON={proposal:'⚽',reminder:'⏰',match_result:'⭐',rate_request:'🗳️',award:'🏆',feedback:'💡',update:'🆕'};
+const NTYPES=[['match','⚽','Partite','Nuove partite, posti liberi, inviti e promemoria da confermare',['proposal','reminder']],['votes','🗳️','Voti','Votazione aperta, voti usciti, valutazioni dei compagni',['rate_request','match_result']],['award','🏆','Premi','Premi vinti, nuove stagioni',['award']],['feedback','💡','Feedback','Novità sui consigli e sulle segnalazioni',['feedback']],['update','🆕','Aggiornamenti','Quando esce una nuova versione con le novità',['update']]];
+const TYPE2CAT=Object.fromEntries(NTYPES.flatMap(c=>c[4].map(t=>[t,c[0]])));
 const myPid=()=>{if(UID){const l=S.links.find(x=>x.id===UID);if(l&&getP(l.p))return l.p}const mp=window.MISTER_ME?.pid;return mp&&getP(mp)?mp:null};
 const fdate=(iso,o)=>{try{return new Date(iso).toLocaleString('it-IT',o||{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return iso}};
 const nm=id=>{const p=getP(id);return p?p.name:'?'};
@@ -1395,7 +1397,7 @@ document.addEventListener('scroll',e=>{
 },true);
 
 /* ---------- notifiche ---------- */
-const NICON=Object.fromEntries(NTYPES.map(n=>[n[0],n[1]]));
+const NICON=TICON;
 function myNotifs(){
  const me=myPid(),lim=Date.now()-15*864e5;
  return S.notifs.filter(n=>n.at>=lim&&(!n.to||(me&&n.to.includes(me)))).concat(lsGet('mister_ln',[]).filter(n=>n.at>=lim)).sort((a,b)=>b.at-a.at);
@@ -1996,7 +1998,7 @@ const A={
   openModal(`<h2>Notifiche</h2>${head}<div id="nfPrefs"></div>${test?`<div style="margin-top:10px">${test}</div>`:''}<div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`);
   if(st!=='granted')return;const pr=await P.getPrefs().catch(()=>null)||{};
   const el=$('#nfPrefs');if(!el)return;
-  el.innerHTML=`<h3>Cosa vuoi ricevere</h3>${NTYPES.map(([k,i,l,d])=>`<label class="panel row" style="gap:10px;cursor:pointer;margin:0 0 6px;color:var(--tx);font-size:14px"><input type="checkbox" data-nf="${k}" ${pr[k]!==false?'checked':''} style="width:auto"><span class="grow"><b>${i} ${l}</b><div class="small mut">${d}</div></span></label>`).join('')}`},
+  el.innerHTML=`<h3>Cosa vuoi ricevere</h3>${NTYPES.map(([k,i,l,d,ts])=>`<label class="panel row" style="gap:10px;cursor:pointer;margin:0 0 6px;color:var(--tx);font-size:14px"><input type="checkbox" data-nf="${k}" ${pr[ts[0]]!==false?'checked':''} style="width:auto"><span class="grow"><b>${i} ${l}</b><div class="small mut">${d}</div></span></label>`).join('')}`},
  
  togglePreview:()=>{if(!S.ui.previewPlayer&&!myPid()){toast('Prima scegli quale giocatore sei');claimModal();return}S.ui.previewPlayer=!S.ui.previewPlayer;S.ui.tab='home';save();closeModal();render();window.scrollTo(0,0);toast(S.ui.previewPlayer?'Vista giocatore':'Vista admin')},
  exp:async()=>{const data=JSON.stringify(S);let d=null;try{d=window.claude?await window.claude.use('downloads'):null}catch(e){}
@@ -2129,9 +2131,9 @@ Object.assign(A,{
  cgo:d=>{const c=document.querySelector(`[data-car="${d.c}"]`);if(!c)return;const i=c.dataset.keys.split(',').indexOf(d.k);if(i<0)return;S.ui.sub[d.c]=d.k;c.dataset.cur=d.k;c._lk=Date.now()+750;saveUI();document.querySelectorAll(`[data-cb="${d.c}"] .cchip`).forEach(ch=>ch.classList.toggle('on',ch.dataset.kk===d.k));c.scrollTo({left:i*c.clientWidth,behavior:'smooth'});const p=c.children[i];if(p)c.style.height=p.offsetHeight+'px'},
  /* notifiche */
  bell:()=>{const All=myNotifs(),r=readSet(),sel=NTYPES.some(t=>t[0]===S.ui.notifFil)?S.ui.notifFil:'all';
-  const L=sel==='all'?All:All.filter(n=>n.type===sel);
+  const L=sel==='all'?All:All.filter(n=>TYPE2CAT[n.type]===sel);
   const chips=[['all','🔔','Tutte']].concat(NTYPES.map(t=>t.slice(0,3))).map(([k,i,l])=>{
-   const n=k==='all'?All.length:All.filter(x=>x.type===k).length;
+   const n=k==='all'?All.length:All.filter(x=>TYPE2CAT[x.type]===k).length;
    return n||k==='all'||k===sel?`<span class="chip ${sel===k?'on':''}" data-act="notifFil" data-k="${k}" style="font-size:12px;padding:5px 10px;white-space:nowrap">${i} ${l}${k!=='all'?` <span class="mut">${n}</span>`:''}</span>`:''}).join('');
   openModal(`<div class="row sp"><h2 style="margin:0">🔔 Notifiche</h2>${All.length?`<button class="btn sec sm" data-act="readAll">✓ Leggi tutto</button>`:''}</div><div class="small mut" style="margin:6px 0 8px">Ultimi 15 giorni</div>
   ${All.length?`<div class="row wrap" style="gap:6px;margin-bottom:10px">${chips}</div>`:''}
@@ -2235,7 +2237,7 @@ document.addEventListener('click',e=>{
  const fn=A[t.dataset.act];if(fn){e.stopPropagation();fn(Object.assign({el:t},t.dataset),e)}
 });
 document.addEventListener('change',e=>{
- if(e.target.dataset&&e.target.dataset.nf){const pr={};document.querySelectorAll('[data-nf]').forEach(c=>pr[c.dataset.nf]=c.checked);window.MisterPush?.setPrefs(pr).then(()=>toast('Preferenze salvate')).catch(x=>toast('Errore: '+x.message));return}
+ if(e.target.dataset&&e.target.dataset.nf){const pr={};document.querySelectorAll('[data-nf]').forEach(c=>{const cat=NTYPES.find(n=>n[0]===c.dataset.nf);(cat?cat[4]:[c.dataset.nf]).forEach(t=>pr[t]=c.checked)});window.MisterPush?.setPrefs(pr).then(()=>toast('Preferenze salvate')).catch(x=>toast('Errore: '+x.message));return}
  const t=e.target;
  if((t.id==='phFile'||t.id==='phCam')&&t.files[0]){const mg=$('#phMsg');if(mg)mg.textContent='Elaboro la foto…';resizeImg(t.files[0],u=>{const me=myPid(),p=me&&getP(me);if(!p)return;p.photo=u;save();closeModal();render();toast('Foto salvata ✓')},260);return}
  if(t.id==='edFile'&&t.files[0]){resizeImg(t.files[0],u=>{ED.photo=u;$('#edPh').innerHTML=`<img src="${u}">`});return}
