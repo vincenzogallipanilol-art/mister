@@ -2140,7 +2140,7 @@ Object.assign(A,{
  googleUsersPanel:async()=>{
   openModal('<h2>👥 Utenti Google</h2><p class="small mut">Carico…</p>');
   try{
-   const [users,taken]=await Promise.all([window.MisterGoogleAdmin.listPending(),window.MisterGoogleAdmin.linkedPids()]);
+   const [users,taken]=await Promise.all([window.MisterGoogleAdmin.listPending(),window.MisterGoogleAdmin.linkedPids().catch(()=>[])]);
    const takenS=new Set(taken);
    /* un giocatore già censito sotto un altro account non compare: eviterebbe
       di collegarne per sbaglio due diversi alla stessa persona */
