@@ -403,7 +403,9 @@ const NORM={
  players:p=>{p.roles=p.roles&&p.roles.length?p.roles:['CM'];p.s=p.s||{};p.name=p.name||'';return p},
  rosters:r=>{r.pids=r.pids||[];const l=r.lineup||[];r.lineup=Array.from({length:r.format||7},(_,i)=>l[i]||null);return r},
  matches:m=>{m.events=m.events||[];m.ratings=m.ratings||{};m.evo=m.evo||{};m.ovrs=m.ovrs||{};m.awards=m.awards||{};nTeam(m.A);nTeam(m.B);return m},
- events:e=>e,rsvps:r=>r,links:l=>l,pairs:x=>x,mvotes:x=>{x.v=x.v||{};x.aw=x.aw||{};return x},notifs:n=>n,feedback:f=>f,fbvotes:f=>f,seasons:x=>{x.champs=x.champs||{};return x},
+ events:e=>e,rsvps:r=>r,links:l=>l,pairs:x=>x,mvotes:x=>{x.v=x.v||{};x.aw=x.aw||{};return x},notifs:n=>n,
+ feedback:f=>{const map={poll:'new',work:'ok',wont:'no'};if(map[f.status])f.status=map[f.status];return f},
+ fbvotes:f=>f,seasons:x=>{x.champs=x.champs||{};return x},
  ratings:r=>{r.s=r.s||{};r.log=r.log||[];return r}
 };
 const ALLCOLS=['players','rosters','matches','events','rsvps','ratings','links','pairs','mvotes','notifs','feedback','fbvotes','seasons'];
@@ -426,7 +428,7 @@ function save(){
  for(const [path,val] of cur){const j=stab(val);if(shadow.get(path)!==j){shadow.set(path,j);if(canWrite(path))enqueue(()=>DB.doc(path).set(JSON.parse(j)))}}
  for(const path of [...shadow.keys()])if(!cur.has(path)){shadow.delete(path);if(canWrite(path))enqueue(()=>DB.doc(path).delete())}
 }
-function afterQ(){if(quietLinks){quietLinks=false;tkRender();return}afterRemote()}
+function afterQ(){if(quietLinks){quietLinks=false;tkRender();return}if(ready)fbTick();afterRemote()}
 function afterRemote(){
  if($('#modal').classList.contains('on')||DR||MEDIT||(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))){stale=true;return}
  stale=false;render();
@@ -437,7 +439,7 @@ async function initDB(){
  if(!DB){ADM=!window.claude;hideBoot();render();return}
  try{USER=await window.claude.use('user');if(USER){UID=await USER.id();ADM=!!(USER.canEdit()||USER.isOwner())}else ADM=false}catch(e){ADM=false}
  const legacy=ADM&&S.players.length?JSON.parse(JSON.stringify(S)):null;
- let n=0;const first=()=>{if(++n<ALLCOLS.length+2)return;ready=true;setTimeout(beat,800);
+ let n=0;const first=()=>{if(++n<ALLCOLS.length+2)return;ready=true;setTimeout(beat,800);fbTick();
   if(legacy&&!S.players.length&&!S.rosters.length&&!S.matches.length){S.players=legacy.players;S.rosters=legacy.rosters;S.matches=legacy.matches;save();toast('Dati locali caricati online')}
   render();hideBoot()};
  let got={};
@@ -1561,32 +1563,62 @@ function goalModal(k){
 }
 
 /* ---------- consigli e bug ---------- */
-const FB_ST={tip:{new:['🆕','Nuovo'],poll:['🗳️','In votazione'],ok:['✅','Approvato'],no:['⛔','Respinto'],done:['🚀','Realizzato']},bug:{new:['🆕','Nuovo'],work:['🛠️','In lavorazione'],done:['✅','Risolto'],wont:['⛔','Non riproducibile']}};
-const fbVis=f=>ADM||f.by===FV()||(f.kind==='tip'&&f.status!=='new');
-let FBK='tip';
-const pollOpen=f=>f.poll&&Date.now()<f.poll.until;
+const FB_ST={new:['🆕','Nuovo'],ok:['✅','Approvato'],no:['⛔','Respinto'],done:['🚀','Realizzato']};
+const FB_POLL_MS=3*864e5;
+const fbVis=f=>ADM||f.by===FV()||f.status!=='new'||(f.poll&&pollOpen(f));
+let FBK='tip',FBF='all';
+const pollOpen=f=>!!f.poll&&Date.now()<f.poll.until;
+const pollEnded=f=>!!f.poll&&Date.now()>=f.poll.until;
+function notifyFb(f,s){const lb=(FB_ST[s]||[])[1];if(lb&&f.pid&&f.pid!==myPid())NT('feedback',f.kind==='bug'?'🐞 Aggiornamento sul tuo bug':'💡 Aggiornamento sul tuo consiglio',`${f.title} → ${lb}`,'./?fb='+f.id,[f.pid])}
+function fbTick(){
+ let changed=false;
+ ['tip','bug'].forEach(kind=>{
+  const items=S.feedback.filter(f=>f.kind===kind);
+  items.filter(f=>f.status==='new'&&pollEnded(f)&&!f.decided).forEach(f=>{
+   f.decided=true;changed=true;
+   const V=S.fbvotes.filter(v=>v.f===f.id),y=V.filter(v=>v.v==='y').length,tot=V.length;
+   if(tot&&y/tot>=2/3){f.status='ok';notifyFb(f,'ok')}
+   else if(tot&&(tot-y)/tot>=2/3){f.status='no';notifyFb(f,'no')}
+  });
+  if(!items.some(f=>f.status==='new'&&pollOpen(f))){
+   const next=items.filter(f=>f.status==='new'&&!f.poll).sort((a,b)=>a.at-b.at)[0];
+   if(next){next.poll={start:Date.now(),until:Date.now()+FB_POLL_MS};delete next.decided;changed=true;
+    NT('feedback',kind==='tip'?'💡 Nuova votazione':'🐞 Nuova votazione',next.title,'./?fb='+next.id,null)}
+  }
+ });
+ if(changed)save();
+}
 function fbCard(f){
- const st=(FB_ST[f.kind]||{})[f.status]||['•',f.status],mine=f.by===FV();
+ const mine=f.by===FV(),active=f.status==='new',voting=active&&pollOpen(f),queued=active&&!f.poll;
+ const st=FB_ST[f.status]||['•',f.status];
  const V=S.fbvotes.filter(v=>v.f===f.id),y=V.filter(v=>v.v==='y').length,n=V.length-y,my=V.find(v=>v.r===FV());
- let poll='';
- if(f.kind==='tip'&&f.poll){
-  if(pollOpen(f))poll=`<div class="panel" style="margin:8px 0 0;padding:10px"><div class="small mut" style="margin-bottom:6px">🗳️ Votazione aperta · chiude tra ${hLeft({vote:{until:f.poll.until}})} · ${V.length} ${V.length===1?'voto':'voti'}${VA()?` (👍 ${y} · 👎 ${n})`:''}</div><div class="row" style="gap:8px"><button class="btn ${my&&my.v==='y'?'':'sec'} grow" data-act="fbVote" data-id="${f.id}" data-v="y">👍 Sì</button><button class="btn ${my&&my.v==='n'?'':'sec'} grow" data-act="fbVote" data-id="${f.id}" data-v="n">👎 No</button></div>${my?`<div class="small mut" style="margin-top:6px">Hai votato · puoi cambiare idea finché è aperta.</div>`:''}</div>`;
-  else{const t=y+n,pc=t?Math.round(y/t*100):0;poll=`<div class="panel" style="margin:8px 0 0;padding:10px"><div class="small mut">Votazione chiusa · ${t} voti</div><div class="meter" style="margin:6px 0"><i style="width:${pc}%;background:#34d399"></i><i style="width:${100-pc}%;background:#ef4444;opacity:${t?1:.2}"></i></div><div class="row sp small"><span>👍 ${y} (${pc}%)</span><span>👎 ${n} (${t?100-pc:0}%)</span></div></div>`}
- }
- const ctl=VA()?`<div class="row wrap" style="gap:6px;margin-top:8px">${f.kind==='tip'?(pollOpen(f)?`<button class="btn sec sm" data-act="fbEnd" data-id="${f.id}">Chiudi votazione</button>`:`<button class="btn sm" data-act="fbPoll" data-id="${f.id}">🗳 ${f.poll?'Nuova votazione':'Indici votazione'}</button>`):''}${Object.entries(FB_ST[f.kind]).filter(([k])=>k!=='poll'&&k!==f.status).map(([k,[i,l]])=>`<button class="btn sec sm" data-act="fbSet" data-id="${f.id}" data-s="${k}">${i} ${l}</button>`).join('')}<button class="btn dan sm" data-act="fbDel" data-id="${f.id}">✕</button></div>`:(mine&&f.status==='new'?`<div class="row" style="margin-top:8px"><button class="btn dan sm" data-act="fbDel" data-id="${f.id}">Ritira</button></div>`:'');
  const who=VA()?(f.pid&&getP(f.pid)?esc(nm(f.pid)):'anonimo'):(mine?'tu':'');
- return`<div class="panel" id="fb_${f.id}"><div class="row sp" style="align-items:flex-start;gap:8px"><b>${esc(f.title)}</b><span class="tag" style="flex:none">${st[0]} ${st[1]}</span></div>${f.text?`<div class="small" style="margin-top:4px;white-space:pre-wrap">${esc(f.text)}</div>`:''}<div class="small mut" style="margin-top:4px">${who?who+' · ':''}${ago(f.at)}</div>${poll}${ctl}</div>`;
+ const adminCtl=VA()?`<div class="row wrap" style="gap:6px;margin-top:8px">${active?`<button class="btn sec sm" data-act="fbSet" data-id="${f.id}" data-s="ok">✅ Approva</button><button class="btn sec sm" data-act="fbSet" data-id="${f.id}" data-s="no">⛔ Respingi</button>`:''}${f.status==='ok'?`<button class="btn sm" data-act="fbSet" data-id="${f.id}" data-s="done">🚀 Realizzato</button>`:''}${voting?`<button class="btn sec sm" data-act="fbEnd" data-id="${f.id}">Chiudi votazione ora</button>`:''}<button class="btn dan sm" data-act="fbDel" data-id="${f.id}">✕ Elimina</button></div>`
+  :(mine&&active&&!voting?`<div class="row" style="margin-top:8px"><button class="btn dan sm" data-act="fbDel" data-id="${f.id}">Ritira</button></div>`:'');
+ if(active){
+  const sub=voting?`🗳️ chiude tra ${hLeft({vote:{until:f.poll.until}})} · ${V.length} ${V.length===1?'voto':'voti'}`:queued?'⏳ In coda, parte a breve':'Votazione chiusa · in attesa di decisione';
+  const voteRow=voting?`<div class="row" style="gap:8px;margin-top:8px"><button class="btn ${my&&my.v==='y'?'':'sec'} grow" data-act="fbVote" data-id="${f.id}" data-v="y">👍 Sì ${y}</button><button class="btn ${my&&my.v==='n'?'':'sec'} grow" data-act="fbVote" data-id="${f.id}" data-v="n">👎 No ${n}</button></div>`:'';
+  return`<div class="panel" id="fb_${f.id}"><div class="row sp" style="align-items:flex-start;gap:8px"><b>${esc(f.title)}</b><span class="tag" style="flex:none">${st[0]} ${st[1]}</span></div>${f.text?`<div class="small" style="margin-top:4px;white-space:pre-wrap">${esc(f.text)}</div>`:''}<div class="small mut" style="margin-top:4px">${sub}</div>${voteRow}${adminCtl}</div>`;
+ }
+ return`<details class="panel" id="fb_${f.id}" style="padding:0"><summary style="padding:12px 14px;cursor:pointer;list-style:none"><div class="row sp" style="align-items:center;gap:8px"><b class="ell grow">${esc(f.title)}</b><span class="tag" style="flex:none">${st[0]} ${st[1]}</span></div><div class="small mut" style="margin-top:2px">${f.status==='done'&&f.ver?'v'+esc(f.ver)+' · ':''}${ago(f.at)}</div></summary><div style="padding:0 14px 14px">${f.text?`<div class="small" style="white-space:pre-wrap">${esc(f.text)}</div>`:''}${who?`<div class="small mut" style="margin-top:4px">${who}</div>`:''}${adminCtl}</div></details>`;
 }
 function fbList(kind){
- FBK=kind;const L=S.feedback.filter(f=>f.kind===kind&&fbVis(f)).sort((a,b)=>b.at-a.at);
+ if(kind!==FBK)FBF='all';FBK=kind;
+ const All=S.feedback.filter(f=>f.kind===kind&&fbVis(f)).sort((a,b)=>b.at-a.at);
+ const sel=FB_ST[FBF]?FBF:'all';
+ const L=sel==='all'?All:All.filter(f=>f.status===sel);
+ const chips=[['all','🔔','Tutti']].concat(Object.entries(FB_ST).map(([k,v])=>[k,...v])).map(([k,i,l])=>{
+  const c=k==='all'?All.length:All.filter(f=>f.status===k).length;
+  return c||k==='all'||k===sel?`<span class="chip ${sel===k?'on':''}" data-act="fbFil" data-f="${k}" style="font-size:12px;padding:5px 10px;white-space:nowrap">${i} ${l}${k!=='all'?` <span class="mut">${c}</span>`:''}</span>`:''}).join('');
  const y=$('.sheet')?$('.sheet').scrollTop:0;
  openModal(`<div class="row sp"><h2 style="margin:0">${kind==='tip'?'💡 Consigli':'🐞 Bug'}</h2><button class="btn sm" data-act="fbNew" data-k="${kind}">＋ ${kind==='tip'?'Nuovo consiglio':'Segnala bug'}</button></div>
- <div class="small mut" style="margin:6px 0 12px">${kind==='tip'?(VA()?'Tutti i consigli. Indici una votazione per far decidere il gruppo.':'Proponi idee per migliorare l\'app: quando l\'admin indice una votazione puoi votare Sì o No.'):(VA()?'Tutte le segnalazioni, con stato di lavorazione.':'Le tue segnalazioni e il loro stato.')}</div>
- ${L.length?L.map(fbCard).join(''):`<div class="empty">${kind==='tip'?'Nessun consiglio per ora.':'Nessuna segnalazione.'}</div>`}
+ <div class="small mut" style="margin:6px 0 10px">${kind==='tip'?'Ogni consiglio nuovo entra in votazione (3 giorni) appena si libera il turno.':'Ogni bug nuovo entra in votazione (3 giorni) appena si libera il turno.'}</div>
+ ${All.length?`<div class="row wrap" style="gap:6px;margin-bottom:10px">${chips}</div>`:''}
+ ${L.length?L.map(fbCard).join(''):`<div class="empty">${sel==='all'?(kind==='tip'?'Nessun consiglio per ora.':'Nessuna segnalazione.'):'Nessun elemento in questa categoria.'}</div>`}
  <div class="row" style="margin-top:12px"><button class="btn sec grow" data-act="menu">← Impostazioni</button></div>`);
  if(y)$('.sheet').scrollTop=y;
 }
-function fbOpenId(id){const f=S.feedback.find(x=>x.id===id);if(!f||!fbVis(f))return;fbList(f.kind);setTimeout(()=>{const e=document.getElementById('fb_'+id);if(e)e.scrollIntoView({block:'center'})},60)}
+function fbOpenId(id){const f=S.feedback.find(x=>x.id===id);if(!f||!fbVis(f))return;FBF='all';fbList(f.kind);setTimeout(()=>{const e=document.getElementById('fb_'+id);if(e){e.scrollIntoView({block:'center'});if(e.tagName==='DETAILS')e.open=true}},60)}
 
 /* ===================== VISTE: Home, Giocatori, Profilo, Classifica, Calcio ===================== */
 const openEvents=()=>{const now=Date.now()-3*3600e3;return S.events.filter(e=>e.status!=='closed'&&new Date(e.when).getTime()>=now).sort((a,b)=>a.when.localeCompare(b.when))};
@@ -1609,12 +1641,12 @@ function viewHome(){
  const me=myPid(),p=me&&getP(me),evs=openEvents(),nx=evs[0],mine=nx&&me?rsvpOf(nx.id,me):null;
  const pend=me?evs.filter(e=>!rsvpOf(e.id,me)):[];
  const pv=me?S.matches.filter(m=>mOpen(m)&&playedIn(m,me)&&!myVote(m,me)):[];
- const polls=S.feedback.filter(f=>f.kind==='tip'&&pollOpen(f)&&!S.fbvotes.some(v=>v.f===f.id&&v.r===FV()));
+ const polls=S.feedback.filter(f=>pollOpen(f)&&fbVis(f)&&!S.fbvotes.some(v=>v.f===f.id&&v.r===FV()));
  const rated=me?S.ratings.filter(r=>r.r===me).length:99,unr=me?S.players.filter(x=>x.id!==me).length-rated:0;
  const todo=[];
  pend.forEach(e=>todo.push(['📩',`Invito: ${whenLbl(e.when)}`,e.place?esc(e.place):'Rispondi se ci sei','data-act="tab" data-k="calcio"']));
  pv.forEach(m=>todo.push(['🗳️',`Vota ${esc(m.A.name)} ${m.sa}-${m.sb} ${esc(m.B.name)}`,`chiude tra ${hLeft(m)}`,`data-act="voteOpen" data-id="${m.id}"`]));
- polls.forEach(f=>todo.push(['💡',`Votazione: ${esc(f.title)}`,`chiude tra ${hLeft({vote:{until:f.poll.until}})}`,`data-act="fbOpen" data-id="${f.id}"`]));
+ polls.forEach(f=>todo.push([f.kind==='bug'?'🐞':'💡',`Votazione: ${esc(f.title)}`,`chiude tra ${hLeft({vote:{until:f.poll.until}})}`,`data-act="fbOpen" data-id="${f.id}"`]));
  if(me&&rated<5&&unr>0)todo.push(['✍️','Valuta i compagni',`${unr} ancora da valutare`,'data-act="tab" data-k="players"']);
  const todoH=todo.length?`<h3>Da fare</h3><div class="panel" style="padding:2px 12px">${todo.map((t,i)=>`<div class="todo" ${t[3]} style="${i?'border-top:1px solid var(--line)':''}"><span class="ni">${t[0]}</span><div class="grow" style="min-width:0"><b class="ell">${t[1]}</b><div class="small mut">${t[2]}</div></div><span class="mut">›</span></div>`).join('')}</div>`:'';
  const pushBanner=window.MISTER_CFG?.vapid&&window.MisterPush?.supported()&&window.MisterPush.state()==='default'?`<div class="panel" style="border-color:#3b82f6"><div class="small" style="margin-bottom:8px">🔔 Attiva le notifiche: partite proposte, voti, premi</div><button class="btn sm" data-act="pushEnable">Attiva notifiche</button></div>`:'';
@@ -2143,7 +2175,7 @@ Object.assign(A,{
  readAll:()=>{markRead(myNotifs().map(n=>n.id));updBell();A.bell()},
  nOpen:d=>{const n=myNotifs().find(x=>x.id===d.id);if(!n)return;markRead([n.id]);closeModal();goUrl(n.url);render();window.scrollTo(0,0)},
  /* impostazioni */
- menu:()=>{const me=myPid(),nt=S.feedback.filter(f=>f.kind==='tip'&&fbVis(f)&&(VA()?f.status==='new':pollOpen(f))).length,nb=S.feedback.filter(f=>f.kind==='bug'&&fbVis(f)&&(VA()?f.status==='new':false)).length;
+ menu:()=>{const me=myPid(),nt=S.feedback.filter(f=>f.kind==='tip'&&fbVis(f)&&(VA()?f.status==='new':pollOpen(f))).length,nb=S.feedback.filter(f=>f.kind==='bug'&&fbVis(f)&&(VA()?f.status==='new':pollOpen(f))).length;
   openModal(`<h2>Impostazioni</h2>
   ${me?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Sei collegato come</div><b>${esc(nm(me))}</b></div>${ADM?`<button class="btn sec sm" data-act="claim">Cambia</button>`:''}</div>`:ADM?`<div class="panel" style="margin-bottom:10px"><div class="small mut" style="margin-bottom:6px">Non sei collegato a nessun giocatore</div><button class="btn sm" data-act="claim">👤 Scegli chi sei</button></div>`:''}
   ${ADM?`<div class="panel row sp" style="margin-bottom:10px"><div><div class="small mut">Modalità</div><b>${S.ui.previewPlayer?'👁 Giocatore':'👑 Admin'}</b></div><button class="btn sec sm" data-act="togglePreview">${S.ui.previewPlayer?'Torna Admin':'Vedi come giocatore'}</button></div>`:''}
@@ -2219,16 +2251,16 @@ Object.assign(A,{
  fbNew:d=>{FBK=d.k;openModal(`<h2>${d.k==='tip'?'💡 Nuovo consiglio':'🐞 Segnala un bug'}</h2><label>Titolo</label><input type="text" id="fbT" maxlength="80" placeholder="${d.k==='tip'?'Es. Aggiungere le statistiche del portiere':'Es. Non riesco a caricare la foto'}"><label>${d.k==='tip'?'Dettagli (facoltativo)':'Cosa è successo? (telefono, passaggi…)'}</label><textarea id="fbX" rows="4" style="font-family:inherit"></textarea><div class="row" style="margin-top:16px"><button class="btn grow" data-act="fbSave" data-k="${d.k}">Invia</button><button class="btn sec" data-act="fbBack" data-k="${d.k}">Annulla</button></div>`,null,{save:'fbSave'})},
  fbBack:d=>fbList(d.k),
  fbSave:d=>{const t=$('#fbT').value.trim();if(!t){toast('Scrivi un titolo');return}
-  S.feedback.push({id:uid(),kind:d.k,title:t,text:$('#fbX').value.trim(),by:FV(),pid:myPid()||null,at:Date.now(),status:'new'});save();toast('Inviato ✓');fbList(d.k)},
- fbPoll:d=>openModal(`<h2>🗳 Indici votazione</h2><p class="small mut">Per quanto tempo possono votare i giocatori?</p><div class="row wrap" style="gap:8px">${[[1,'24 ore'],[3,'3 giorni'],[7,'7 giorni']].map(([n,l])=>`<button class="btn sec grow" data-act="fbPollGo" data-id="${d.id}" data-days="${n}">${l}</button>`).join('')}</div><div class="row" style="margin-top:12px"><button class="btn sec grow" data-act="fbBack" data-k="tip">Annulla</button></div>`),
- fbPollGo:d=>{const f=S.feedback.find(x=>x.id===d.id);if(!f)return;f.poll={start:Date.now(),until:Date.now()+(+d.days)*864e5};f.status='poll';
-  S.fbvotes=S.fbvotes.filter(v=>v.f!==f.id);save();NT('feedback','💡 Nuova votazione',f.title,'./?fb='+f.id,null);fbList('tip')},
- fbEnd:d=>{const f=S.feedback.find(x=>x.id===d.id);if(!f||!f.poll)return;f.poll.until=Date.now()-1;save();fbList('tip')},
+  S.feedback.push({id:uid(),kind:d.k,title:t,text:$('#fbX').value.trim(),by:FV(),pid:myPid()||null,at:Date.now(),status:'new'});save();fbTick();toast('Inviato ✓');fbList(d.k)},
+ fbFil:d=>{FBF=d.f;fbList(FBK)},
+ fbEnd:d=>{const f=S.feedback.find(x=>x.id===d.id);if(!f||!f.poll)return;f.poll.until=Date.now()-1;save();fbTick();fbList(f.kind)},
  fbVote:d=>{const f=S.feedback.find(x=>x.id===d.id);if(!f||!pollOpen(f)){toast('Votazione chiusa');return}
-  const id=f.id+'_'+FV();let r=S.fbvotes.find(x=>x.id===id);if(!r){r={id,f:f.id,r:FV(),v:d.v};S.fbvotes.push(r)}r.v=d.v;r.at=Date.now();save();fbList('tip')},
- fbSet:d=>{const f=S.feedback.find(x=>x.id===d.id);if(!f)return;f.status=d.s;save();
-  const lb=(FB_ST[f.kind][d.s]||[])[1];if(f.pid&&f.pid!==myPid())NT('feedback',f.kind==='bug'?'🐞 Aggiornamento sul tuo bug':'💡 Aggiornamento sul tuo consiglio',`${f.title} → ${lb}`,'./?fb='+f.id,[f.pid]);fbList(f.kind)},
- fbDel:d=>ASK('Eliminare definitivamente?',()=>{const f=S.feedback.find(x=>x.id===d.id),k=f?f.kind:FBK;S.feedback=S.feedback.filter(x=>x.id!==d.id);S.fbvotes=S.fbvotes.filter(v=>v.f!==d.id);save();fbList(k)}),
+  const id=f.id+'_'+FV();let r=S.fbvotes.find(x=>x.id===id);if(!r){r={id,f:f.id,r:FV(),v:d.v};S.fbvotes.push(r)}r.v=d.v;r.at=Date.now();save();fbList(f.kind)},
+ fbSet:d=>{const f=S.feedback.find(x=>x.id===d.id);if(!f)return;
+  if(d.s==='done'){openModal(`<h2>🚀 Realizzato</h2><p class="small mut">In quale versione è stato inserito?</p><label>Versione</label><input type="text" id="fbV" value="${VERSION}"><div class="row" style="margin-top:16px"><button class="btn grow" data-act="fbDone" data-id="${f.id}">Conferma</button><button class="btn sec" data-act="fbBack" data-k="${f.kind}">Annulla</button></div>`,null,{save:'fbDone'});return}
+  f.status=d.s;save();notifyFb(f,d.s);fbTick();fbList(f.kind)},
+ fbDone:d=>{const f=S.feedback.find(x=>x.id===d.id);if(!f)return;f.status='done';f.ver=($('#fbV').value||'').trim()||VERSION;save();notifyFb(f,'done');fbTick();fbList(f.kind)},
+ fbDel:d=>ASK('Eliminare definitivamente?',()=>{const f=S.feedback.find(x=>x.id===d.id),k=f?f.kind:FBK;S.feedback=S.feedback.filter(x=>x.id!==d.id);S.fbvotes=S.fbvotes.filter(v=>v.f!==d.id);save();fbTick();fbList(k)}),
 });
 Object.assign(A,{nbClick:()=>{const b=$('#nbanner');b.classList.remove('on');if(NBN){markRead([NBN.id]);goUrl(NBN.url);render();window.scrollTo(0,0)}},backRosa:()=>{S.ui.tab='players';S.ui.rid=null;render();window.scrollTo(0,0)},
  changelog:()=>{const adm=VA();openModal(`<h2>🆕 Novità</h2><div class="small mut" style="margin-bottom:10px">Cosa cambia ad ogni aggiornamento</div>${CHANGELOG.map(c=>{const its=c.items.filter(i=>adm||!i[2]);if(!its.length)return'';return`<div class="panel"><div class="row sp" style="margin-bottom:2px"><b>v${c.v}</b><span class="small mut">${c.d}</span></div>${['new','imp','bug'].map(k=>{const L=its.filter(i=>i[0]===k);return L.length?`<div class="cl-h">${CLT[k][0]} ${CLT[k][1].toUpperCase()}</div><ul style="margin:0;padding-left:18px">${L.map(x=>`<li style="margin:3px 0;font-size:13.5px">${esc(x[1])}${x[2]?' <span class="tag">admin</span>':''}</li>`).join('')}</ul>`:''}).join('')}</div>`}).join('')}`,`<div class="row"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`)}});
