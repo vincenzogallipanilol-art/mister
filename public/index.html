@@ -1980,7 +1980,13 @@ const A={
   openModal(`<h2>Presenza giocatori</h2><div class="mut small" style="margin-bottom:12px">Chi ha effettuato l'accesso e chi è online in questo momento.</div><div id="tkList"><div class="mut small">Caricamento...</div></div><div class="row" style="margin-top:14px"><button class="btn sec grow" data-act="closeM">Chiudi</button></div>`);
   tkRender()},
  pushEnable:async()=>{try{await window.MisterPush.enable();toast('Notifiche attivate ✓');render();if($('#modal').classList.contains('on'))A.notifSettings()}catch(e){toast(e.message,4000)}},
- pushTest:async()=>{try{if(!UID)throw new Error('non autenticato');await window.MisterPush.notify('🔔 Test MISTER','Se vedi questa notifica, le push funzionano su questo dispositivo.','./',null,[UID]);toast('Inviata: controlla le notifiche del dispositivo')}catch(e){toast('Errore: '+e.message,4000)}},
+ pushTest:async()=>{try{if(!UID)throw new Error('non autenticato');
+  const r=await window.MisterPush.notify('🔔 Test MISTER','Se vedi questa notifica, le push funzionano su questo dispositivo.','./',null,[UID]);
+  if(r&&r.skipped)toast('Notifiche disattivate globalmente (interruttore admin)',5000);
+  else if(!r||!r.total)toast('Nessuna iscrizione push trovata per te: riattiva le notifiche (vedi sopra) e riprova',6000);
+  else if(!r.sent)toast(`Trovata ${r.total} iscrizione ma invio fallito (token scaduto?): disattiva e riattiva le notifiche`,6000);
+  else toast(`Inviata a ${r.sent}/${r.total} dispositivi — controlla la barra notifiche`,5000);
+ }catch(e){toast('Errore: '+e.message,4000)}},
  notifSettings:async()=>{const P=window.MisterPush,ok=window.MISTER_CFG?.vapid&&P?.supported(),st=ok?P.state():'unsupported';
   const head=!ok?`<div class="panel small mut">Notifiche non disponibili su questo dispositivo. Su iPhone: apri il sito in Safari → Condividi → "Aggiungi a Home", poi apri l'app dall'icona.</div>`
    :st==='denied'?`<div class="panel small mut">Hai bloccato le notifiche. Riattivale dalle impostazioni del telefono/browser per questo sito.</div>`
