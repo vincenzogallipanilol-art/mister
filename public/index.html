@@ -479,14 +479,17 @@ function agoLbl(ts){const d=Date.now()-ts;if(d<90e3)return'adesso';if(d<36e5)ret
    può mostrare dati vecchi/sbagliati pur essendoci un accesso reale più recente */
 const linkOf=pid=>{const ms=S.links.filter(l=>l.p===pid);if(!ms.length)return null;return ms.reduce((a,b)=>(b.seen||0)>(a.seen||0)?b:a)};
 function accessOf(p){const lk=linkOf(p.id),ac=actOf(p.id),ts=Math.max(lk&&lk.seen||0,ac.t||0);
- if(lk&&lk.seen&&Date.now()-lk.seen<ONLINE_MS)return{k:'on',t:'Online ora'};
- if(ts)return{k:'ok',t:'Ultimo accesso '+agoLbl(ts)};
- if(ac.n||lk)return{k:'ok',t:'Ha già effettuato l\'accesso'};
- return{k:'no',t:'Mai effettuato l\'accesso'}}
+ if(lk&&lk.seen&&Date.now()-lk.seen<ONLINE_MS)return{k:'on',t:'Online ora',ts:lk.seen};
+ if(ts)return{k:'ok',t:'Ultimo accesso '+agoLbl(ts),ts};
+ if(ac.n||lk)return{k:'ok',t:'Ha già effettuato l\'accesso',ts:0};
+ return{k:'no',t:'Mai effettuato l\'accesso',ts:0}}
 const DOT={on:'#22c55e',ok:'#8b8b95',no:'#ef4444'};
+const PRK={on:0,ok:1,no:2};
 function tkRender(){
  const el=document.getElementById('tkList');if(!el)return;
- const P=S.players.slice().sort((a,b)=>a.name.localeCompare(b.name)),acc=P.map(p=>[p,accessOf(p)]);
+ const P=S.players.slice().sort((a,b)=>a.name.localeCompare(b.name));
+ /* online prima di tutti, poi per ultimo accesso più recente, poi (mai entrati) alfabetico */
+ const acc=P.map(p=>[p,accessOf(p)]).sort((x,y)=>PRK[x[1].k]-PRK[y[1].k]||y[1].ts-x[1].ts);
  const on=acc.filter(x=>x[1].k==='on').length,ok=acc.filter(x=>x[1].k==='ok').length,no=acc.length-on-ok;
  const rows=acc.map(([p,a])=>{
   const dot=`<span style="flex:none;width:11px;height:11px;border-radius:50%;background:${DOT[a.k]};margin-right:10px;${a.k==='on'?'box-shadow:0 0 0 3px rgba(34,197,94,.25)':''}"></span>`;
