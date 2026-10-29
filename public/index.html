@@ -403,7 +403,7 @@ const NORM={
  players:p=>{p.roles=p.roles&&p.roles.length?p.roles:['CM'];p.s=p.s||{};p.name=p.name||'';return p},
  rosters:r=>{r.pids=r.pids||[];const l=r.lineup||[];r.lineup=Array.from({length:r.format||7},(_,i)=>l[i]||null);return r},
  matches:m=>{m.events=m.events||[];m.ratings=m.ratings||{};m.evo=m.evo||{};m.ovrs=m.ovrs||{};m.awards=m.awards||{};nTeam(m.A);nTeam(m.B);return m},
- events:e=>e,rsvps:r=>r,links:l=>l,pairs:x=>x,mvotes:x=>{x.v=x.v||{};x.aw=x.aw||{};return x},notifs:n=>n,
+ events:e=>{e.jam=e.jam||{props:[],votes:[]};return e},rsvps:r=>r,links:l=>l,pairs:x=>x,mvotes:x=>{x.v=x.v||{};x.aw=x.aw||{};return x},notifs:n=>n,
  feedback:f=>{const map={poll:'new',work:'ok',wont:'no'};if(map[f.status])f.status=map[f.status];return f},
  fbvotes:f=>f,seasons:x=>{x.champs=x.champs||{};return x},
  ratings:r=>{r.s=r.s||{};r.log=r.log||[];return r}
@@ -784,6 +784,32 @@ function refineBalance(A,B,fm){
    if(nd<d-.05&&(!best||nd<best.d))best={a,b,d:nd}}
   if(!best)break;A2=best.a;B2=best.b;d=best.d}
  return[A2,B2];
+}
+function teamStrIds(ids,fm){const f=DEFF[fm],sl=slotsOf(fm,f);return lineRating(assign(ids,sl),sl)}
+/* ===== Jam: proposte squadre + votazione prima della partita ===== */
+const JAM_CLOSE_MS=10*60e3;
+const jamActive=e=>confirmed(e.id).length>=e.format*2&&Date.now()<new Date(e.when).getTime()-JAM_CLOSE_MS&&e.status!=='closed';
+function jamPanel(e){
+ const c=confirmed(e.id),quota=e.format*2;
+ if(c.length<quota)return'';
+ e.jam=e.jam||{props:[],votes:[]};
+ const active=jamActive(e),me=FV(),props=e.jam.props.slice().sort((a,b)=>b.at-a.at);
+ const myVote=e.jam.votes.find(v=>v.by===me);
+ const mine=props.find(p=>p.by===me);
+ const rows=props.map(p=>{
+  const votes=e.jam.votes.filter(v=>v.for===p.id).length,isMine=p.by===me,voted=myVote&&myVote.for===p.id;
+  const a=teamStrIds(p.A,e.format),b=teamStrIds(p.B,e.format),diff=Math.abs(a-b);
+  const author=p.pid&&getP(p.pid)?esc(nm(p.pid)):'Admin';
+  return`<div class="panel" style="margin-top:8px"><div class="row sp small mut"><span>Proposta di <b>${author}</b>${isMine?' (tu)':''}</span><span>🗳️ ${votes}</span></div>
+  <div class="small" style="margin-top:4px">🔵 ${p.A.map(id=>esc(nm(id))).join(', ')}</div>
+  <div class="small" style="margin-top:2px">🟢 ${p.B.map(id=>esc(nm(id))).join(', ')}</div>
+  <div class="small mut" style="margin-top:4px">Differenza forza <b style="color:${diff<=1.5?'#34d399':'#facc15'}">${diff.toFixed(1)}</b></div>
+  <div class="row" style="margin-top:8px;gap:6px">${active&&!isMine?`<button class="btn ${voted?'':'sec'} sm grow" data-act="jamVote" data-e="${e.id}" data-id="${p.id}">${voted?'✓ Votata':'👍 Vota'}</button>`:''}${VA()?`<button class="btn sec sm" data-act="jamAdopt" data-e="${e.id}" data-id="${p.id}">✅ Adotta</button>`:''}</div></div>`;
+ }).join('');
+ return`<h3 style="margin-top:14px">🎲 Proposte squadre</h3>
+ <div class="small mut" style="margin-bottom:6px">${active?'Chiunque può proporre uno split (differenza forza max 1.5), poi si vota. Chiude 10 minuti prima della partita; l\'admin adotta la proposta che preferisce.':'Proposte chiuse.'}</div>
+ ${active?`<button class="btn sec sm" data-act="jamPropose" data-e="${e.id}">${mine?'🔄 Rigenera la mia proposta':'➕ Proponi squadre'}</button>`:''}
+ ${props.length?rows:'<div class="empty">Nessuna proposta ancora.</div>'}`;
 }
 /* ===== risultati / stats derivate ===== */
 function scoreOf(ev){let a=0,b=0;ev.forEach(e=>{if(e.type==='goal'||e.type==='pen'){e.team==='A'?a++:b++}else if(e.type==='og'){e.team==='A'?b++:a++}});return[a,b]}
@@ -1336,7 +1362,7 @@ function viewEvents(){
   ${me?`<div class="rsvp">${RV.map(([k,i,l])=>`<button class="${mine===k?'on '+k:''}" data-act="rsvp" data-e="${e.id}" data-v="${k}">${i} ${l}</button>`).join('')}</div>`:''}
   ${c.length?`<div class="small" style="margin-top:8px">✅ ${c.map(id=>esc(nm(id))).join(', ')}</div>`:''}
   <div class="small mut" style="margin-top:2px">❔ ${maybe} · ❌ ${no} · in attesa ${Math.max(0,S.players.length-S.rsvps.filter(r=>r.e===e.id).length)}</div>
-  <div class="row wrap" style="margin-top:8px"><button class="btn sec sm" data-act="evShare" data-e="${e.id}">📤 Invito WhatsApp</button>${VA()?`<button class="btn sec sm" data-act="evManage" data-e="${e.id}">👥 Risposte</button><button class="btn sm" data-act="evUse" data-e="${e.id}">Usa confermati</button><button class="btn dan sm" data-act="eventDel" data-e="${e.id}">✕</button>`:''}</div></div>`}).join('');
+  <div class="row wrap" style="margin-top:8px"><button class="btn sec sm" data-act="evShare" data-e="${e.id}">📤 Invito WhatsApp</button>${VA()?`<button class="btn sec sm" data-act="evManage" data-e="${e.id}">👥 Risposte</button><button class="btn sm" data-act="evUse" data-e="${e.id}">Usa confermati</button><button class="btn dan sm" data-act="eventDel" data-e="${e.id}">✕</button>`:''}</div>${jamPanel(e)}</div>`}).join('');
 }
 
 function viewTeamsRO(){
@@ -1651,7 +1677,7 @@ function viewHome(){
  const todoH=todo.length?`<h3>Da fare</h3><div class="panel" style="padding:2px 12px">${todo.map((t,i)=>`<div class="todo" ${t[3]} style="${i?'border-top:1px solid var(--line)':''}"><span class="ni">${t[0]}</span><div class="grow" style="min-width:0"><b class="ell">${t[1]}</b><div class="small mut">${t[2]}</div></div><span class="mut">›</span></div>`).join('')}</div>`:'';
  const pushBanner=window.MISTER_CFG?.vapid&&window.MisterPush?.supported()&&window.MisterPush.state()==='default'?`<div class="panel" style="border-color:#3b82f6"><div class="small" style="margin-bottom:8px">🔔 Attiva le notifiche: partite proposte, voti, premi</div><button class="btn sm" data-act="pushEnable">Attiva notifiche</button></div>`:'';
  const claim=!p?(ADM?`<div class="panel" style="border-color:var(--ac)"><b>👤 Chi sei tra i giocatori?</b><div class="small mut" style="margin:3px 0 8px">Collegati a un giocatore per vedere il profilo, confermare le partite e votare.</div><button class="btn sm" data-act="claim">Scegli il giocatore</button></div>`:`<div class="panel" style="border-color:var(--ac)"><b>👤 Profilo non ancora collegato</b><div class="small mut" style="margin:3px 0 0">Il tuo accesso non risulta associato a un giocatore. Chiedi all'amministratore di collegarlo.</div></div>`):'';
- const next=nx?`<h3>Prossima partita</h3><div class="panel ev-card"><div style="font-size:20px;font-weight:800;margin:0 0 2px">${whenLbl(nx.when)}</div><div class="small mut">${fdate(nx.when)} · Calcio a ${nx.format}${nx.place?' · '+esc(nx.place):''}</div>
+ const next=nx?`<div class="row sp" style="align-items:baseline"><h3 style="margin:0">Prossima partita</h3>${VA()?`<button class="btn sec sm" data-act="evManage" data-e="${nx.id}" style="padding:4px 10px">➕</button>`:''}</div><div class="panel ev-card"><div style="font-size:20px;font-weight:800;margin:0 0 2px">${whenLbl(nx.when)}</div><div class="small mut">${fdate(nx.when)} · Calcio a ${nx.format}${nx.place?' · '+esc(nx.place):''}</div>
   <div class="small" style="margin:6px 0">✅ ${confirmed(nx.id).length}/${nx.format*2} confermati</div>
   ${me?`<div class="rsvp">${RV.map(([k,i,l])=>`<button class="${mine===k?'on '+k:''}" data-act="rsvp" data-e="${nx.id}" data-v="${k}">${i} ${l}</button>`).join('')}</div>`:''}</div>`
   :`<h3>Prossima partita</h3><div class="panel mut small row sp"><span>Nessuna partita in programma.</span>${VA()?`<button class="btn sm" data-act="evNew">+ Proponi</button>`:''}</div>`;
@@ -2006,6 +2032,21 @@ const A={
   openModal(`<h2>Risposte · ${fdate(e.when)}</h2>${S.players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>{const v=rsvpOf(e.id,p.id);return`<div class="row sp" style="padding:4px 0"><span>${esc(p.name)}${S.links.some(l=>l.p===p.id)?'':' <span class="tag">no account</span>'}</span><span class="row">${RV.map(([k,i])=>`<span class="chip ${v===k?'on':''}" data-act="evSet" data-p="${p.id}" data-v="${k}">${i}</span>`).join('')}</span></div>`}).join('')}<div class="row" style="margin-top:14px"><button class="btn grow" data-act="closeM">Fatto</button></div>`)},
  evSet:d=>{setRsvp(EM,d.p,d.v);const y=$('.sheet').scrollTop;A.evManage({e:EM});$('.sheet').scrollTop=y},
  evUse:d=>{const e=S.events.find(x=>x.id===d.e);if(!e)return;const c=confirmed(e.id);S.setup={format:e.format,A:null,B:null,pool:c,ev:e.id,cfg:S.setup.cfg};save();render();toast(c.length+' convocati caricati')},
+ jamPropose:d=>{const e=S.events.find(x=>x.id===d.e);if(!e||!jamActive(e))return;const c=confirmed(e.id);if(c.length<e.format*2){toast('Servono più convocati');return}
+  let a,b,diff=99,tries=0;
+  do{[a,b]=balance(c);[a,b]=refineBalance(a,b,e.format);diff=Math.abs(teamStrIds(a,e.format)-teamStrIds(b,e.format));tries++}while(diff>1.5&&tries<12);
+  if(diff>1.5){toast('Non trovo una divisione con differenza ≤1.5, riprova');return}
+  e.jam=e.jam||{props:[],votes:[]};const me=FV();
+  const old=e.jam.props.find(p=>p.by===me);if(old)e.jam.votes=e.jam.votes.filter(v=>v.for!==old.id);
+  e.jam.props=e.jam.props.filter(p=>p.by!==me);
+  e.jam.props.push({id:uid(),by:me,pid:myPid()||null,A:a,B:b,at:Date.now()});
+  save();render();toast('Proposta inviata ✓')},
+ jamVote:d=>{const e=S.events.find(x=>x.id===d.e);if(!e||!e.jam||!jamActive(e))return;const p=e.jam.props.find(x=>x.id===d.id);if(!p)return;
+  const me=FV();if(p.by===me){toast('Non puoi votare la tua proposta');return}
+  e.jam.votes=e.jam.votes.filter(v=>v.by!==me);e.jam.votes.push({by:me,for:p.id});save();render()},
+ jamAdopt:d=>{if(!VA())return;const e=S.events.find(x=>x.id===d.e);if(!e||!e.jam)return;const p=e.jam.props.find(x=>x.id===d.id);if(!p)return;const f=DEFF[e.format];
+  S.setup={format:e.format,A:{name:'Squadra A',formation:f,pids:p.A.slice()},B:{name:'Squadra B',formation:f,pids:p.B.slice()},pool:confirmed(e.id),ev:e.id,cfg:S.setup.cfg};
+  SEL2=null;save();render();toast('Proposta adottata — puoi ancora modificarla prima di iniziare')},
  eventDel:d=>ASK('Eliminare la partita proposta?',()=>{const ev=S.events.find(x=>x.id===d.e);if(ev&&ev.status!=='closed'){const to=S.rsvps.filter(r=>r.e===ev.id&&(r.v==='y'||r.v==='m')).map(r=>r.p).filter(id=>getP(id));NT('proposal','❌ Partita annullata',fdate(ev.when)+(ev.place?' · '+ev.place:''),'./?tab=calcio',to)}S.events=S.events.filter(x=>x.id!==d.e);S.rsvps=S.rsvps.filter(r=>r.e!==d.e);save();render()}),
  /* menu */
  
