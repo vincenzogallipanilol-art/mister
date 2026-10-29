@@ -806,10 +806,11 @@ function jamPanel(e){
   <div class="small mut" style="margin-top:4px">Differenza forza <b style="color:${diff<=1.5?'#34d399':'#facc15'}">${diff.toFixed(1)}</b></div>
   <div class="row" style="margin-top:8px;gap:6px">${active&&!isMine?`<button class="btn ${voted?'':'sec'} sm grow" data-act="jamVote" data-e="${e.id}" data-id="${p.id}">${voted?'✓ Votata':'👍 Vota'}</button>`:''}${VA()?`<button class="btn sec sm" data-act="jamAdopt" data-e="${e.id}" data-id="${p.id}">✅ Adotta</button>`:''}</div></div>`;
  }).join('');
- return`<h3 style="margin-top:14px">🎲 Proposte squadre</h3>
- <div class="small mut" style="margin-bottom:6px">${active?'Chiunque può proporre uno split (differenza forza max 1.5), poi si vota. Chiude 10 minuti prima della partita; l\'admin adotta la proposta che preferisce.':'Proposte chiuse.'}</div>
+ const tot=e.jam.votes.length;
+ return`<details style="margin-top:8px"><summary style="cursor:pointer;list-style:none;padding:4px 0" class="small">🎲 <b>${props.length}</b> proposta${props.length===1?'':'e'} squadre${tot?` · 🗳️ ${tot} voto${tot===1?'':'i'}`:''}${active?'':' · chiuse'} <span class="mut">(tocca per aprire)</span></summary>
+ <div class="small mut" style="margin:8px 0 6px">${active?'Chiunque può proporre uno split (differenza forza max 1.5), poi si vota. Chiude 10 minuti prima della partita; l\'admin adotta la proposta che preferisce.':'Proposte chiuse.'}</div>
  ${active?`<button class="btn sec sm" data-act="jamPropose" data-e="${e.id}">${mine?'🔄 Rigenera la mia proposta':'➕ Proponi squadre'}</button>`:''}
- ${props.length?rows:'<div class="empty">Nessuna proposta ancora.</div>'}`;
+ ${props.length?rows:'<div class="empty">Nessuna proposta ancora.</div>'}</details>`;
 }
 /* ===== risultati / stats derivate ===== */
 function scoreOf(ev){let a=0,b=0;ev.forEach(e=>{if(e.type==='goal'||e.type==='pen'){e.team==='A'?a++:b++}else if(e.type==='og'){e.team==='A'?b++:a++}});return[a,b]}
@@ -985,22 +986,24 @@ function teamView(T,team,fm,sel){
  ${bn.length?`<div class="small mut" style="margin:6px 0 2px">Panchina</div>${bn.map(id=>row(id,getP(id).roles[0],true)).join('')}`:''}
  <select data-ch="tload" data-t="${T}" style="margin-top:8px"><option value="">Carica da rosa…</option>${S.rosters.filter(r=>r.format===fm).map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select></div>`;
 }
-let SEL2=null;
+let SEL2=null,PREP=false;
 function teamStr(team,fm){const sl=slotsOf(fm,team.formation);return lineRating(assign(team.pids,sl),sl)}
 function viewSetup(){
- const su=S.setup,fm=su.format,pool=S.players.slice().sort((a,b)=>ovr(b)-ovr(a));
+ const su=S.setup,fm=su.format,pool=S.players.slice().sort((a,b)=>ovr(b)-ovr(a)),hasTeams=!!(su.A&&su.B);
  let teams='';
- if(su.A&&su.B){const a=teamStr(su.A,fm),b=teamStr(su.B,fm),tot=(a+b)||1;
-  teams=`<h3>Squadre</h3><div class="teams">${teamView('A',su.A,fm,SEL2)}${teamView('B',su.B,fm,SEL2)}</div>
+ if(hasTeams){const a=teamStr(su.A,fm),b=teamStr(su.B,fm),tot=(a+b)||1;
+  teams=`<h3 style="margin-top:14px">Squadre</h3><div class="teams">${teamView('A',su.A,fm,SEL2)}${teamView('B',su.B,fm,SEL2)}</div>
   <div class="panel"><div class="row sp small"><b>${Math.round(a)}</b><span class="mut">Differenza forza: <b style="color:${Math.abs(a-b)<=1.5?'#34d399':Math.abs(a-b)<=3.5?'#facc15':'#f87171'}">${Math.abs(a-b).toFixed(1)}</b></span><b>${Math.round(b)}</b></div><div class="meter" style="margin-top:6px"><i style="width:${a/tot*100}%;background:var(--ac2)"></i><i style="width:${b/tot*100}%;background:var(--ac)"></i></div></div>
   <p class="small mut">Tocca due giocatori per scambiarli, oppure uno e "Sposta qui".</p>
-  <div class="row"><button class="btn sec grow" data-act="gen">🔄 Rigenera</button><button class="btn sec" data-act="shareTeams">📤</button><button class="btn grow" data-act="start">▶ Inizia partita</button></div>`}
- return`<h2>Nuova partita</h2>
+  <div class="row wrap"><button class="btn sec sm" data-act="gen">🔄 Rigenera</button><button class="btn sec sm" data-act="shareTeams">📤</button><button class="btn sec sm" data-act="prepToggle">✏️ Convocati</button><button class="btn grow" data-act="start">▶ Inizia partita</button></div>`}
+ if(!hasTeams&&!PREP)return`<h3 style="margin-top:14px">Prepara squadre</h3><button class="btn blk" data-act="prepToggle">⚙️ Prepara squadre</button>`;
+ const picker=(!hasTeams||PREP)?`<h2 style="margin-top:14px">${hasTeams?'Convocati':'Nuova partita'}</h2>
  <div class="row" style="margin-bottom:12px">${[5,7,11].map(n=>`<span class="chip ${fm===n?'on':''}" data-act="fmt" data-n="${n}" style="flex:1;justify-content:center;padding:9px">${n} vs ${n}</span>`).join('')}</div>
  <div class="row sp"><h3 style="margin:0">Convocati (${su.pool.length})</h3><div class="row"><button class="btn sec sm" data-act="poolAll">Tutti</button><button class="btn sec sm" data-act="poolNone">Nessuno</button></div></div>
  ${S.rosters.length?`<select data-ch="poolR" style="margin:8px 0"><option value="">Convoca da rosa…</option>${S.rosters.map(r=>`<option value="${r.id}">${esc(r.name)} (${r.pids.length})</option>`).join('')}</select>`:''}
  <div class="row wrap" style="margin:8px 0 12px">${pool.length?pool.map(p=>`<span class="chip ${su.pool.includes(p.id)?'on':''}" data-act="poolT" data-id="${p.id}">${ovr(p)} ${esc(p.name)} <small>${p.roles[0]}</small></span>`).join(''):'<span class="mut">Crea prima dei giocatori.</span>'}</div>
- <button class="btn blk" data-act="gen" ${su.pool.length<2?'disabled style="opacity:.5"':''}>⚖ Genera squadre bilanciate</button>${teams}`;
+ <button class="btn blk" data-act="gen" ${su.pool.length<2?'disabled style="opacity:.5"':''}>⚖ Genera squadre bilanciate</button>`:'';
+ return picker+teams;
 }
 function fmtClock(ms){const s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
 const elapsed=()=>{const L=S.live;return L.acc+(L.since?Date.now()-L.since:0)};
@@ -1362,7 +1365,7 @@ function viewEvents(){
   ${me?`<div class="rsvp">${RV.map(([k,i,l])=>`<button class="${mine===k?'on '+k:''}" data-act="rsvp" data-e="${e.id}" data-v="${k}">${i} ${l}</button>`).join('')}</div>`:''}
   ${c.length?`<div class="small" style="margin-top:8px">✅ ${c.map(id=>esc(nm(id))).join(', ')}</div>`:''}
   <div class="small mut" style="margin-top:2px">❔ ${maybe} · ❌ ${no} · in attesa ${Math.max(0,S.players.length-S.rsvps.filter(r=>r.e===e.id).length)}</div>
-  <div class="row wrap" style="margin-top:8px"><button class="btn sec sm" data-act="evShare" data-e="${e.id}">📤 Invito WhatsApp</button>${VA()?`<button class="btn sec sm" data-act="evManage" data-e="${e.id}">👥 Risposte</button><button class="btn sm" data-act="evUse" data-e="${e.id}">Usa confermati</button><button class="btn dan sm" data-act="eventDel" data-e="${e.id}">✕</button>`:''}</div>${jamPanel(e)}</div>`}).join('');
+  <details style="margin-top:8px"><summary style="cursor:pointer;list-style:none" class="small mut">⋯ Gestisci</summary><div class="row wrap" style="margin-top:8px"><button class="btn sec sm" data-act="evShare" data-e="${e.id}">📤 Invito WhatsApp</button>${VA()?`<button class="btn sec sm" data-act="evManage" data-e="${e.id}">👥 Risposte</button><button class="btn sm" data-act="evUse" data-e="${e.id}">Usa confermati</button><button class="btn dan sm" data-act="eventDel" data-e="${e.id}">✕</button>`:''}</div></details>${jamPanel(e)}</div>`}).join('');
 }
 
 function viewTeamsRO(){
@@ -1883,7 +1886,8 @@ const A={
  poolNone:()=>{S.setup.pool=[];S.setup.A=S.setup.B=null;save();render()},
  gen:()=>{const su=S.setup;if(su.pool.length<2)return;let[a,b]=balance(su.pool);[a,b]=refineBalance(a,b,su.format);const f=DEFF[su.format];
   su.A={name:su.A?.name||'Squadra A',formation:su.A?.formation&&FORM[su.format][su.A.formation]?su.A.formation:f,pids:a};
-  su.B={name:su.B?.name||'Squadra B',formation:su.B?.formation&&FORM[su.format][su.B.formation]?su.B.formation:f,pids:b};SEL2=null;save();render()},
+  su.B={name:su.B?.name||'Squadra B',formation:su.B?.formation&&FORM[su.format][su.B.formation]?su.B.formation:f,pids:b};SEL2=null;PREP=false;save();render()},
+ prepToggle:()=>{PREP=!PREP;render()},
  tswap:d=>{const su=S.setup,i=+d.i;if(!SEL2){SEL2={t:d.t,i};render();return}
   if(SEL2.t===d.t&&SEL2.i===i){SEL2=null;render();return}
   const a=su[SEL2.t].pids,b=su[d.t].pids,tmp=a[SEL2.i];a[SEL2.i]=b[i];b[i]=tmp;SEL2=null;save();render()},
@@ -1920,7 +1924,7 @@ const A={
   m.vote={until:Date.now()+H48};
   computeEff();S.players.forEach(p=>{m.ovrs[p.id]=ovr(p)});
   {const dt=e=>Math.abs(new Date(e.when).getTime()-m.date),ev=(L.ev&&S.events.find(e=>e.id===L.ev))||S.events.filter(e=>e.status!=='closed'&&dt(e)<18*3600e3).sort((a,b)=>dt(a)-dt(b))[0];if(ev){ev.status='closed';ev.match=m.id;m.ev=ev.id}}
-  S.matches.push(m);S.live=null;S.setup.A=S.setup.B=null;S.ui.tab='calcio';S.ui.sub.calcio='res';S.ui.mid=null;OPENM=m.id;save();render();window.scrollTo(0,0);
+  S.matches.push(m);S.live=null;S.setup.A=S.setup.B=null;PREP=false;S.ui.tab='calcio';S.ui.sub.calcio='res';S.ui.mid=null;OPENM=m.id;save();render();window.scrollTo(0,0);
   NT('rate_request','🗳️ Vota la partita!',`${m.A.name} ${sa}-${sb} ${m.B.name} · hai 48 ore per votare i compagni`,'./?mid='+m.id,[...m.A.played,...m.B.played].filter(id=>getP(id)))},
  /* risultati */
  
@@ -2046,7 +2050,7 @@ const A={
   e.jam.votes=e.jam.votes.filter(v=>v.by!==me);e.jam.votes.push({by:me,for:p.id});save();render()},
  jamAdopt:d=>{if(!VA())return;const e=S.events.find(x=>x.id===d.e);if(!e||!e.jam)return;const p=e.jam.props.find(x=>x.id===d.id);if(!p)return;const f=DEFF[e.format];
   S.setup={format:e.format,A:{name:'Squadra A',formation:f,pids:p.A.slice()},B:{name:'Squadra B',formation:f,pids:p.B.slice()},pool:confirmed(e.id),ev:e.id,cfg:S.setup.cfg};
-  SEL2=null;save();render();toast('Proposta adottata — puoi ancora modificarla prima di iniziare')},
+  SEL2=null;PREP=false;save();render();toast('Proposta adottata — puoi ancora modificarla prima di iniziare')},
  eventDel:d=>ASK('Eliminare la partita proposta?',()=>{const ev=S.events.find(x=>x.id===d.e);if(ev&&ev.status!=='closed'){const to=S.rsvps.filter(r=>r.e===ev.id&&(r.v==='y'||r.v==='m')).map(r=>r.p).filter(id=>getP(id));NT('proposal','❌ Partita annullata',fdate(ev.when)+(ev.place?' · '+ev.place:''),'./?tab=calcio',to)}S.events=S.events.filter(x=>x.id!==d.e);S.rsvps=S.rsvps.filter(r=>r.e!==d.e);save();render()}),
  /* menu */
  
