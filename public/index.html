@@ -1098,7 +1098,7 @@ function matchBody(m){
  <div style="text-align:center;margin-top:6px"><span class="bdg ${c}">${l}</span> <span class="small mut">Forza prevista ${m.predA.toFixed(0)} vs ${m.predB.toFixed(0)}</span></div>${mv&&!(m.awards&&m.awards.mvp)?`<div style="text-align:center;margin-top:8px">⭐ MVP: <b>${esc(mv.name)}</b> (${mr(m,mv.id)})</div>`:''}${aw}</div>
  ${voteBox(m)}
  <h3>Reti e assist</h3>${m.events.length?scoreTable(m.events,m):''}<h3>Azioni salienti</h3>${m.events.length?evCols(m,false):'<div class="mut small">Nessun episodio.</div>'}
- ${mOpen(m)?`<div class="panel small mut" style="margin-top:8px">🗳️ Votazione in corso · voti visibili tra ${hLeft(m)}</div>`:(`<h3>Voti</h3><div class="teams"><div class="panel"><b class="small">${esc(m.A.name)}</b>${rt('A')}</div><div class="panel"><b class="small">${esc(m.B.name)}</b>${rt('B')}</div></div>\``)};
+ ${mOpen(m)?`<div class="panel small mut" style="margin-top:8px">🗳️ Votazione in corso · voti visibili tra ${hLeft(m)}</div>`:(`<h3>Voti</h3><div class="teams"><div class="panel"><b class="small">${esc(m.A.name)}</b>${rt('A')}</div><div class="panel"><b class="small">${esc(m.B.name)}</b>${rt('B')}</div></div>\``)}`;
 }
 
 function viewMatchEdit(){
