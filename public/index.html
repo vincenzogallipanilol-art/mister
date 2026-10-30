@@ -439,7 +439,7 @@ async function initDB(){
  if(!DB){ADM=!window.claude;hideBoot();render();return}
  try{USER=await window.claude.use('user');if(USER){UID=await USER.id();ADM=!!(USER.canEdit()||USER.isOwner())}else ADM=false}catch(e){ADM=false}
  const legacy=ADM&&S.players.length?JSON.parse(JSON.stringify(S)):null;
- let n=0;const first=()=>{if(++n<ALLCOLS.length+2)return;ready=true;setTimeout(beat,800);fbTick();
+ let n=0;const first=()=>{if(++n<ALLCOLS.length+2)return;ready=true;setTimeout(beat,800);fbTick();fixDupNums();
   if(legacy&&!S.players.length&&!S.rosters.length&&!S.matches.length){S.players=legacy.players;S.rosters=legacy.rosters;S.matches=legacy.matches;save();toast('Dati locali caricati online')}
   render();hideBoot()};
  let got={};
@@ -837,7 +837,18 @@ function av(p,sz){return`<div class="av" style="width:${sz}px;height:${sz}px;fon
 const tierOf=o=>o>=90?'t5':o>=85?'t4':o>=75?'t3':o>=65?'t2':'t1';
 const metaOf=p=>[p.age?p.age+' anni':'',p.h?p.h+' cm':'',p.w?p.w+' kg':''].filter(Boolean).join(' · ');
 function ratedByMe(pid){const me=myPid();return !!me&&me!==pid&&S.ratings.some(r=>r.id===pid+'_'+me&&r.r!==r.t&&!r.open)}
-function cardName(n){n=String(n||'').trim();const t=n.split(/\s+/);if(n.length<=11||t.length<2)return n;return t[0]+'.'+t.slice(1).map(x=>x[0].toUpperCase()).join('.')}
+function cardName(n){n=String(n||'').trim();const t=n.split(/\s+/);if(t.length<2)return n;return t[0]+' '+t[1][0].toUpperCase()+'.'}
+/* numeri maglia univoci: se nei dati esistenti ci sono doppioni (storico),
+   tiene il numero a chi è registrato per primo e dà agli altri il primo libero */
+function fixDupNums(){
+ if(!ADM)return;
+ const seen=new Set(),used=new Set();let changed=false;
+ S.players.forEach(p=>{const n=String(p.num||'').trim();if(n)used.add(n)});
+ S.players.forEach(p=>{const n=String(p.num||'').trim();if(!n)return;
+  if(seen.has(n)){let f=1;while(used.has(String(f)))f++;used.add(String(f));p.num=String(f);changed=true}
+  else seen.add(n)});
+ if(changed){save();toast('Numeri maglia doppi corretti')}
+}
 function card(p){
  const f=face(p),o=ovr(p),m=metaOf(p),rl=(p.roles||[]).slice(0,4),nm0=cardName(p.name),L=nm0.length,sz=L>14?' s3':L>10?' s2':'';
  const shp=(c,x)=>`<div class="shp"><u>${x}</u></div>`;
