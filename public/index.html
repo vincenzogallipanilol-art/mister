@@ -814,6 +814,20 @@ function jamPanel(e){
 }
 /* ===== risultati / stats derivate ===== */
 function scoreOf(ev){let a=0,b=0;ev.forEach(e=>{if(e.type==='goal'||e.type==='pen'){e.team==='A'?a++:b++}else if(e.type==='og'){e.team==='A'?b++:a++}});return[a,b]}
+function scoreTable(events,obj){
+ const col=T=>{
+  const pids=(obj[T].played||obj[T].pids||[]);
+  const rows=pids.map(id=>{const p=getP(id);if(!p)return'';
+   const g=events.filter(e=>e.pid===id&&(e.type==='goal'||e.type==='pen')).length;
+   const a=events.filter(e=>e.ass===id).length;
+   const og=events.filter(e=>e.pid===id&&e.type==='og').length;
+   const tags=[g?`⚽ ${g}`:'',a?`🅰️ ${a}`:'',og?`🙈 ${og}`:''].filter(Boolean).join(' ');
+   return`<div class="row sp small" style="padding:3px 0"><span>${esc(p.name)}</span><span class="mut">${tags||'—'}</span></div>`;
+  }).join('');
+  return`<div class="panel"><b class="small mut">${esc(obj[T].name)}</b>${rows}</div>`;
+ };
+ return`<div class="teams">${col('A')}${col('B')}</div>`;
+}
 function pstats(id,from){
  const r={app:0,g:0,a:0,y:0,r:0,ps:0,pm:0,mv:0,w:0,d:0,l:0,cs:0,gc:0,og:0,rt:[]};
  S.matches.forEach(m=>{
@@ -1024,7 +1038,7 @@ function viewLive(){
  return`<div class="panel"><div class="score"><div class="t">${esc(L.A.name)}</div><div class="n">${a} - ${b}</div><div class="t">${esc(L.B.name)}</div></div>
  <div class="row sp" style="margin-top:10px;justify-content:center"><span id="clock" style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums">${fmtClock(elapsed())}</span>${VA()?`<button class="btn sec sm" data-act="clk">${L.since?'Pausa':'Avvia'}</button>`:`<span class="tag">${L.since?'in corso':'in pausa'}</span>`}</div></div>
  ${VA()?`<div class="evgrid">${Object.entries(EVN).map(([k,[i,l]])=>`<button data-act="ev" data-k="${k}"><i>${i}</i>${l}</button>`).join('')}</div>`:''}
- <h3>Cronaca</h3>${L.events.length?L.events.slice().reverse().map(e=>{const p=getP(e.pid),as=e.ass&&getP(e.ass);return`<div class="ev"><span class="m">${e.min}'</span><span>${EVN[e.type][0]}</span><span class="grow"><b>${esc(p?.name)}</b> <span class="mut small">${e.team==='A'?esc(L.A.name):esc(L.B.name)}${evTxt(e)}</span></span>${VA()?`<span class="mut" data-act="evDel" data-id="${e.id}" style="cursor:pointer;padding:4px 8px">✕</span>`:''}</div>`}).join(''):'<div class="mut small">Nessun episodio.</div>'}
+ <h3>Reti e assist</h3>${scoreTable(L.events,L)}<h3>Cronaca</h3>${L.events.length?L.events.slice().reverse().map(e=>{const p=getP(e.pid),as=e.ass&&getP(e.ass);return`<div class="ev"><span class="m">${e.min}'</span><span>${EVN[e.type][0]}</span><span class="grow"><b>${esc(p?.name)}</b> <span class="mut small">${e.team==='A'?esc(L.A.name):esc(L.B.name)}${evTxt(e)}</span></span>${VA()?`<span class="mut" data-act="evDel" data-id="${e.id}" style="cursor:pointer;padding:4px 8px">✕</span>`:''}</div>`}).join(''):'<div class="mut small">Nessun episodio.</div>'}
  ${VA()?`<div class="row" style="margin-top:18px"><button class="btn dan" data-act="abort">Annulla partita</button><button class="btn grow" data-act="endM">🏁 Termina e vota</button></div>`:''}`;
 }
 let EV=null;
@@ -1083,8 +1097,8 @@ function matchBody(m){
  <div class="panel"><div class="small mut" style="text-align:center">${new Date(m.date).toLocaleString('it-IT')} · ${m.format} vs ${m.format}</div><div class="score"><div class="t">${esc(m.A.name)}</div><div class="n">${m.sa} - ${m.sb}</div><div class="t">${esc(m.B.name)}</div></div>
  <div style="text-align:center;margin-top:6px"><span class="bdg ${c}">${l}</span> <span class="small mut">Forza prevista ${m.predA.toFixed(0)} vs ${m.predB.toFixed(0)}</span></div>${mv&&!(m.awards&&m.awards.mvp)?`<div style="text-align:center;margin-top:8px">⭐ MVP: <b>${esc(mv.name)}</b> (${mr(m,mv.id)})</div>`:''}${aw}</div>
  ${voteBox(m)}
- <h3>Azioni salienti</h3>${m.events.length?evCols(m,false):'<div class="mut small">Nessun episodio.</div>'}
- <h3>Voti</h3><div class="teams"><div class="panel"><b class="small">${esc(m.A.name)}</b>${rt('A')}</div><div class="panel"><b class="small">${esc(m.B.name)}</b>${rt('B')}</div></div>`;
+ <h3>Reti e assist</h3>${m.events.length?scoreTable(m.events,m):''}<h3>Azioni salienti</h3>${m.events.length?evCols(m,false):'<div class="mut small">Nessun episodio.</div>'}
+ ${mOpen(m)?`<div class="panel small mut" style="margin-top:8px">🗳️ Votazione in corso · voti visibili tra ${hLeft(m)}</div>`:(`<h3>Voti</h3><div class="teams"><div class="panel"><b class="small">${esc(m.A.name)}</b>${rt('A')}</div><div class="panel"><b class="small">${esc(m.B.name)}</b>${rt('B')}</div></div>\``)};
 }
 
 function viewMatchEdit(){
@@ -1146,14 +1160,37 @@ let MV=null;
 const myVote=(m,me)=>S.mvotes.find(v=>v.id===m.id+'_'+me);
 const hLeft=m=>{const h=Math.max(0,m.vote.until-Date.now())/3600e3;return h>=1?Math.round(h)+' ore':Math.max(1,Math.round(h*60))+' min'};
 function voteModal(mid){
- const m=S.matches.find(x=>x.id===mid),me=myPid();if(!m||!me||!mOpen(m)||!playedIn(m,me))return;
- const ex=myVote(m,me);MV={m:mid,v:Object.assign({},ex?ex.v:{}),aw:Object.assign({},ex&&ex.aw?ex.aw:{})};const V0=JSON.stringify([MV.v,MV.aw]);
- const row=T=>(m[T].played||m[T].pids).filter(id=>id!==me&&getP(id)).map(id=>{const v=MV.v[id]??6;return`<div class="sl" style="grid-template-columns:100px 1fr 38px"><span>${esc(nm(id))}</span><input type="range" min="1" max="10" step="0.5" value="${v}" data-mv="${id}"><b id="mv_${id}">${v}</b></div>`}).join('');
- openModal(`<h2>🗳️ Vota la partita</h2><p class="small mut" style="margin-top:0">${esc(m.A.name)} ${m.sa}-${m.sb} ${esc(m.B.name)} · chiude tra ${hLeft(m)}</p>
- <div class="panel" style="border-color:#f59e0b;font-size:13px">⚠️ Dai il voto alla <b>prestazione in campo</b> (da 1 a 10). <b>Non contare gol, assist, rigori e cartellini</b>: i bonus vengono aggiunti in automatico, altrimenti verrebbero contati due volte.</div>
- ${row('A')?`<h3>${esc(m.A.name)}</h3>${row('A')}`:''}${row('B')?`<h3>${esc(m.B.name)}</h3>${row('B')}`:''}${awBox(m,me)}`,
- `<div class="row"><button class="btn grow" data-act="voteSave">Invia voti</button><button class="btn sec" data-act="closeM">Annulla</button></div>`,
- {save:'voteSave',dirty:()=>!!MV&&JSON.stringify([MV.v,MV.aw])!==V0});
+ const m=S.matches.find(x=>x.id===mid),me=myPid();
+ if(!m||!me||!mOpen(m)||!playedIn(m,me))return;
+ const ex=myVote(m,me);
+ const V0=JSON.stringify([ex?ex.v:{},ex&&ex.aw?ex.aw:{}]);
+ MV={m:mid,v:Object.assign({},ex?ex.v:{}),aw:Object.assign({},ex&&ex.aw?ex.aw:{}),step:0,V0};
+ voteWizRender();
+}
+function voteWizRow(T){
+ const m=S.matches.find(x=>x.id===MV.m),me=myPid();
+ const pids=(m[T].played||m[T].pids).filter(id=>id!==me&&getP(id));
+ if(!pids.length)return'<div class="mut small">Nessun compagno da votare in questa squadra.</div>';
+ return pids.map(id=>{const v=MV.v[id]??6;return`<div class="sl" style="grid-template-columns:110px 1fr 36px"><span>${esc(nm(id))}</span><input type="range" min="1" max="10" step="0.5" value="${v}" data-mv="${id}" oninput="if(MV)MV.v[this.dataset.mv]=+this.value;(document.getElementById('mv_'+this.dataset.mv)||{}).textContent=this.value"><b id="mv_${id}">${v}</b></div>`}).join('');
+}
+function voteWizRender(){
+ const m=S.matches.find(x=>x.id===MV.m),me=myPid();
+ const step=MV.step,tot=3,pct=Math.round((step+1)/tot*100);
+ const prog=`<div class="row sp" style="margin-bottom:10px"><span class="small mut">Passo ${step+1} di ${tot}</span><div style="flex:1;height:3px;background:var(--line);border-radius:2px;margin:0 10px"><div style="width:${pct}%;height:100%;background:var(--ac);border-radius:2px;transition:width .3s"></div></div></div>`;
+ const hdr=`<p class="small mut" style="margin-top:0">${esc(m.A.name)} ${m.sa}-${m.sb} ${esc(m.B.name)} · chiude tra ${hLeft(m)}</p>`;
+ const warn='<div class="panel" style="border-color:#f59e0b;font-size:13px;margin-bottom:12px">⚠️ Vota la <b>prestazione in campo</b> (1-10). <b>Non contare gol e assist</b>: i bonus sono automatici.</div>';
+ let body,foot;
+ if(step===0){
+  body=`<h2>🗳️ ${esc(m.A.name)}</h2>${hdr}${warn}${prog}${voteWizRow('A')}`;
+  foot=`<div class="row"><button class="btn sec" data-act="closeM">Annulla</button><button class="btn grow" data-act="voteWizNext">Avanti →</button></div>`;
+ }else if(step===1){
+  body=`<h2>🗳️ ${esc(m.B.name)}</h2>${hdr}${prog}${voteWizRow('B')}`;
+  foot=`<div class="row"><button class="btn sec" data-act="voteWizPrev">← Indietro</button><button class="btn grow" data-act="voteWizNext">Avanti →</button></div>`;
+ }else{
+  body=`<h2>🏆 Premi</h2>${hdr}${prog}${awBox(m,me)}`;
+  foot=`<div class="row"><button class="btn sec" data-act="voteWizPrev">← Indietro</button><button class="btn grow" data-act="voteSave">✅ Invia voti</button></div>`;
+ }
+ openModal(body,foot,{save:'voteSave',dirty:()=>!!MV&&JSON.stringify([MV.v,MV.aw])!==MV.V0});
 }
 function awBox(m,me){
  const aw=AWARDS.filter(a=>a[3]);if(!aw.length)return'';
@@ -1987,6 +2024,8 @@ const A={
  cmpBack:()=>{S.ui.cmp=null;render();window.scrollTo(0,0)},
  cmpShare:()=>{const C=S.ui.cmp,a=C&&getP(C.a),b=C&&getP(C.b);if(a&&b)shareModal('Condividi confronto',cmpText(a,b))},
  rateReopen:d=>{const r=S.ratings.find(x=>x.id===d.id);if(!r||!VA())return;ASK('Riattivare a <b>'+esc(nm(r.r))+'</b> la valutazione di <b>'+esc(nm(r.t))+'</b>? Il voto attuale resta valido finché ne invia uno nuovo.',()=>{r.open=true;save();NT('rate_request','✍️ Puoi rifare la valutazione','Hai di nuovo accesso alla valutazione di '+nm(r.t),'./?tab=players',[r.r]);closeModal();render();toast('Valutazione riattivata')})},
+ voteWizNext:()=>{if(!MV)return;document.querySelectorAll('[data-mv]').forEach(el=>{MV.v[el.dataset.mv]=+el.value});document.querySelectorAll('[data-mvaw]').forEach(el=>{if(el.value)MV.aw[el.dataset.mvaw]=el.value;else delete MV.aw[el.dataset.mvaw]});MV.step=Math.min(MV.step+1,2);voteWizRender()},
+ voteWizPrev:()=>{if(!MV)return;MV.step=Math.max(MV.step-1,0);voteWizRender()},
  voteOpen:d=>voteModal(d.id),
  voteClose:d=>ASK('Chiudere ora la votazione e pubblicare i voti finali?',()=>{const m=S.matches.find(x=>x.id===d.id);if(!m||!m.vote)return;m.vote.until=Date.now()-1;save();render()}),
  voteSave:()=>{const me=myPid();if(!MV||!me)return;const m=S.matches.find(x=>x.id===MV.m);if(!m||!mOpen(m)){toast('Votazione chiusa');closeModal();return}
