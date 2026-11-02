@@ -517,12 +517,20 @@ const GROUPS=[
 const KEYS=[],LBL={};GROUPS.forEach(g=>g.stats.forEach(s=>{KEYS.push(s[0]);LBL[s[0]]=s[1]}));
 const GKK=['div','han','kic','ref','gpo'];
 const DEF={};KEYS.forEach(k=>DEF[k]=GKK.includes(k)?25:50);
-const VERSION='1.8.0';
+const VERSION='1.9.0';
 /* Cronologia aggiornamenti: aggiungi una voce in cima ad ogni release e aggiorna VERSION sopra.
    Voce = [tipo, testo, soloAdmin?]  ·  tipo: 'new' novità · 'imp' miglioramento · 'bug' correzione.
    Le voci soloAdmin (3° elemento true) NON compaiono mai nelle notifiche né ai giocatori. */
 const CLT={new:['✨','Novità','novità'],imp:['🔧','Miglioramenti','miglioramenti'],bug:['🐞','Correzioni','bug risolti']};
 const CHANGELOG=[
+ {v:'1.9.0',d:'2 nov 2026',items:[
+  ['new','Tabella reti e assist per squadra, in diretta e nei risultati'],
+  ['new','Votazione post-partita a step: prima una squadra, poi l\'altra, poi i premi'],
+  ['imp','I voti dei compagni restano nascosti finché la votazione non chiude (48h)'],
+  ['new','Admin: pulsante per rifiutare/eliminare una richiesta di accesso Google non pertinente'],
+  ['imp','Admin: conferma richiesta prima di scollegare un account Google da un giocatore'],
+  ['bug','Corretto un blocco di caricamento infinito nella pagina risultati']
+ ]},
  {v:'1.8.0',d:'27 ott 2026',items:[
   ['new','Accesso solo con Google per tutti, admin incluso: niente più token da ricordare o perdere'],
   ['imp','Grafica rinnovata: nuova tipografia (titoli e punteggi più leggibili) e palette più coerente in tutta l\'app'],
