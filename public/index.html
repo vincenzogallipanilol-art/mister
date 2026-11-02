@@ -2285,14 +2285,14 @@ Object.assign(A,{
    ${users.length?users.map(u=>`<div class="panel" style="margin-bottom:10px">
     <b>${esc(u.display_name||u.email)}</b>
     <div class="small mut" style="margin-bottom:8px">${esc(u.email)}</div>
-    <div class="row" style="gap:8px">
-     <select class="pgLink grow" data-uid="${u.auth_uid}" style="min-width:0;background:var(--pnl);color:inherit;border:1px solid var(--line);border-radius:10px;padding:10px">
+    <select class="pgLink" data-uid="${u.auth_uid}" style="width:100%;margin-bottom:8px;background:var(--pnl);color:inherit;border:1px solid var(--line);border-radius:10px;padding:10px">
       <option value="">— Scegli giocatore —</option>
       ${players.map(p=>`<option value="${p.id}">${esc(nm(p.id))}</option>`).join('')}
      </select>
-     <button class="btn sm" data-act="linkGoogleUser" data-uid="${u.auth_uid}">Collega</button>
-     <button class="btn dan sm" data-act="rejectGoogleUser" data-uid="${u.auth_uid}">Rifiuta</button>
-    </div></div>`).join(''):'<div class="empty">Nessun utente in attesa.</div>'}
+     <div class="row wrap" style="gap:8px">
+      <button class="btn sm grow" data-act="linkGoogleUser" data-uid="${u.auth_uid}">Collega</button>
+      <button class="btn dan sm grow" data-act="rejectGoogleUser" data-uid="${u.auth_uid}">🗑 Rifiuta richiesta</button>
+     </div></div>`).join(''):'<div class="empty">Nessun utente in attesa.</div>'}
    <div class="row" style="margin-top:12px"><button class="btn sec grow" data-act="menu">← Impostazioni</button></div>`);
   }catch(e){
    openModal(`<h2>👥 Utenti Google</h2><p class="small mut">Errore: ${esc(e.message)}</p><div class="row"><button class="btn sec grow" data-act="menu">← Impostazioni</button></div>`);
