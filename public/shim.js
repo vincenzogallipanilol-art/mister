@@ -162,6 +162,12 @@ window.MisterGoogleAdmin={
   const {data,error}=await sb.rpc('unlink_google_user',{p_auth_uid:authUid});
   if(error)throw new Error(error.message);
   return data;
+ },
+ async reject(authUid){
+  if(!ME||ME.role!=='admin')throw new Error('non autorizzato');
+  const {data,error}=await sb.rpc('reject_pending_google_user',{p_auth_uid:authUid});
+  if(error)throw new Error(error.message);
+  return data;
  }
 };
 
