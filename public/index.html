@@ -2005,13 +2005,10 @@ const A={
  phLater:()=>{try{localStorage.setItem('mister_ph_later',String(Date.now()))}catch(e){}closeModal()},
  myPhoto:()=>photoModal(false),
  claimSkip:()=>{try{localStorage.setItem('mister_noclaim','1')}catch(e){}closeModal()},
- unlink:async d=>{
-  // rimuove il link locale (presenza) E lo scollega sul server (google_users/profiles),
-  // altrimenti al prossimo accesso dell'utente il link viene ricreato da solo e la
-  // "presenza" torna a mostrare un account già scollegato come se fosse ancora valido
+ unlink:d=>ASK('Scollegare questo account Google dal giocatore? Al prossimo accesso l\'utente dovrà essere ricollegato dall\'admin (anche con un\'altra email).',async()=>{
   S.links=S.links.filter(l=>l.id!==d.id);save();render();
   try{if(window.MisterGoogleAdmin)await window.MisterGoogleAdmin.unlink(d.id)}catch(e){toast('Scollegato qui, ma errore server: '+e.message)}
- },
+ }),
  /* valutazioni */
  rateP:d=>{if(!myPid()){if(ADM)claimModal();else toast('Profilo non collegato: chiedi all\'admin');return}if(ratedByMe(d.id)){toast('Hai già valutato: chiedi all\'admin di riattivarla');return}rateModal(d.id)},
  rateStep:d=>{if(!RT)return;const p=getP(RT.t),k=d.k,cur=RT.touched[k]!=null?RT.touched[k]:(RT.s[k]??sv(p,k)),nv=Math.min(99,Math.max(1,cur+(+d.d)));RT.touched[k]=nv;const el=$('#rgv_'+k);if(el){el.textContent=nv;el.classList.add('touched')}rtUpd()},
@@ -2294,6 +2291,7 @@ Object.assign(A,{
       ${players.map(p=>`<option value="${p.id}">${esc(nm(p.id))}</option>`).join('')}
      </select>
      <button class="btn sm" data-act="linkGoogleUser" data-uid="${u.auth_uid}">Collega</button>
+     <button class="btn dan sm" data-act="rejectGoogleUser" data-uid="${u.auth_uid}">Rifiuta</button>
     </div></div>`).join(''):'<div class="empty">Nessun utente in attesa.</div>'}
    <div class="row" style="margin-top:12px"><button class="btn sec grow" data-act="menu">← Impostazioni</button></div>`);
   }catch(e){
@@ -2314,6 +2312,13 @@ Object.assign(A,{
    if(btn){btn.textContent='Collega';btn.disabled=false}
   }
  },
+ rejectGoogleUser:d=>ASK('Rifiutare ed eliminare questa richiesta di accesso? Se la persona vuole entrare dovrà ripetere il login (anche con la stessa email).',async()=>{
+  try{
+   await window.MisterGoogleAdmin.reject(d.uid);
+   toast('Richiesta eliminata ✓');
+   A.googleUsersPanel();
+  }catch(e){toast('Errore: '+e.message)}
+ }),
  cfgOpen:()=>{if(!ADM)return;CF={b:Object.assign({},cfgB()),aw:AWARDS.map(a=>({k:a[0],i:a[1],l:a[2],on:a[3]}))};cfgModal()},
  cfgAw:()=>{cfgSync();CF.aw.push({k:'x'+uid(),i:'🏅',l:'Nuovo premio',on:1});cfgModal()},
  cfgReset:()=>{CF={b:Object.assign({},CFGD.bonus),aw:CFGD.awards.map(a=>Object.assign({},a))};cfgModal()},
